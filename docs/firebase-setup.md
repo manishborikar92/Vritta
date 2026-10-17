@@ -16,8 +16,8 @@ Vritta uses a dual Firebase architecture with strict boundaries between client e
    - Strictly governed by Cloud Firestore Security Rules (`web/firestore.rules`).
 2. **Server-Side & Admin CLI (Firebase Admin SDK v14):**
    - Configured in `web/src/lib/server/firebase-admin.js` via server-only credentials (`FIREBASE_SERVICE_ACCOUNT_KEY` or `GOOGLE_APPLICATION_CREDENTIALS`).
-   - Executes in the administrative CLI script (`scripts/fetch-personal-schedule.mjs`, run via `npm run schedule:fetch-personal`) to perform direct synchronization of personalized routines directly to the `/habits` collection in Cloud Firestore.
-   - Bypasses client security rules with least-privilege credentials, strictly scoped to the designated administrator account.
+   - Executes in the administrative CLI scripts (`scripts/seed-schedule-templates.mjs`, `scripts/backup-personal-plan.mjs`, `scripts/restore-personal-plan.mjs`) to seed shared schedule templates and manage plan backups.
+   - Bypasses client security rules with least-privilege credentials, strictly scoped to authorized administration and isolated collections.
 
 ```mermaid
 flowchart TD
@@ -115,43 +115,30 @@ GOOGLE_APPLICATION_CREDENTIALS="C:/Users/<username>/.credentials/vritta-firebase
 ### Step 3.3: Environment Variable Loading Mechanics
 
 - **Next.js Server (`npm --prefix web run dev`):** Next.js automatically loads `web/.env.local` at startup into `process.env`.
-- **Standalone Administrative CLI (`scripts/fetch-personal-schedule.mjs`):** Standalone Node.js scripts executed outside Next.js parse `web/.env.local` explicitly at startup before dynamically importing Firebase Admin modules. This ensures identical behavior whether run from root or via `npm --prefix web run schedule:fetch-personal`.
+- **Standalone Administrative CLI (`scripts/seed-schedule-templates.mjs`):** Standalone Node.js scripts executed outside Next.js parse `web/.env.local` explicitly at startup before dynamically importing Firebase Admin modules. This ensures identical behavior whether run from root or via `npm --prefix web run templates:seed`.
 
 ---
 
 ### Step 3.4: Running and Verifying Operations
 
-#### 1. Verifying Administrative Schedule Synchronization
-Run the administrative CLI tool to synchronize personalized routines to Firestore:
+#### 1. Verifying Administrative Schedule Templates Bootstrap
+Run the administrative CLI tool to seed authoritative schedule templates into Firestore:
 ```bash
-npm --prefix web run schedule:fetch-personal
+npm --prefix web run templates:seed -- --apply
 ```
 
 **Expected Successful Output:**
 ```
 ======================================================
- Vritta: Personalized Schedule Synchronization (CLI) 
+ Vritta: Shared Schedule Templates Bootstrap (CLI)   
 ======================================================
+Mode: APPLY (live Firestore writes authorized)
 
-[Target Account] user@example.com
-[Auth] Resolving user account via Firebase Admin SDK...
-[Success] Verified user: User Name (UID: <userId>)
-
-[Sync] Synchronizing 6 personalized routines to Cloud Firestore...
-
-[Complete] Successfully synchronized 6 routines:
-  ✓ Practice English Workbook      [English Learning] (ID: <userId>_canonical_english_workbook)
-  ✓ Exercise / Movement Plan       [Movement & Strength] (ID: <userId>_canonical_exercise_plan)
-  ✓ Listen to Osho                 [Listening & Awareness] (ID: <userId>_canonical_listen_osho)
-  ✓ Read Books                     [Reading] (ID: <userId>_canonical_read_books)
-  ✓ Practice English Speaking      [Communication] (ID: <userId>_canonical_english_speaking)
-  ✓ Maintain a Diary               [Reflection] (ID: <userId>_canonical_maintain_diary)
-
-[Integrity Guarantees Applied]
-  • User customizations preserved (custom times, notes, frequencies)
-  • Routine stable keys isolated from generic foundation routines
-  • Custom user habits preserved
-  • Daily completion history and streak logs (/dailyLogs) unmodified
+[Validation] Checking 8 templates against schema contracts...
+  ✓ template_morning_hydration: valid
+  ✓ template_daily_movement: valid
+  ✓ template_deep_reading: valid
+  ...
 ```
 
 #### 2. Verifying the Web Application

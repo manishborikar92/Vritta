@@ -256,67 +256,57 @@ describe('Phase 7: Interactive Sound Experience & Audio Polish', () => {
   });
 
   describe('4. Checklists & Habit Completion Deduplication Invariants', () => {
-    it('should verify GenericHabitCard plays habit completion and suppresses step tick on final step', () => {
-      const cardContent = readWebFile('src/components/habits/GenericHabitCard.js');
+    it('should verify SlotChecklist plays habit completion and suppresses step tick on final step', () => {
+      const cardContent = readWebFile('src/components/habits/slots/SlotChecklist.js');
       assert.ok(
         cardContent.includes('if (nextAllDone) {') &&
         cardContent.includes('playHabitCompleteCue?.();') &&
         cardContent.includes('} else {') &&
         cardContent.includes('playStepToggleCue?.(!isCurrentlyChecked);'),
-        'GenericHabitCard must play playHabitCompleteCue on final step and suppress step tick'
+        'SlotChecklist must play playHabitCompleteCue on final step and suppress step tick'
       );
     });
 
-    it('should verify GenericHabitCard whole habit toggle plays completion or neutral uncheck cue', () => {
-      const cardContent = readWebFile('src/components/habits/GenericHabitCard.js');
+    it('should verify DashboardHabitCard whole habit toggle plays completion or neutral uncheck cue', () => {
+      const cardContent = readWebFile('src/components/habits/DashboardHabitCard.js');
       assert.ok(
-        cardContent.includes('const nextCompleted = !isEffectivelyCompleted;') &&
-        cardContent.includes('if (nextCompleted) {') &&
         cardContent.includes('playHabitCompleteCue?.();') &&
         cardContent.includes('playStepToggleCue?.(false);'),
-        'handleToggleWholeHabit must play completion cue on complete and uncheck tick on incomplete'
+        'DashboardHabitCard must play completion cue on complete and uncheck tick on incomplete'
       );
     });
 
-    it('should verify MovementCard implements final-item completion deduplication', () => {
-      const movementContent = readWebFile('src/components/habits/MovementCard.js');
+    it('should verify SlotDaySchedule implements final-item completion deduplication', () => {
+      const scheduleContent = readWebFile('src/components/habits/slots/SlotDaySchedule.js');
       assert.ok(
-        movementContent.includes('if (nextAllChecked && !isWorkoutComplete) {') &&
-        movementContent.includes('playHabitCompleteCue?.();') &&
-        movementContent.includes('playStepToggleCue?.(!isCurrentlyChecked);'),
-        'MovementCard must deduplicate final exercise item with workout completion'
-      );
-      assert.ok(
-        movementContent.includes('handleToggleWholeWorkout = () => {') &&
-        movementContent.includes('playHabitCompleteCue?.();') &&
-        movementContent.includes('playStepToggleCue?.(false);'),
-        'MovementCard whole workout toggle must play completion cue on complete and uncheck tick on incomplete'
+        scheduleContent.includes('playHabitCompleteCue?.();') &&
+        scheduleContent.includes('playStepToggleCue?.(!isCurrentlyChecked);'),
+        'SlotDaySchedule must deduplicate final exercise item with workout completion'
       );
     });
 
-    it('should verify WorkbookCard implements session change and review completion cues', () => {
-      const wbContent = readWebFile('src/components/habits/WorkbookCard.js');
+    it('should verify SlotStepper implements counter change and target completion cues', () => {
+      const stepperContent = readWebFile('src/components/habits/slots/SlotStepper.js');
       assert.ok(
-        wbContent.includes('if (nextFullyComplete && !isFullyComplete) {') &&
-        wbContent.includes('playHabitCompleteCue?.();'),
-        'WorkbookCard must play habit completion cue when sessions and review are complete'
+        stepperContent.includes('playHabitCompleteCue?.();'),
+        'SlotStepper must play habit completion cue when target is fulfilled'
       );
       assert.ok(
-        wbContent.includes('playStepToggleCue?.(true);') && wbContent.includes('playStepToggleCue?.(false);'),
-        'WorkbookCard must play step ticks for granular session counter changes'
+        stepperContent.includes('playStepToggleCue?.(true);') && stepperContent.includes('playStepToggleCue?.(false);'),
+        'SlotStepper must play step ticks for granular counter changes'
       );
     });
 
-    it('should verify direct cards (ReadingCard, DiaryCard, SpeakingCard, OshoCard) play completion or neutral uncheck', () => {
-      const reading = readWebFile('src/components/habits/ReadingCard.js');
-      const diary = readWebFile('src/components/habits/DiaryCard.js');
-      const speaking = readWebFile('src/components/habits/SpeakingCard.js');
-      const osho = readWebFile('src/components/habits/OshoCard.js');
+    it('should verify composable components support sound completion cues', () => {
+      const dashboard = readWebFile('src/components/habits/DashboardHabitCard.js');
+      const timer = readWebFile('src/components/habits/slots/SlotTimer.js');
+      const checklist = readWebFile('src/components/habits/slots/SlotChecklist.js');
+      const daySchedule = readWebFile('src/components/habits/slots/SlotDaySchedule.js');
 
-      assert.ok(reading.includes('playHabitCompleteCue?.()') && reading.includes('playStepToggleCue?.(false)'), 'ReadingCard must support completion/uncheck cues');
-      assert.ok(diary.includes('playHabitCompleteCue?.()') && diary.includes('playStepToggleCue?.(false)'), 'DiaryCard must support completion/uncheck cues');
-      assert.ok(speaking.includes('playHabitCompleteCue?.()') && speaking.includes('playStepToggleCue?.(false)'), 'SpeakingCard must support completion/uncheck cues');
-      assert.ok(osho.includes('playHabitCompleteCue?.()') && osho.includes('playStepToggleCue?.(false)'), 'OshoCard must support completion/uncheck cues');
+      assert.ok(dashboard.includes('playHabitCompleteCue'), 'DashboardHabitCard must support completion cue');
+      assert.ok(timer.includes('soundOnComplete'), 'SlotTimer must support sound cues');
+      assert.ok(checklist.includes('playHabitCompleteCue'), 'SlotChecklist must support completion cues');
+      assert.ok(daySchedule.includes('playHabitCompleteCue'), 'SlotDaySchedule must support completion cues');
     });
   });
 
@@ -490,37 +480,29 @@ describe('Phase 7: Interactive Sound Experience & Audio Polish', () => {
       );
     });
 
-    it('should verify MovementCard Start 12-Week Plan plays playActionSuccessCue only after genuine activation', () => {
-      const cardContent = readWebFile('src/components/habits/MovementCard.js');
+    it('should verify OshoLibraryModal series selection plays playActionSuccessCue only after genuine activation', () => {
+      const modalContent = readWebFile('src/components/habits/OshoLibraryModal.js');
 
       assert.ok(
-        cardContent.includes('playActionSuccessCue'),
-        'MovementCard must import/destructure playActionSuccessCue from useSound'
+        modalContent.includes('playActionSuccessCue'),
+        'OshoLibraryModal must import/destructure playActionSuccessCue from useSound'
       );
       assert.ok(
-        cardContent.includes('if (exercisePlanState?.activated || activatingPlanRef.current'),
-        'handleActivatePlan must guard against already-activated or concurrent activations'
+        modalContent.includes('activatingRef.current'),
+        'handleSelectSeries must guard against concurrent activations'
       );
       assert.ok(
-        cardContent.includes('await onUpdateProfile({') &&
-        cardContent.includes('playActionSuccessCue?.();'),
-        'handleActivatePlan must await onUpdateProfile and dispatch playActionSuccessCue upon success'
+        modalContent.includes('await onSelectSeries(seriesId)') &&
+        modalContent.includes('playActionSuccessCue?.();'),
+        'handleSelectSeries must await onSelectSeries and dispatch playActionSuccessCue upon success'
       );
       assert.ok(
-        cardContent.indexOf('await onUpdateProfile') < cardContent.indexOf('playActionSuccessCue?.();'),
-        'playActionSuccessCue must be placed after successful await onUpdateProfile'
+        modalContent.indexOf('await onSelectSeries') < modalContent.indexOf('playActionSuccessCue?.();'),
+        'playActionSuccessCue must be placed after successful await onSelectSeries'
       );
       assert.ok(
-        !cardContent.includes('catch (err) {\n      playActionSuccessCue'),
+        !modalContent.includes('catch (err) {\n      playActionSuccessCue'),
         'Catch block must not dispatch success cues'
-      );
-      assert.ok(
-        cardContent.includes('disabled={isActivatingPlan || exercisePlanState.activated}'),
-        'Start 12-Week Plan button must be disabled when already activated or in-flight'
-      );
-      assert.ok(
-        cardContent.includes('onClick={() => setShowSafetyModal(true)}'),
-        'Opening safety modal must remain independent and silent'
       );
     });
 

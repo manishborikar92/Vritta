@@ -8,8 +8,8 @@ import {
     updateHabitDoc,
     deleteHabitDoc,
     seedHabitsForUser,
+    fetchScheduleTemplates,
 } from '@/lib/firebase/firestore';
-import { DEFAULT_ROUTINES } from '@/lib/seed-data';
 import { getDayOfWeek, sortHabitsByTiming } from '@/utils/date-helpers';
 
 /**
@@ -62,7 +62,7 @@ export function useHabits(user) {
     // Today's habits filtered by active day of week (or everyday if frequency not set)
     const todaysHabits = useMemo(() => {
         return habits.filter(habit => {
-            if (!habit.frequency || habit.frequency.length === 0) return true;
+            if (!habit.frequency || habit.frequency === 'daily' || !Array.isArray(habit.frequency) || habit.frequency.length === 0) return true;
             return habit.frequency.includes(dayOfWeek);
         });
     }, [habits, dayOfWeek]);
@@ -86,9 +86,14 @@ export function useHabits(user) {
     }, [user]);
 
     // Seed or update foundation habits (idempotent, safe to rerun anytime)
-    const seedHabits = useCallback(async (seedData = DEFAULT_ROUTINES) => {
+    const seedHabits = useCallback(async (seedData) => {
         if (!user) return;
-        return seedHabitsForUser(user.uid, seedData);
+        let dataToSeed = seedData;
+        if (!dataToSeed || !Array.isArray(dataToSeed) || dataToSeed.length === 0) {
+            const templates = await fetchScheduleTemplates();
+            dataToSeed = templates.filter(t => t.metadata?.isFoundation);
+        }
+        return seedHabitsForUser(user.uid, dataToSeed);
     }, [user]);
 
     return {

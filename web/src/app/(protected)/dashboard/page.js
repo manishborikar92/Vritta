@@ -4,18 +4,13 @@ import { useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useData } from '@/contexts/DataContext';
 import {
-  WorkbookCard,
-  MovementCard,
-  OshoCard,
-  ReadingCard,
-  SpeakingCard,
-  DiaryCard,
-  GenericHabitCard,
+  DashboardHabitCard,
   TodayRhythmBanner,
 } from '@/components/habits';
 import { DashboardSkeleton } from '@/components/ui';
 import { BRAND } from '@/lib/constants/brand';
 import { Compass } from 'lucide-react';
+import { getTodayString } from '@/utils/date-helpers';
 
 const EMPTY_PROGRESS = Object.freeze({});
 
@@ -111,121 +106,23 @@ export default function DashboardPage() {
     return { morning, afternoon, evening, beforeBed, flexible };
   }, [todaysHabits]);
 
-  // Helper to render the appropriate activity-specific card
-  // Strictly relies on explicit stableKey and seedOrigin identifiers — NEVER on title substring matching.
+  // Universal Habit Card Renderer (Phase 3 Unified Habit Card Architecture)
+  // Replaces disparate specialized branches with universal feature-driven DashboardHabitCard.
   const renderHabitCard = useCallback((habit) => {
     const isCompleted = todayLog.includes(habit.id);
     const progress = todayProgress[habit.id] || EMPTY_PROGRESS;
 
-    const key = habit.stableKey || habit.id || '';
-    const method = habit.completionMethod || '';
-    const isPersonalPreset = habit.seedOrigin === 'personal_preset';
-    const isMatchingCanonical = (targetKey) =>
-      key === targetKey || habit.stableKey === targetKey || String(habit.id || '').endsWith(`_${targetKey}`);
-
-    // 1. Specialized Workbook Card (Word Power Made Easy 2-session tracker)
-    if (isMatchingCanonical('canonical_english_workbook') || (isPersonalPreset && method === 'workbook_sessions')) {
-      return (
-        <WorkbookCard
-          key={habit.id}
-          habit={habit}
-          isCompleted={isCompleted}
-          progress={progress}
-          onUpdateProgress={updateProgress}
-        />
-      );
-    }
-
-    // 2. Specialized Exercise / Movement Card (12-week movement & workout plan)
-    if (isMatchingCanonical('canonical_exercise_plan') || (isPersonalPreset && method === 'exercise_plan')) {
-      return (
-        <MovementCard
-          key={habit.id}
-          habit={habit}
-          isCompleted={isCompleted}
-          progress={progress}
-          onUpdateProgress={updateProgress}
-          userProfile={userProfile}
-          onUpdateProfile={updateProfile}
-        />
-      );
-    }
-
-    // 3. Specialized Listen to Osho Card (30-discourse audio library catalog)
-    if (isMatchingCanonical('canonical_listen_osho') || (isPersonalPreset && method === 'osho_listening')) {
-      return (
-        <OshoCard
-          key={habit.id}
-          habit={habit}
-          isCompleted={isCompleted}
-          progress={progress}
-          onToggle={toggleHabit}
-          onUpdateProgress={updateProgress}
-          userProfile={userProfile}
-          onUpdateProfile={updateProfile}
-        />
-      );
-    }
-
-    // 4. Specialized Read Books Card (reading duration timer)
-    if (
-      isMatchingCanonical('canonical_read_books') ||
-      (isPersonalPreset && method === 'reading_duration') ||
-      method === 'reading_duration'
-    ) {
-      return (
-        <ReadingCard
-          key={habit.id}
-          habit={habit}
-          isCompleted={isCompleted}
-          progress={progress}
-          onToggle={toggleHabit}
-          onUpdateProgress={updateProgress}
-        />
-      );
-    }
-
-    // 5. Specialized Practice English Speaking Card (conversational practice with autosave notes)
-    if (isMatchingCanonical('canonical_english_speaking') || (isPersonalPreset && method === 'simple_with_notes')) {
-      return (
-        <SpeakingCard
-          key={habit.id}
-          habit={habit}
-          isCompleted={isCompleted}
-          progress={progress}
-          onToggle={toggleHabit}
-          onUpdateProgress={updateProgress}
-        />
-      );
-    }
-
-    // 6. Reflection & Diary Card (canonical diary, foundation reflection, or any diary_entry)
-    if (
-      isMatchingCanonical('canonical_maintain_diary') ||
-      isMatchingCanonical('routine_daily_reflection') ||
-      method === 'diary_entry'
-    ) {
-      return (
-        <DiaryCard
-          key={habit.id}
-          habit={habit}
-          isCompleted={isCompleted}
-          progress={progress}
-          onToggle={toggleHabit}
-          onUpdateProgress={updateProgress}
-        />
-      );
-    }
-
-    // Fallback: Generic Habit Card for all custom habits (including those titled "Exercise", "Workbook", "Reading", etc.)
     return (
-      <GenericHabitCard
+      <DashboardHabitCard
         key={habit.id}
         habit={habit}
         isCompleted={isCompleted}
         progress={progress}
         onToggle={toggleHabit}
         onUpdateProgress={updateProgress}
+        userProfile={userProfile}
+        onUpdateProfile={updateProfile}
+        date={getTodayString()}
       />
     );
   }, [todayLog, todayProgress, userProfile, updateProgress, toggleHabit, updateProfile]);

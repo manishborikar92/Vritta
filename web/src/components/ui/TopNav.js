@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { BRAND } from '@/lib/constants/brand';
+import { formatDate } from '@/utils/date-helpers';
 import { useScrolled } from '@/hooks/useScrolled';
 import { cn } from '@/lib/utils/cn';
 import Logo from './Logo';
@@ -18,7 +19,7 @@ import ThemeToggle from './ThemeToggle';
  * - Profile menu trigger defines accessible aria-label="Profile menu" with comfortable p-1 sm:p-1.5 touch padding
  * - ChevronDown indicator is hidden on mobile viewports (hidden sm:block)
  */
-export default function TopNav({ title, subtitle }) {
+export default function TopNav() {
   const { user } = useAuth();
   const scrolled = useScrolled();
   // Profile menu & sign out dialog flow (setShowProfileMenu / setShowLogoutModal / ConfirmDialog)
@@ -26,8 +27,8 @@ export default function TopNav({ title, subtitle }) {
   const signOutOpen = showLogoutModal;
   const setSignOutOpen = setShowLogoutModal;
 
-  const displayTitle = title || BRAND.name;
-  const showBrandBadge = Boolean(title) && title !== BRAND.name;
+  const displayTitle = BRAND.name;
+  const subtitle = formatDate();
 
   return (
     <>
@@ -38,9 +39,9 @@ export default function TopNav({ title, subtitle }) {
           scrolled ? 'border-subtle shadow-xs' : 'border-transparent'
         )}
       >
-        <div className="mx-auto flex min-h-14 max-w-2xl items-center justify-between gap-3 px-4 sm:min-h-16">
+        <div className="mx-auto flex min-h-15 max-w-2xl items-center justify-between gap-3 px-4 sm:min-h-16">
           <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
-            <div className="flex flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 size-8 sm:size-9 items-center justify-center rounded-xl border border-subtle bg-surface p-1 shadow-2xs sm:p-1.5">
+            <div className="flex flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 size-9 sm:size-10 items-center justify-center rounded-xl border border-subtle bg-surface p-1 shadow-2xs sm:p-1.5">
               <Logo className="size-full" />
             </div>
 
@@ -49,11 +50,6 @@ export default function TopNav({ title, subtitle }) {
                 <h1 className="text-base sm:text-lg lg:text-xl font-bold text-main truncate leading-tight tracking-tight">
                   {displayTitle}
                 </h1>
-                {showBrandBadge && (
-                  <span className="hidden shrink-0 rounded-full border border-subtle bg-accent-subtle/40 px-2 py-0.5 text-2xs font-semibold text-accent sm:inline-block">
-                    {BRAND.name}
-                  </span>
-                )}
               </div>
               {subtitle && (
                 <p className="text-2xs sm:text-xs text-sub mt-0.5 truncate leading-tight font-medium">

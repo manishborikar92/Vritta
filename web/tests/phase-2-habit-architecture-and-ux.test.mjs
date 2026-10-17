@@ -4,8 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getTimingSortWeight, sortHabitsByTiming } from '../src/utils/date-helpers.js';
-import { MANISH_PERSONAL_ROUTINES } from '../src/lib/server/personal-schedule.js';
-import { DEFAULT_ROUTINES } from '../src/lib/seed-data.js';
+import { MANISH_PERSONAL_ROUTINES, DEFAULT_ROUTINES } from '../src/lib/server/schedule-templates.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,7 +17,7 @@ function readWebFile(relativePath) {
 
 describe('Phase 2: Habit Architecture & UX Simplification', () => {
   const habitModalPath = 'src/components/habits/HabitModal.js';
-  const routineCardPath = 'src/components/habits/RoutineCard.js';
+  const routineCardPath = 'src/components/habits/HabitManagerCard.js';
   const dashboardPath = 'src/app/(protected)/dashboard/page.js';
   const useHabitsPath = 'src/hooks/use-habits.js';
   const dateHelpersPath = 'src/utils/date-helpers.js';
@@ -57,7 +56,7 @@ describe('Phase 2: Habit Architecture & UX Simplification', () => {
     });
 
     it('should verify card dispatch strictly uses canonical stableKey or personal preset origin', () => {
-      const content = readWebFile(dashboardPath);
+      const content = readWebFile('src/components/habits/DashboardHabitCard.js') + readWebFile(dashboardPath);
       assert.ok(
         content.includes("canonical_english_workbook"),
         'Must dispatch workbook card on canonical key'
@@ -135,24 +134,31 @@ describe('Phase 2: Habit Architecture & UX Simplification', () => {
     });
   });
 
-  describe('3. Completion Style & Habit Mode Redesign', () => {
-    it('should verify HabitModal uses friendly "How to Complete" instead of technical jargon', () => {
+  describe('3. Features Architecture Replacing How to Complete', () => {
+    it('should verify HabitModal completely eliminates "How to Complete" from the UI and exposes Features', () => {
       const content = readWebFile(habitModalPath);
       assert.ok(
-        content.includes('How to Complete'),
-        'HabitModal must render user-friendly "How to Complete" section'
+        !content.includes('How to Complete'),
+        'HabitModal must completely eliminate "How to Complete" label and section from the UI'
       );
       assert.ok(
         !content.includes('Tracking / Completion Method'),
         'HabitModal must eliminate confusing "Tracking / Completion Method" label'
       );
+      assert.ok(
+        content.includes('Features ('),
+        'HabitModal must render cohesive "Features" navigation tab'
+      );
     });
 
-    it('should expose genuinely functional generic completion styles for user habits', () => {
+    it('should expose the six approved composable feature slots in HabitModal', () => {
       const content = readWebFile(habitModalPath);
-      assert.ok(content.includes('Standard Check-off'), 'Must offer Standard Check-off');
-      assert.ok(content.includes('Step-by-Step Checklist'), 'Must offer Step-by-Step Checklist');
-      assert.ok(content.includes('Reflection & Notes'), 'Must offer Reflection & Notes');
+      assert.ok(content.includes('Counter Stepper'), 'Must offer Counter Stepper slot');
+      assert.ok(content.includes('Duration Timer'), 'Must offer Duration Timer slot');
+      assert.ok(content.includes('Step-by-Step Checklist'), 'Must offer Step-by-Step Checklist slot');
+      assert.ok(content.includes('Notes & Reflection'), 'Must offer Notes & Reflection slot');
+      assert.ok(content.includes('Multi-Item Catalog'), 'Must offer Multi-Item Catalog slot');
+      assert.ok(content.includes('Progressive Day Schedule'), 'Must offer Progressive Day Schedule slot');
     });
 
     it('should preserve specialized completion methods when editing canonical routines', () => {

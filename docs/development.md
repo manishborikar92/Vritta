@@ -80,7 +80,9 @@ All package scripts are run from the `web/` directory (or from the project root 
 | `npm run start` | `next start` | Runs the compiled production build locally for verification. |
 | `npm run lint` | `eslint` | Runs ESLint using the Next.js 16 flat configuration. |
 | `npm run test` | `node --test tests/**/*.test.mjs` | Executes the complete automated test suite using the Node.js test runner. |
-| `npm run schedule:fetch-personal` | `node ../scripts/fetch-personal-schedule.mjs` | Runs the administrative CLI to synchronize personalized routines. |
+| `npm run templates:seed` | `node ../scripts/seed-schedule-templates.mjs` | Seeds authoritative schedule templates into Firestore. |
+| `npm run plan:backup` | `node ../scripts/backup-personal-plan.mjs` | Creates an atomic JSON backup of user plan data. |
+| `npm run plan:restore` | `node ../scripts/restore-personal-plan.mjs` | Restores user plan data with safety checks. |
 
 ---
 

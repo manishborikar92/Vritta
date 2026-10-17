@@ -28,9 +28,9 @@ flowchart TD
     end
 
     subgraph Administrative CLI
-        AdminScript["CLI: fetch-personal-schedule.mjs<br/>(npm run schedule:fetch-personal)"]
+        AdminScript["CLI: seed-schedule-templates.mjs<br/>(npm run templates:seed)"]
         AdminSDK["Firebase Admin SDK v14<br/>(Service Account Authentication)"]
-        ServerSchedule["Server-Only Personal Schedule<br/>(Quarantined Proprietary Routines)"]
+        ServerSchedule["Server-Only Schedule Templates<br/>(web/src/lib/server/schedule-templates.js)"]
     end
 
     NextApp --> ThemeStore
@@ -56,7 +56,9 @@ The codebase enforces strict separation of concerns across presentation, domain 
 root/
 ├── docs/                 # Authoritative project documentation
 ├── scripts/              # Administrative Node.js maintenance scripts
-│   └── fetch-personal-schedule.mjs  # CLI schedule synchronization tool
+│   ├── seed-schedule-templates.mjs  # CLI schedule templates seed tool
+│   ├── backup-personal-plan.mjs     # Disaster-recovery backup tool
+│   └── restore-personal-plan.mjs    # Disaster-recovery restore tool
 └── web/                  # Next.js web application package
     ├── public/           # Static PWA assets, icons, and web manifest
     ├── tests/            # Automated Node.js unit and integration test suites
@@ -142,13 +144,12 @@ The theme architecture is strictly binary: **Light** or **Dark**. The legacy "Sy
 
 Vritta enforces a strict architectural boundary between universal foundation routines and proprietary personalized routines:
 
-### 5.1 Foundation Routines vs. Server-Quarantined Routines
-1. **Foundation Routines (`web/src/lib/seed-data.js`):**
-   Public, generic routines bundled with the client application. Available to any new authenticated user via the in-app "Sync Foundation Routines" flow.
-2. **Personalized Routines (`web/src/lib/server/personal-schedule.js`):**
-   Proprietary routines (e.g., Word Power Made Easy workbook, 12-Week Progressive Movement plan, 30-discourse Osho catalog).
-   - **Quarantine Guarantee:** Quarantined in `web/src/lib/server/`. Never imported into client bundles. Client bundles remain 100% leak-free.
-   - **Synchronization Channel:** Exclusively synchronized via the administrative CLI tool (`scripts/fetch-personal-schedule.mjs`) using the Firebase Admin SDK.
+### 5.1 Consolidated Schedule Templates Catalog
+All reusable schedule blueprints, foundation wellness routines, and discipline plans are consolidated into:
+- **Authoritative Catalog (`web/src/lib/server/schedule-templates.js`):**
+  Strictly server-side module defining reusable templates with stable IDs, general-purpose categories, and atomic feature slots.
+- **Seeding Pipeline (`scripts/seed-schedule-templates.mjs`):**
+  Seeds shared templates into the `/scheduleTemplates` Firestore collection without touching user-owned documents or private logs. User routine documents are stored separately under `/habits`.
 
 ### 5.2 Routine Subsystems & Interactive Cards
 Each routine type maps 1:1 to an interactive card component on `/dashboard`:

@@ -1,7 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_ROUTINES } from '../src/lib/seed-data.js';
-import { MANISH_PERSONAL_ROUTINES } from '../src/lib/server/personal-schedule.js';
+import { DEFAULT_ROUTINES, MANISH_PERSONAL_ROUTINES } from '../src/lib/server/schedule-templates.js';
 
 describe('Schedule Isolation & Boundary Integrity', () => {
   it('should define exactly 6 client-safe foundation routines in DEFAULT_ROUTINES', () => {
@@ -203,6 +202,9 @@ describe('Phase 5 Architecture Simplification, Dead Code Removal & Quarantine', 
     const removedPaths = [
       path.join(srcDir, 'components/habits/PresetSelectorModal.js'),
       path.join(srcDir, 'app/api/schedule'),
+      path.join(srcDir, 'lib/server/personal-schedule.js'),
+      path.join(srcDir, 'lib/server/sync-service.js'),
+      path.join(srcDir, 'lib/seed-data.js'),
     ];
 
     for (const p of removedPaths) {

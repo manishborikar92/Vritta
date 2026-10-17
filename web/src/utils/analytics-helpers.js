@@ -14,6 +14,13 @@
 
 import { getCategoryConfig } from '../lib/constants/categories.js';
 import { getDateString, getDaysAgo, getDayOfWeek } from './date-helpers.js';
+import {
+  resolveObservanceDate,
+  evaluateHabitCompletion,
+  isHabitRestDay,
+  getEffectiveSchedule,
+  getEffectiveScheduleForDate,
+} from '../lib/constants/habit-models.js';
 
 /**
  * Checks whether a habit is scheduled to run on a specific day of the week.
@@ -21,6 +28,7 @@ import { getDateString, getDaysAgo, getDayOfWeek } from './date-helpers.js';
  * Rules:
  * - Empty or missing frequency array indicates everyday recurrence.
  * - Explicit frequency array requires matching day name (e.g. 'Mon', 'Wed').
+ * - Supports composable habits (`schedule.frequency`) and legacy habits (`habit.frequency`).
  *
  * @param {Object} habit
  * @param {string} dayOfWeek - Short day name: 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
@@ -28,50 +36,14 @@ import { getDateString, getDaysAgo, getDayOfWeek } from './date-helpers.js';
  */
 export function isHabitScheduledOnDay(habit, dayOfWeek) {
   if (!habit || !dayOfWeek) return false;
-  if (!habit.frequency || !Array.isArray(habit.frequency) || habit.frequency.length === 0) {
+  const frequency = habit.schedule?.frequency || habit.frequency;
+  if (!frequency || !Array.isArray(frequency) || frequency.length === 0) {
     return true;
   }
-  return habit.frequency.includes(dayOfWeek);
+  return frequency.includes(dayOfWeek);
 }
 
-/**
- * Checks whether a habit has a planned rest day on a specific day of the week.
- *
- * Rules:
- * 1. Explicit rest day configuration in metadata.restDays (or root restDays) takes precedence.
- * 2. Canonical movement routines (stableKey === 'canonical_exercise_plan' or completionMethod === 'exercise_plan')
- *    have Sunday as an intentional planned recovery day.
- * 3. Custom habits with category === 'Movement & Strength' DO NOT default to Sunday rest
- *    unless explicitly configured in metadata.restDays or using completionMethod 'exercise_plan'.
- *
- * @param {Object} habit
- * @param {string} dayOfWeek - Short day name: 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
- * @returns {boolean}
- */
-export function isHabitRestDay(habit, dayOfWeek) {
-  if (!habit || !dayOfWeek) return false;
-
-  // 1. Explicit rest day configuration
-  if (Array.isArray(habit.metadata?.restDays) && habit.metadata.restDays.includes(dayOfWeek)) {
-    return true;
-  }
-  if (Array.isArray(habit.restDays) && habit.restDays.includes(dayOfWeek)) {
-    return true;
-  }
-
-  // 2. Canonical movement plan fallback: Sunday is an intentional planned rest day
-  // Confined to canonical routines and exercise_plan completion mode
-  const isCanonicalMovement =
-    habit.stableKey === 'canonical_exercise_plan' ||
-    habit.stableKey === 'routine_physical_movement' ||
-    habit.completionMethod === 'exercise_plan';
-
-  if (dayOfWeek === 'Sun' && isCanonicalMovement) {
-    return true;
-  }
-
-  return false;
-}
+export { isHabitRestDay, getEffectiveSchedule, getEffectiveScheduleForDate };
 
 /**
  * Checks whether a habit is required on a given day (scheduled AND not in planned rest).
@@ -163,10 +135,16 @@ export function calculateDayMetrics(habits = [], completedHabitIds = [], dayOfWe
  * @param {number} maxDays - Window size (default: 30)
  * @returns {number} Current streak count
  */
-export function calculateStreak(habits = [], dailyLogs = {}, maxDays = 30) {
+export function calculateStreak(habits = [], dailyLogs = {}, maxDays = 30, timezone = 'UTC') {
   if (!habits || habits.length === 0) return 0;
 
   let currentStreak = 0;
+  let currentObservance = null;
+  try {
+    currentObservance = resolveObservanceDate(new Date(), timezone);
+  } catch {
+    currentObservance = getDateString(new Date());
+  }
 
   for (let i = 0; i < maxDays; i++) {
     const checkDate = getDaysAgo(i);
@@ -183,15 +161,27 @@ export function calculateStreak(habits = [], dailyLogs = {}, maxDays = 30) {
     const completedList = Array.isArray(logEntry)
       ? logEntry
       : (logEntry?.completedHabitIds || []);
+    const outcomes = (!Array.isArray(logEntry) && logEntry?.habitOutcomes) || {};
+    const habitProgress = (!Array.isArray(logEntry) && logEntry?.habitProgress) || {};
 
-    const completedCount = requiredHabits.filter(h => completedList.includes(h.id)).length;
+    const completedCount = requiredHabits.filter(h => {
+      if (outcomes[h.id]?.status === 'completed') return true;
+      if (completedList.includes(h.id)) return true;
+      if (habitProgress[h.id]) {
+        try {
+          if (evaluateHabitCompletion(h, habitProgress[h.id])) return true;
+        } catch {}
+      }
+      return false;
+    }).length;
+
     const completionRate = completedCount / requiredHabits.length;
 
     // Vritta's supportive 50% threshold
     if (completionRate >= 0.5) {
       currentStreak++;
-    } else if (i === 0) {
-      // Grace period for ongoing current day
+    } else if (i === 0 || dateStr >= currentObservance) {
+      // Grace period for ongoing current day or active grace window
       continue;
     } else {
       break;
@@ -294,10 +284,10 @@ export function calculateDynamicAnalytics(habits = [], dailyLogs = {}, daysWindo
       }
 
       // Domain-specific unit handling
-      if (h.completionMethod === 'workbook_sessions' || h.category === 'English Learning') {
+      if (h.completionMethod === 'workbook_sessions' || h.category === 'English Learning' || h.category === 'Learning & Growth') {
         const sessions = prog.sessionsCompleted || (isDone ? 2 : 0);
         statsObj.totalUnits += sessions;
-      } else if (h.completionMethod === 'exercise_plan' || h.category === 'Movement & Strength') {
+      } else if (h.completionMethod === 'exercise_plan' || h.category === 'Movement & Strength' || h.category === 'Health & Fitness') {
         if (isDone) {
           if (['Mon', 'Wed', 'Fri'].includes(item.dayOfWeek)) {
             statsObj.workoutDays++;
@@ -365,11 +355,11 @@ export function calculateDynamicAnalytics(habits = [], dailyLogs = {}, daysWindo
     const firstHabit = cat.habits[0];
     const isSingleHabit = cat.habits.length === 1;
 
-    if (cat.category === 'English Learning' || firstHabit?.completionMethod === 'workbook_sessions') {
+    if (cat.category === 'English Learning' || cat.category === 'Learning & Growth' || firstHabit?.completionMethod === 'workbook_sessions') {
       metricValue = cat.workbookSessionsTotal || cat.totalCompletions;
       metricUnit = 'sessions logged';
       detailText = isSingleHabit ? firstHabit.title : `${cat.habits.length} study routines`;
-    } else if (cat.category === 'Movement & Strength' || firstHabit?.completionMethod === 'exercise_plan') {
+    } else if (cat.category === 'Movement & Strength' || cat.category === 'Health & Fitness' || firstHabit?.completionMethod === 'exercise_plan') {
       metricValue = cat.totalCompletions;
       metricUnit = 'sessions completed';
       if (cat.workoutDaysTotal > 0 || cat.walkDaysTotal > 0) {
@@ -377,7 +367,7 @@ export function calculateDynamicAnalytics(habits = [], dailyLogs = {}, daysWindo
       } else {
         detailText = isSingleHabit ? firstHabit.title : `${cat.habits.length} movement routines`;
       }
-    } else if (cat.category === 'Listening & Awareness' || firstHabit?.completionMethod === 'osho_listening') {
+    } else if (cat.category === 'Listening & Awareness' || cat.category === 'Mindfulness & Spirit' || firstHabit?.completionMethod === 'osho_listening') {
       metricValue = cat.totalCompletions;
       metricUnit = 'days listened';
       detailText = isSingleHabit ? firstHabit.title : `${cat.habits.length} listening routines`;

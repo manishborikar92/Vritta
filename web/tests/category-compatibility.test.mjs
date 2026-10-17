@@ -1,51 +1,107 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import {
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import * as categoriesModule from '../src/lib/constants/categories.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const firestoreRulesPath = path.join(__dirname, '..', 'firestore.rules');
+const firestoreRulesContent = fs.readFileSync(firestoreRulesPath, 'utf8');
+
+const {
   CATEGORIES,
+  CANONICAL_CATEGORIES,
   CATEGORY_CONFIG,
   getCategoryConfig,
-} from '../src/lib/constants/categories.js';
+  isValidCategory,
+} = categoriesModule;
 
-describe('Category Architecture & Firestore Rule Conformance', () => {
-  it('should derive CATEGORIES directly from CATEGORY_CONFIG as the single source of truth', () => {
+describe('Authoritative Canonical Category Taxonomy & Rule Conformance', () => {
+  it('should define exactly 9 canonical categories without duplicate or redundant entries', () => {
     assert.deepEqual(
       CATEGORIES,
-      Object.keys(CATEGORY_CONFIG),
-      'CATEGORIES must directly match the keys of CATEGORY_CONFIG'
+      CANONICAL_CATEGORIES,
+      'CATEGORIES must directly match CANONICAL_CATEGORIES'
     );
-    assert.equal(CATEGORIES.length, 10, 'Must have exactly 10 supported categories');
+    assert.equal(CATEGORIES.length, 9, 'Must have exactly 9 canonical supported categories');
+    
+    const expected = [
+      'Health & Fitness',
+      'Learning & Growth',
+      'Mindfulness & Spirit',
+      'Reflection & Journaling',
+      'Work & Career',
+      'Creativity & Hobbies',
+      'Relationships & Family',
+      'Rest & Recovery',
+      'Other',
+    ];
+    assert.deepEqual(CATEGORIES, expected);
   });
 
-  it('should match the exact category whitelist in firestore.rules isValidCategory()', () => {
-    // Exact whitelist from firestore.rules
-    const firestoreAllowedCategories = [
-      'English Learning',
-      'Movement & Strength',
-      'Listening & Awareness',
-      'Reading',
-      'Communication',
-      'Reflection',
+  it('should NOT export CATEGORY_ALIASES or normalizeCategory (strict canonical model, zero aliases)', () => {
+    assert.equal(
+      categoriesModule.CATEGORY_ALIASES,
+      undefined,
+      'CATEGORY_ALIASES must be completely removed from exports'
+    );
+    assert.equal(
+      categoriesModule.normalizeCategory,
+      undefined,
+      'normalizeCategory must be completely removed from exports'
+    );
+  });
+
+  it('should strictly validate canonical categories and reject non-canonical legacy values', () => {
+    // All 9 canonical categories must return true
+    for (const cat of CATEGORIES) {
+      assert.equal(isValidCategory(cat), true, `isValidCategory must return true for ${cat}`);
+    }
+
+    // Legacy names and aliases must strictly return false
+    const invalidCategories = [
       'Movement',
-      'Nutrition',
-      'Recovery',
-      'Schedule',
+      'Fitness',
+      'Health',
+      'Wellness',
+      'Mindfulness',
+      'Random',
+      '',
+      null,
+      undefined,
+      123,
+      {},
     ];
 
-    assert.equal(
-      CATEGORIES.length,
-      firestoreAllowedCategories.length,
-      'Category count must match firestore.rules whitelist count'
-    );
-
-    for (const cat of firestoreAllowedCategories) {
-      assert.ok(
-        CATEGORIES.includes(cat),
-        `CATEGORIES must include ${cat} to satisfy Firestore rules`
+    for (const invalid of invalidCategories) {
+      assert.equal(
+        isValidCategory(invalid),
+        false,
+        `isValidCategory must reject non-canonical category: '${invalid}'`
       );
     }
   });
 
-  it('should provide complete, valid styling tokens for every category without legacy labels', () => {
+  it('should satisfy the Firestore rules whitelist in isValidCategory() with strictly 9 canonical categories', () => {
+    // Every canonical category must be allowed in firestore.rules
+    for (const cat of CANONICAL_CATEGORIES) {
+      assert.ok(
+        firestoreRulesContent.includes(`'${cat}'`),
+        `firestore.rules must include canonical category '${cat}'`
+      );
+    }
+
+    // Legacy 'Movement' duplicate must NOT be permitted in firestore.rules
+    // We check for exact 'Movement' entry in array
+    assert.ok(
+      !firestoreRulesContent.includes("'Movement',"),
+      "firestore.rules must NOT contain legacy standalone 'Movement'"
+    );
+  });
+
+  it('should provide complete, valid styling tokens for every canonical category', () => {
     for (const cat of CATEGORIES) {
       const config = getCategoryConfig(cat);
       assert.ok(config, `Config for ${cat} must exist`);

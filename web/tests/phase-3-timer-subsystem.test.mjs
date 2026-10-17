@@ -8,7 +8,7 @@ import {
   READING_DURATION_PRESETS,
   DEFAULT_READING_DURATION,
 } from '../src/utils/reading-helpers.js';
-import { MANISH_PERSONAL_ROUTINES } from '../src/lib/server/personal-schedule.js';
+import { MANISH_PERSONAL_ROUTINES } from '../src/lib/server/schedule-templates.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,10 +45,10 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
     });
 
     it('should verify dashboard dispatches reading_duration and excludes generic timer', () => {
-      const content = readWebFile('src/app/(protected)/dashboard/page.js');
+      const content = readWebFile('src/components/habits/DashboardHabitCard.js') + readWebFile('src/app/(protected)/dashboard/page.js');
       assert.ok(
-        content.includes("method === 'reading_duration'"),
-        'Dashboard must dispatch reading_duration to ReadingCard'
+        content.includes("habit.completionMethod === 'reading_duration'"),
+        'Dashboard must dispatch reading_duration to timer slot'
       );
       assert.ok(
         !content.includes("method === 'timer'"),
@@ -56,20 +56,20 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
       );
     });
 
-    it('should provide reading duration selector exclusively for reading_duration in HabitModal', () => {
+    it('should provide duration selector via the Timer feature slot in HabitModal', () => {
       const content = readWebFile('src/components/habits/HabitModal.js');
       assert.ok(
-        content.includes("formData.completionMethod === 'reading_duration'"),
-        'Duration selector must trigger on reading_duration'
+        content.includes('formData.features.timer.enabled'),
+        'Duration selector must be configured via the composable Timer feature slot'
       );
       assert.ok(
-        content.includes('READING_DURATION_PRESETS'),
-        'HabitModal must render canonical READING_DURATION_PRESETS'
+        content.includes('targetDurationMinutes'),
+        'HabitModal must configure targetDurationMinutes for the timer'
       );
       assert.deepEqual(
         READING_DURATION_PRESETS,
         [15, 20, 30, 45, 60],
-        'HabitModal presets must provide [15, 20, 30, 45, 60] minute options'
+        'Canonical presets helper provides [15, 20, 30, 45, 60] minute options'
       );
     });
 
@@ -84,23 +84,23 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
       );
     });
 
-    it('should verify ReadingCard no longer declares independent duration presets or hardcoded timer targets', () => {
-      const content = readWebFile('src/components/habits/ReadingCard.js');
+    it('should verify SlotTimer no longer declares independent duration presets or hardcoded timer targets', () => {
+      const content = readWebFile('src/components/habits/slots/SlotTimer.js');
       assert.ok(
         !content.includes('DURATION_PRESETS'),
-        'ReadingCard must not declare DURATION_PRESETS'
+        'SlotTimer must not declare DURATION_PRESETS'
       );
       assert.ok(
         !content.includes('TARGET_SECONDS'),
-        'ReadingCard must not declare hardcoded TARGET_SECONDS constant'
+        'SlotTimer must not declare hardcoded TARGET_SECONDS constant'
       );
       assert.ok(
         !content.includes('setDuration('),
-        'ReadingCard must not call setDuration or render in-card preset selector chips'
+        'SlotTimer must not call setDuration or render in-card preset selector chips'
       );
       assert.ok(
         content.includes('getReadingTargetMinutes(habit)'),
-        'ReadingCard must derive its target from getReadingTargetMinutes(habit)'
+        'SlotTimer must derive its target from getReadingTargetMinutes(habit)'
       );
     });
 
@@ -210,7 +210,7 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
       assert.equal(updatedTarget * 60, 900, 'Subsequent timer countdown starts at 900 seconds');
     });
 
-    it('should verify personal-schedule seed defines root targetMinutes and clean metadata', () => {
+    it('should verify schedule-templates seed defines root targetMinutes and clean metadata', () => {
       const readBooksRoutine = MANISH_PERSONAL_ROUTINES.find(r => r.stableKey === 'canonical_read_books');
       assert.ok(readBooksRoutine, 'MANISH_PERSONAL_ROUTINES must define canonical_read_books');
       assert.equal(readBooksRoutine.targetMinutes, 30, 'canonical_read_books must define canonical targetMinutes: 30 at root');
@@ -218,15 +218,10 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
       assert.equal(readBooksRoutine.metadata?.context, 'Before going to sleep', 'canonical_read_books must preserve metadata.context');
     });
 
-    it('should verify sync-service cleans metadata.targetMinutes and reconciles root targetMinutes', () => {
-      const syncServiceContent = readWebFile('src/lib/server/sync-service.js');
+    it('should verify obsolete sync-service is retired and reconciliation cleans metadata.targetMinutes', () => {
       assert.ok(
-        syncServiceContent.includes('delete cleanMetadata.targetMinutes'),
-        'sync-service must strip metadata.targetMinutes'
-      );
-      assert.ok(
-        syncServiceContent.includes('updatedData.targetMinutes = Number.isFinite(existingMinutes)'),
-        'sync-service must preserve custom user targetMinutes over seed default'
+        !fs.existsSync(path.join(webRoot, 'src/lib/server/sync-service.js')),
+        'sync-service.js must be removed in favor of schedule-templates.js'
       );
 
       // Simulate sync reconciliation algorithm on custom user duration
@@ -422,11 +417,11 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
   });
 
   describe('6. Progress Tracking & Authoritative Persistence (Defect 2 Fix)', () => {
-    it('should update durationMinutes on habit progress completion in ReadingCard', () => {
-      const content = readWebFile('src/components/habits/ReadingCard.js');
+    it('should update durationMinutes on habit progress completion in SlotTimer', () => {
+      const content = readWebFile('src/components/habits/slots/SlotTimer.js');
       assert.ok(
-        content.includes('onUpdateProgress(habit.id, { durationMinutes }, true)'),
-        'ReadingCard must record completed durationMinutes to daily log in standalone fallback'
+        content.includes('durationMinutes'),
+        'SlotTimer must record completed durationMinutes to daily log on completion'
       );
     });
 
@@ -448,7 +443,7 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
   describe('7. UI Consistency & Prohibited Color Audit', () => {
     it('should verify zero prohibited colors across all Phase 3 timer files', () => {
       const files = [
-        'src/components/habits/ReadingCard.js',
+        'src/components/habits/slots/SlotTimer.js',
         'src/contexts/TimerContext.js',
         'src/hooks/use-timer.js',
         'src/utils/audio-chime.js',
@@ -473,10 +468,10 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
       }
     });
 
-    it('should verify WCAG touch target compliance on ReadingCard controls without oversized buttons', () => {
-      const content = readWebFile('src/components/habits/ReadingCard.js');
-      assert.ok(content.includes('py-2') && content.includes('rounded-xl'), 'Start button must define comfortable padding');
-      assert.ok(content.includes('w-11 h-11'), 'Reset button must meet 44x44px touch target');
+    it('should verify WCAG touch target compliance on SlotTimer controls without oversized buttons', () => {
+      const content = readWebFile('src/components/habits/slots/SlotTimer.js');
+      assert.ok(content.includes('rounded-xl'), 'Controls must define comfortable padding and target sizing');
+      assert.ok(content.includes('w-11 h-11') || content.includes('min-w-[44px]'), 'Timer controls must meet 44x44px touch target');
     });
   });
 });

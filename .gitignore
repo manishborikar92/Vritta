@@ -13,6 +13,8 @@ pids/
 *.pid
 *.seed
 *.pid.lock
+backups/
+
 
 # Dependencies and package managers
 node_modules/

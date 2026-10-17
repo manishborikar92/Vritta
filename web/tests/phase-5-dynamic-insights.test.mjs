@@ -13,7 +13,7 @@ import {
   calculateDynamicAnalytics,
 } from '../src/utils/analytics-helpers.js';
 import { getDateString, getDaysAgo } from '../src/utils/date-helpers.js';
-import { CANONICAL_ROUTINES } from '../src/lib/server/personal-schedule.js';
+import { CANONICAL_ROUTINES } from '../src/lib/server/schedule-templates.js';
 import { CATEGORY_CONFIG, getCategoryConfig } from '../src/lib/constants/categories.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -217,14 +217,14 @@ describe('Phase 5: Dynamic Insights & Non-Punitive Analytics Engine', () => {
         {
           id: 'hab_water',
           title: 'Drink 2L Water',
-          category: 'Nutrition',
+          category: 'Health & Fitness',
           completionMethod: 'simple_checkbox',
           frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         },
         {
           id: 'hab_journal',
           title: 'Evening Reflection',
-          category: 'Reflection',
+          category: 'Reflection & Journaling',
           completionMethod: 'simple_checkbox',
           frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         },
@@ -235,13 +235,13 @@ describe('Phase 5: Dynamic Insights & Non-Punitive Analytics Engine', () => {
 
       assert.equal(analytics.categories.length, 2, 'Should derive exactly 2 categories');
       const catNames = analytics.categories.map(c => c.category);
-      assert.ok(catNames.includes('Nutrition'));
-      assert.ok(catNames.includes('Reflection'));
+      assert.ok(catNames.includes('Health & Fitness'));
+      assert.ok(catNames.includes('Reflection & Journaling'));
 
-      const nutritionCat = analytics.categories.find(c => c.category === 'Nutrition');
-      assert.equal(nutritionCat.label, 'Nutrition');
-      assert.equal(nutritionCat.iconName, 'Coffee');
-      assert.equal(nutritionCat.habitCount, 1);
+      const healthCat = analytics.categories.find(c => c.category === 'Health & Fitness');
+      assert.equal(healthCat.label, 'Health & Fitness');
+      assert.equal(healthCat.iconName, 'Activity');
+      assert.equal(healthCat.habitCount, 1);
     });
 
     it('should correctly format canonical personalized schedule routines', () => {
@@ -251,14 +251,14 @@ describe('Phase 5: Dynamic Insights & Non-Punitive Analytics Engine', () => {
       const analytics = calculateDynamicAnalytics(habitsWithIds, dailyLogs, 30);
 
       assert.ok(analytics.categories.length >= 4, 'Should contain personal routine categories');
-      const movementCat = analytics.categories.find(c => c.category === 'Movement & Strength');
-      assert.ok(movementCat, 'Movement & Strength category must be present');
+      const movementCat = analytics.categories.find(c => c.category === 'Health & Fitness');
+      assert.ok(movementCat, 'Health & Fitness category must be present');
       assert.equal(movementCat.badge, 'Sunday Rest Protected', 'Should flag Sunday rest protection');
       assert.equal(movementCat.metricUnit, 'sessions completed');
 
-      const englishCat = analytics.categories.find(c => c.category === 'English Learning');
-      assert.ok(englishCat, 'English Learning category must be present');
-      assert.equal(englishCat.metricUnit, 'sessions logged');
+      const learningCat = analytics.categories.find(c => c.category === 'Learning & Growth');
+      assert.ok(learningCat, 'Learning & Growth category must be present');
+      assert.equal(learningCat.metricUnit, 'sessions logged');
     });
 
     it('should handle zero habits gracefully with empty state data', () => {

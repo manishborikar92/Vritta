@@ -17,32 +17,59 @@ service cloud.firestore {
     // =============================================
     match /habits/{habitId} {
 
-      // Allowed categories include canonical life-area categories and legacy categories
+      // Allowed categories: canonical life areas + legacy categories (preserved pending review)
       function isValidCategory(cat) {
         return cat in [
+          // Canonical General-Purpose Life Areas
+          'Health & Fitness',
+          'Learning & Growth',
+          'Mindfulness & Spirit',
+          'Reflection & Journaling',
+          'Work & Career',
+          'Creativity & Hobbies',
+          'Relationships & Family',
+          'Rest & Recovery',
+          'Other',
+          // Legacy Categories (Preserved until explicit user review of migration)
           'English Learning',
           'Movement & Strength',
           'Listening & Awareness',
           'Reading',
           'Communication',
           'Reflection',
-          'Schedule',
-          'Movement',
           'Nutrition',
-          'Recovery'
+          'Recovery',
+          'Schedule'
         ];
       }
 
-      // CREATE / SET: Must be authenticated, must own the data, must have valid title & category
-      allow create, update: if isAuthenticated()
-                            && request.resource.data.userId == request.auth.uid
-                            && (resource == null || resource.data.userId == request.auth.uid)
-                            && request.resource.data.title is string
-                            && request.resource.data.title.size() > 0
-                            && request.resource.data.title.size() <= 200
-                            && isValidCategory(request.resource.data.category);
+      function isValidCustomCategory(data) {
+        return data.category != 'Other' || (
+          !('customCategory' in data) ||
+          (data.customCategory is string && data.customCategory.size() >= 1 && data.customCategory.size() <= 40)
+        );
+      }
 
-      // READ: Must own the existing document, or be non-existent check by authenticated user, or match user UID prefix
+      // CREATE: Must be authenticated, must own data, valid title & category
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() > 0
+                    && request.resource.data.title.size() <= 200
+                    && isValidCategory(request.resource.data.category)
+                    && isValidCustomCategory(request.resource.data);
+
+      // UPDATE: Must own existing doc, cannot change ownership (immutable userId), valid title & category
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == resource.data.userId
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() > 0
+                    && request.resource.data.title.size() <= 200
+                    && isValidCategory(request.resource.data.category)
+                    && isValidCustomCategory(request.resource.data);
+
+      // READ: Must own existing doc, or be non-existent check by authenticated user, or match user UID prefix
       allow read: if isAuthenticated()
                   && (resource == null || resource.data.userId == request.auth.uid || habitId.matches('^' + request.auth.uid + '_.*'));
 
@@ -60,19 +87,35 @@ service cloud.firestore {
       allow read: if isAuthenticated()
                   && (resource == null || resource.data.userId == request.auth.uid || logId.matches('^' + request.auth.uid + '_.*'));
 
-      // WRITE: Must be authenticated, logId must start with user's UID and data must be owned by user
-      allow write: if isAuthenticated()
-                   && logId.matches('^' + request.auth.uid + '_.*')
-                   && request.resource.data.userId == request.auth.uid;
+      // CREATE: Must be authenticated, logId must start with user's UID, owned by user, valid date string
+      allow create: if isAuthenticated()
+                    && logId.matches('^' + request.auth.uid + '_.*')
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.date is string;
+
+      // UPDATE: Must own existing doc, immutable ownership (userId), immutable date
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == resource.data.userId
+                    && request.resource.data.date == resource.data.date;
+
+      // DELETE: Must own existing doc
+      allow delete: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid;
     }
 
     // =============================================
     // Users: Users can R/W their own profile & private progress
     // =============================================
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read, create, update, delete: if isOwner(userId);
 
-      // Subcollections (e.g. private diary, exercise progress, osho progress)
+      // HabitState Subcollection: Decoupled cumulative routine progression
+      match /habitState/{habitId} {
+        allow read, create, update, delete: if isOwner(userId);
+      }
+
+      // Other subcollections (e.g. private diary, audio library progress)
       match /{allSubcollections=**} {
         allow read, write: if isOwner(userId);
       }
@@ -84,6 +127,15 @@ service cloud.firestore {
     // =============================================
     match /personalRoutines/{routineId} {
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    // =============================================
+    // ScheduleTemplates: Shared reusable routine blueprints
+    // Client write is disabled; authenticated users can read templates
+    // =============================================
+    match /scheduleTemplates/{templateId} {
+      allow read: if isAuthenticated();
       allow write: if false;
     }
 

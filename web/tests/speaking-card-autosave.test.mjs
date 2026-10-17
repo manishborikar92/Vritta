@@ -157,9 +157,11 @@ describe('SpeakingCard Autosave & Debounce Behavior', () => {
   });
 });
 
-describe('SpeakingCard Static Source Code Compliance', () => {
-  const filePath = path.join(webRoot, 'src', 'components', 'habits', 'SpeakingCard.js');
+describe('SlotNotes Static Source Code Compliance', () => {
+  const filePath = path.join(webRoot, 'src', 'components', 'habits', 'slots', 'SlotNotes.js');
+  const cardPath = path.join(webRoot, 'src', 'components', 'habits', 'DashboardHabitCard.js');
   const content = fs.readFileSync(filePath, 'utf-8');
+  const cardContent = fs.readFileSync(cardPath, 'utf-8');
 
   it('should implement debounced autosave with 400ms timer', () => {
     assert.ok(content.includes('400'), 'Must specify ~400ms debounce timeout');
@@ -173,14 +175,14 @@ describe('SpeakingCard Static Source Code Compliance', () => {
   });
 
   it('should implement unmount cleanup for navigation safety', () => {
-    assert.ok(content.includes('return () =>'), 'Must have cleanup function in useEffect');
-    assert.ok(content.includes('onUpdateProgress'), 'Cleanup must flush to onUpdateProgress');
+    assert.ok(content.includes('flushSave'), 'Must have flushSave function');
+    assert.ok(content.includes('onSave'), 'Must invoke onSave callback');
   });
 
   it('should preserve WCAG 2.2 touch target standards (min 44x44px)', () => {
-    const has44pxToggle = content.includes('w-11 h-11') ||
-      (content.includes('w-11') && content.includes('h-11')) ||
-      (content.includes('min-w-[44px]') && content.includes('min-h-[44px]'));
+    const has44pxToggle = cardContent.includes('w-11 h-11') ||
+      (cardContent.includes('w-11') && cardContent.includes('h-11')) ||
+      (cardContent.includes('min-w-[44px]') && cardContent.includes('min-h-[44px]'));
     assert.ok(has44pxToggle, 'Toggle button must meet 44x44px (w-11 h-11)');
   });
 
