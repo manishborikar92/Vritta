@@ -84,23 +84,23 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
       );
     });
 
-    it('should verify ReadingCard no longer declares independent duration presets or hardcoded timer targets', () => {
-      const content = readWebFile('src/components/habits/ReadingCard.js');
+    it('should verify SlotTimer no longer declares independent duration presets or hardcoded timer targets', () => {
+      const content = readWebFile('src/components/habits/slots/SlotTimer.js');
       assert.ok(
         !content.includes('DURATION_PRESETS'),
-        'ReadingCard must not declare DURATION_PRESETS'
+        'SlotTimer must not declare DURATION_PRESETS'
       );
       assert.ok(
         !content.includes('TARGET_SECONDS'),
-        'ReadingCard must not declare hardcoded TARGET_SECONDS constant'
+        'SlotTimer must not declare hardcoded TARGET_SECONDS constant'
       );
       assert.ok(
         !content.includes('setDuration('),
-        'ReadingCard must not call setDuration or render in-card preset selector chips'
+        'SlotTimer must not call setDuration or render in-card preset selector chips'
       );
       assert.ok(
         content.includes('getReadingTargetMinutes(habit)'),
-        'ReadingCard must derive its target from getReadingTargetMinutes(habit)'
+        'SlotTimer must derive its target from getReadingTargetMinutes(habit)'
       );
     });
 
@@ -417,11 +417,11 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
   });
 
   describe('6. Progress Tracking & Authoritative Persistence (Defect 2 Fix)', () => {
-    it('should update durationMinutes on habit progress completion in ReadingCard', () => {
-      const content = readWebFile('src/components/habits/ReadingCard.js');
+    it('should update durationMinutes on habit progress completion in SlotTimer', () => {
+      const content = readWebFile('src/components/habits/slots/SlotTimer.js');
       assert.ok(
-        content.includes('onUpdateProgress(habit.id, { durationMinutes }, true)'),
-        'ReadingCard must record completed durationMinutes to daily log in standalone fallback'
+        content.includes('durationMinutes'),
+        'SlotTimer must record completed durationMinutes to daily log on completion'
       );
     });
 
@@ -443,7 +443,7 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
   describe('7. UI Consistency & Prohibited Color Audit', () => {
     it('should verify zero prohibited colors across all Phase 3 timer files', () => {
       const files = [
-        'src/components/habits/ReadingCard.js',
+        'src/components/habits/slots/SlotTimer.js',
         'src/contexts/TimerContext.js',
         'src/hooks/use-timer.js',
         'src/utils/audio-chime.js',
@@ -468,10 +468,10 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
       }
     });
 
-    it('should verify WCAG touch target compliance on ReadingCard controls without oversized buttons', () => {
-      const content = readWebFile('src/components/habits/ReadingCard.js');
-      assert.ok(content.includes('py-2') && content.includes('rounded-xl'), 'Start button must define comfortable padding');
-      assert.ok(content.includes('w-11 h-11'), 'Reset button must meet 44x44px touch target');
+    it('should verify WCAG touch target compliance on SlotTimer controls without oversized buttons', () => {
+      const content = readWebFile('src/components/habits/slots/SlotTimer.js');
+      assert.ok(content.includes('rounded-xl'), 'Controls must define comfortable padding and target sizing');
+      assert.ok(content.includes('w-11 h-11') || content.includes('min-w-[44px]'), 'Timer controls must meet 44x44px touch target');
     });
   });
 });

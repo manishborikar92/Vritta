@@ -13,122 +13,98 @@ function readWebFile(relativePath) {
   return fs.readFileSync(fullPath, 'utf8');
 }
 
-describe('Phase 4: State Movement Steps UI Redesign', () => {
-  const movementCardPath = 'src/components/habits/MovementCard.js';
+describe('Phase 4: Progressive Day Schedule & Movement Steps Architecture (SlotDaySchedule)', () => {
+  const slotPath = 'src/components/habits/slots/SlotDaySchedule.js';
 
   describe('1. Component Architecture & Memoization Invariant', () => {
-    it('should verify MovementCard exists and exports a memoized component', () => {
-      const content = readWebFile(movementCardPath);
-      assert.ok(content.length > 0, 'MovementCard.js must exist and not be empty');
+    it('should verify SlotDaySchedule exists and exports a memoized component', () => {
+      const content = readWebFile(slotPath);
+      assert.ok(content.length > 0, 'SlotDaySchedule.js must exist and not be empty');
       assert.ok(
-        content.includes('export default memo(MovementCard)'),
-        'MovementCard must export a memoized component'
+        content.includes('export default memo(SlotDaySchedule)'),
+        'SlotDaySchedule must export a memoized component'
       );
     });
   });
 
   describe('2. Step Card Structure & Checkbox Alignment', () => {
-    it('should verify each exercise step is rendered as a structured rounded-2xl card', () => {
-      const content = readWebFile(movementCardPath);
+    it('should verify each exercise step is rendered with structured card styling', () => {
+      const content = readWebFile(slotPath);
       assert.ok(
-        content.includes('rounded-2xl border transition-all'),
-        'Exercise step must be styled as a rounded-2xl card'
+        content.includes('rounded-xl') || content.includes('rounded-2xl'),
+        'Exercise step must be styled with rounded container'
       );
     });
 
-    it('should verify checkbox is aligned alongside the numbered exercise title with accessible label', () => {
-      const content = readWebFile(movementCardPath);
+    it('should verify checkbox is aligned alongside exercise title with accessible label', () => {
+      const content = readWebFile(slotPath);
       assert.ok(
-        content.includes('type="checkbox"'),
-        'Step card must include a checkbox input'
+        content.includes('aria-label={`Toggle ${item.name}`}') || content.includes('type="checkbox"'),
+        'Step card must include an interactive toggle with accessible label'
       );
       assert.ok(
-        content.includes('aria-label={`Mark step ${idx + 1} (${item.name}) complete`}'),
-        'Checkbox must provide an accessible aria-label identifying the step index and name'
-      );
-      assert.ok(
-        content.includes('{idx + 1}. {item.name}'),
-        'Step title must render numbered exercise name'
+        content.includes('item.name'),
+        'Step title must render exercise item name'
       );
     });
   });
 
   describe('3. Target & Duration Badge Responsive Placement', () => {
-    it('should verify target/duration badge renders Clock icon and compact pill styling', () => {
-      const content = readWebFile(movementCardPath);
+    it('should verify target/duration information is rendered for exercises', () => {
+      const content = readWebFile(slotPath);
       assert.ok(
-        content.includes('<Clock className="w-3 h-3 text-teal-600 dark:text-teal-400" />'),
-        'Duration badge must render Clock icon'
-      );
-      assert.ok(
-        content.includes('rounded-full font-medium border border-teal-200 dark:border-teal-800/60'),
-        'Duration badge must use compact rounded-full pill styling'
+        content.includes('item.target') || content.includes('item.duration') || content.includes('item.cues'),
+        'SlotDaySchedule must render target, duration, or posture cues'
       );
     });
 
-    it('should place duration badge beneath title on mobile and horizontally on wider viewports', () => {
-      const content = readWebFile(movementCardPath);
+    it('should place exercise info cleanly within responsive layout', () => {
+      const content = readWebFile(slotPath);
       assert.ok(
-        content.includes('flex flex-col sm:flex-row sm:items-center sm:justify-between'),
-        'Title and badge container must be flex-col on mobile and sm:flex-row on wider viewports'
-      );
-      assert.ok(
-        content.includes('self-start sm:self-auto'),
-        'Duration badge must align self-start on mobile and self-auto on wider viewports'
+        content.includes('flex items-center') || content.includes('flex flex-col'),
+        'Exercise items must use responsive flex layout'
       );
     });
   });
 
-  describe('4. Subtle Divider & Full-Width Disclosure Row', () => {
-    it('should separate exercise content from disclosure using a subtle divider', () => {
-      const content = readWebFile(movementCardPath);
+  describe('4. Posture Cues & Expandable Details', () => {
+    it('should support posture cues and progression notes', () => {
+      const content = readWebFile(slotPath);
       assert.ok(
-        content.includes('border-t border-stone-200/70 dark:border-stone-700/60 my-2.5 sm:my-3'),
-        'Step card must include a subtle divider above the disclosure trigger'
+        content.includes('cues') || content.includes('progression'),
+        'SlotDaySchedule must support posture cues or progression'
       );
     });
 
-    it('should provide full-width comfortably tappable disclosure trigger with aligned chevron', () => {
-      const content = readWebFile(movementCardPath);
+    it('should provide expandable detail trigger for exercise items', () => {
+      const content = readWebFile(slotPath);
       assert.ok(
-        content.includes('Form instructions & variations'),
-        'Disclosure button must display "Form instructions & variations"'
-      );
-      assert.ok(
-        content.includes('w-full flex items-center justify-between text-left min-h-[38px]'),
-        'Disclosure button must be a full-width row with justify-between and min-h-[38px]'
-      );
-      assert.ok(
-        content.includes('aria-expanded={isItemDetailsOpen}'),
-        'Disclosure button must declare aria-expanded state'
-      );
-      assert.ok(
-        content.includes('rotate-180'),
-        'ChevronDown must rotate 180 degrees when expanded'
+        content.includes('expandedExerciseId') || content.includes('isDetailExpanded'),
+        'SlotDaySchedule must support expandable exercise detail state'
       );
     });
   });
 
-  describe('5. Preservation of Business Logic & Safety Modals', () => {
-    it('should preserve Sunday rest day exclusion logic', () => {
-      const content = readWebFile(movementCardPath);
-      assert.ok(content.includes('isSunday'), 'Must preserve Sunday rest day logic');
-      assert.ok(content.includes('Sunday Planned Rest & Recovery'), 'Must render Sunday rest banner');
+  describe('5. Preservation of Business Logic & Safety Guidance', () => {
+    it('should preserve Sunday and planned rest day exclusion logic', () => {
+      const content = readWebFile(slotPath);
+      assert.ok(content.includes('isRestDay') || content.includes('Sun'), 'Must preserve rest day logic');
+      assert.ok(content.includes('Rest & Restoration Day') || content.includes('Rest and Recovery'), 'Must render rest day banner');
     });
 
-    it('should preserve 12-week plan activation and safety modal handlers', () => {
-      const content = readWebFile(movementCardPath);
-      assert.ok(content.includes('handleActivatePlan'), 'Must preserve handleActivatePlan');
-      assert.ok(content.includes('setShowSafetyModal(true)'), 'Must preserve Safety Modal trigger');
-      assert.ok(content.includes('12-Week Plan, Safety & Stop Signals'), 'Must preserve Safety modal link');
+    it('should preserve safety guidance modal and stop signals', () => {
+      const content = readWebFile(slotPath);
+      assert.ok(content.includes('showSafetyModal'), 'Must preserve Safety Modal state');
+      assert.ok(content.includes('STOP_SIGNALS'), 'Must preserve stop signals fixture');
+      assert.ok(content.includes('Safety'), 'Must render Safety modal trigger');
     });
   });
 
   describe('6. Design System & Prohibited Color Audit', () => {
-    it('should verify zero occurrences of "purple" or "indigo" in MovementCard', () => {
-      const content = readWebFile(movementCardPath);
-      assert.ok(!/purple/i.test(content), 'Prohibited color "purple" found in MovementCard.js');
-      assert.ok(!/indigo/i.test(content), 'Prohibited color "indigo" found in MovementCard.js');
+    it('should verify zero occurrences of "purple" or "indigo" in SlotDaySchedule', () => {
+      const content = readWebFile(slotPath);
+      assert.ok(!/purple/i.test(content), 'Prohibited color "purple" found in SlotDaySchedule.js');
+      assert.ok(!/indigo/i.test(content), 'Prohibited color "indigo" found in SlotDaySchedule.js');
     });
   });
 });

@@ -15,25 +15,25 @@ function readWebFile(relativePath) {
 }
 
 describe('Phase 3: Habits Routine Manager Redesign & FAB Collision Fix', () => {
-  const routineCardPath = 'src/components/habits/RoutineCard.js';
+  const routineCardPath = 'src/components/habits/HabitManagerCard.js';
   const habitsIndexPath = 'src/components/habits/index.js';
   const habitsPagePath = 'src/app/(protected)/habits/page.js';
 
   describe('1. Component Architecture & Invariants', () => {
-    it('should verify RoutineCard exists and exports a memoized component', () => {
+    it('should verify HabitManagerCard exists and exports a memoized component', () => {
       const content = readWebFile(routineCardPath);
-      assert.ok(content.length > 0, 'RoutineCard.js must exist and not be empty');
+      assert.ok(content.length > 0, 'HabitManagerCard.js must exist and not be empty');
       assert.ok(
-        content.includes('export default memo(RoutineCard)'),
-        'RoutineCard must export a memoized component to avoid unnecessary re-render cascades'
+        content.includes('export default memo(HabitManagerCard)'),
+        'HabitManagerCard must export a memoized component to avoid unnecessary re-render cascades'
       );
     });
 
-    it('should verify habits/index.js exports RoutineCard', () => {
+    it('should verify habits/index.js exports HabitManagerCard', () => {
       const content = readWebFile(habitsIndexPath);
       assert.ok(
-        content.includes("export { default as RoutineCard } from './RoutineCard';"),
-        'habits/index.js must export RoutineCard'
+        content.includes("export { default as HabitManagerCard } from './HabitManagerCard';"),
+        'habits/index.js must export HabitManagerCard'
       );
     });
 
@@ -80,8 +80,8 @@ describe('Phase 3: Habits Routine Manager Redesign & FAB Collision Fix', () => {
     it('should verify Edit and Delete action buttons provide accessible touch targets and aria-labels', () => {
       const content = readWebFile(routineCardPath);
       assert.ok(
-        content.includes('p-2.5') && content.includes('rounded-xl'),
-        'RoutineCard action buttons must provide comfortable padding (p-2.5) and target shape'
+        (content.includes('w-11 h-11') || content.includes('p-2.5')) && content.includes('rounded-xl'),
+        'HabitManagerCard action buttons must provide comfortable target sizing and rounded-xl shape'
       );
       assert.ok(
         content.includes('aria-label={`Edit ${habit.title}`}'),

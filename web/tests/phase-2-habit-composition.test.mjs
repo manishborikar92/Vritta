@@ -416,8 +416,8 @@ describe('Phase 2: Composable Habit Configuration Engine & UI Polish', () => {
   // ==========================================================================
   describe('7. Mandatory Preservation of Existing Osho Disclosure and Content', () => {
     it('should assert the presence and exact wording of the Osho card disclosure and links', () => {
-      const oshoCardPath = path.join(webRoot, 'src', 'components', 'habits', 'OshoCard.js');
-      assert.ok(fs.existsSync(oshoCardPath), 'OshoCard.js must exist');
+      const oshoCardPath = path.join(webRoot, 'src', 'components', 'habits', 'slots', 'SlotCatalog.js');
+      assert.ok(fs.existsSync(oshoCardPath), 'SlotCatalog.js must exist');
 
       const content = fs.readFileSync(oshoCardPath, 'utf8');
 

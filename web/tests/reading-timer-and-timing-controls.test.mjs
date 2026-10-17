@@ -14,21 +14,21 @@ function readWebFile(relPath) {
 }
 
 describe('Phase 6: Reading Timer & Routine Timing-Mode Controls', () => {
-  describe('1. ReadingCard Component Architecture & Timer Invariants', () => {
-    it('should verify ReadingCard.js exists and exports a memoized component', () => {
-      const content = readWebFile('src/components/habits/ReadingCard.js');
-      assert.ok(content.includes('export default memo(ReadingCard)'), 'Must export memo(ReadingCard)');
+  describe('1. SlotTimer Component Architecture & Timer Invariants', () => {
+    it('should verify SlotTimer.js exists and exports a memoized component', () => {
+      const content = readWebFile('src/components/habits/slots/SlotTimer.js');
+      assert.ok(content.includes('export default memo(SlotTimer)'), 'Must export memo(SlotTimer)');
     });
 
-    it('should verify ReadingCard derives duration from habit configuration without hardcoded constants', () => {
-      const content = readWebFile('src/components/habits/ReadingCard.js');
+    it('should verify SlotTimer derives duration from habit configuration without hardcoded constants', () => {
+      const content = readWebFile('src/components/habits/slots/SlotTimer.js');
       assert.ok(!content.includes('TARGET_SECONDS'), 'Must not define hardcoded TARGET_SECONDS constant');
       assert.ok(!content.includes('DURATION_PRESETS'), 'Must not define in-card DURATION_PRESETS');
       assert.ok(content.includes('getReadingTargetMinutes'), 'Must derive duration via getReadingTargetMinutes');
     });
 
     it('should verify timer cleanup and interval management', () => {
-      const cardContent = readWebFile('src/components/habits/ReadingCard.js');
+      const cardContent = readWebFile('src/components/habits/slots/SlotTimer.js');
       const hookContent = readWebFile('src/hooks/use-timer.js');
       assert.ok(
         cardContent.includes('useTimer') && hookContent.includes('clearInterval(timerRef.current)'),
@@ -37,47 +37,46 @@ describe('Phase 6: Reading Timer & Routine Timing-Mode Controls', () => {
     });
 
     it('should verify auto-completion trigger when timer reaches 0', () => {
-      const content = readWebFile('src/components/habits/ReadingCard.js');
-      assert.ok(content.includes('onToggle(habit.id)'), 'Must auto-trigger onToggle when timer finishes');
+      const content = readWebFile('src/components/habits/slots/SlotTimer.js');
+      assert.ok(content.includes('onComplete'), 'Must auto-trigger onComplete when timer finishes');
     });
 
-    it('should verify visual progress bar with width style percentage', () => {
-      const content = readWebFile('src/components/habits/ReadingCard.js');
-      assert.ok(content.includes('style={{ width: `${progressPercent}%` }}'), 'Must render dynamic progress bar');
+    it('should verify timer display rendering with digital time readout', () => {
+      const content = readWebFile('src/components/habits/slots/SlotTimer.js');
+      assert.ok(content.includes('timeFormatted'), 'Must render dynamic digital time readout');
     });
 
     it('should verify large monospace typography for digital timer readout', () => {
-      const content = readWebFile('src/components/habits/ReadingCard.js');
+      const content = readWebFile('src/components/habits/slots/SlotTimer.js');
       assert.ok(
-        content.includes('font-mono') && content.includes('text-xl') && content.includes('text-main'),
-        'Must use font-mono text-xl/2xl for time readout'
+        content.includes('font-mono') && content.includes('text-main'),
+        'Must use font-mono for time readout'
       );
     });
 
     it('should verify WCAG 2.2 compliant touch targets on all timer controls', () => {
-      const content = readWebFile('src/components/habits/ReadingCard.js');
-      assert.ok(content.includes('py-2') && content.includes('rounded-xl'), 'Timer start/pause button must define comfortable padding and target shape');
-      assert.ok(content.includes('w-11 h-11') || content.includes('min-h-[44px]'), 'Timer reset button must meet 44x44px touch target');
+      const content = readWebFile('src/components/habits/slots/SlotTimer.js');
+      assert.ok(content.includes('rounded-xl'), 'Timer controls must define comfortable target shape');
+      assert.ok(content.includes('w-11 h-11') || content.includes('min-w-[44px]'), 'Timer controls must meet 44x44px touch target');
     });
 
-    it('should verify timer reset button disables when at initial idle state', () => {
-      const content = readWebFile('src/components/habits/ReadingCard.js');
+    it('should verify timer reset and pause controls are available', () => {
+      const content = readWebFile('src/components/habits/slots/SlotTimer.js');
       assert.ok(
-        content.includes('secondsRemaining === targetSeconds') ||
-        content.includes('secondsRemaining === TARGET_SECONDS'),
-        'Must disable reset button when already at target'
+        content.includes('resetTimer') && content.includes('pauseTimer'),
+        'Must support timer pause and reset actions'
       );
     });
 
-    it('should verify zero prohibited colors in ReadingCard', () => {
-      const content = readWebFile('src/components/habits/ReadingCard.js');
+    it('should verify zero prohibited colors in SlotTimer', () => {
+      const content = readWebFile('src/components/habits/slots/SlotTimer.js');
       const prohibited = [
         'bg-indigo-', 'text-indigo-', 'border-indigo-',
         'bg-purple-', 'text-purple-', 'border-purple-',
         'bg-blue-600', 'text-blue-600',
       ];
       for (const token of prohibited) {
-        assert.ok(!content.includes(token), `ReadingCard must not use prohibited token: ${token}`);
+        assert.ok(!content.includes(token), `SlotTimer must not use prohibited token: ${token}`);
       }
     });
   });

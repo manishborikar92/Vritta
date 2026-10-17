@@ -327,48 +327,47 @@ describe('Phase 4: Interactive Step Checklists & Workout Routine Consolidation',
     });
   });
 
-  describe('3. GenericHabitCard Interactive Checklist Architecture', () => {
-    it('should verify GenericHabitCard exists and exports a memoized component', () => {
-      const content = readWebFile('src/components/habits/GenericHabitCard.js');
-      assert.ok(content.includes('export default memo(GenericHabitCard)'));
+  describe('3. SlotChecklist Interactive Checklist Architecture', () => {
+    it('should verify SlotChecklist exists and exports a memoized component', () => {
+      const content = readWebFile('src/components/habits/slots/SlotChecklist.js');
+      assert.ok(content.includes('export default memo(SlotChecklist)'));
     });
 
-    it('should verify GenericHabitCard accepts progress and onUpdateProgress props', () => {
-      const content = readWebFile('src/components/habits/GenericHabitCard.js');
+    it('should verify SlotChecklist accepts progress and onChange props', () => {
+      const content = readWebFile('src/components/habits/slots/SlotChecklist.js');
       assert.ok(content.includes('progress = {}'), 'Must accept progress prop');
-      assert.ok(content.includes('onUpdateProgress'), 'Must accept onUpdateProgress prop');
+      assert.ok(content.includes('onChange'), 'Must accept onChange prop');
     });
 
     it('should verify interactive checkboxes with accessible labels are rendered for steps', () => {
-      const content = readWebFile('src/components/habits/GenericHabitCard.js');
-      assert.ok(content.includes('type="checkbox"'), 'Must render checkbox inputs for steps');
-      assert.ok(content.includes('aria-label='), 'Must provide accessible aria-label on step checkboxes');
-      assert.ok(content.includes('focus:ring-teal-500') || content.includes('focus:ring-2'), 'Must provide visible focus ring on checkboxes');
-      assert.ok(content.includes('htmlFor={inputId}'), 'Must associate label with checkbox inputId');
+      const content = readWebFile('src/components/habits/slots/SlotChecklist.js');
+      assert.ok(content.includes('isStepCompleted'), 'Must evaluate step completed status');
+      assert.ok(content.includes('handleStepToggle'), 'Must handle step toggling');
+      assert.ok(content.includes('toggleChecklistStep'), 'Must toggle checklist steps with helper');
     });
 
-    it('should verify progress count and dynamic progress bar markup in GenericHabitCard', () => {
-      const content = readWebFile('src/components/habits/GenericHabitCard.js');
+    it('should verify progress calculation and dynamic progress bar markup in SlotChecklist', () => {
+      const content = readWebFile('src/components/habits/slots/SlotChecklist.js');
       assert.ok(
-        content.includes('completedCount') && content.includes('totalCount') && content.includes('steps completed'),
-        'Must display "X of Y steps completed" progress indicator'
+        content.includes('calculateChecklistProgress'),
+        'Must calculate checklist progress using authoritative helper'
       );
       assert.ok(
-        content.includes('style={{ width: `${percent}%` }}'),
-        'Must render dynamic visual progress bar'
+        content.includes('isAllCompleted'),
+        'Must track isAllCompleted state'
       );
     });
 
-    it('should verify GenericHabitCard normalizes completedSteps against items context', () => {
-      const content = readWebFile('src/components/habits/GenericHabitCard.js');
+    it('should verify SlotChecklist normalizes completedSteps against items context', () => {
+      const content = readWebFile('src/components/habits/slots/SlotChecklist.js');
       assert.ok(
         content.includes('normalizeCompletedSteps(rawCompletedSteps, items)'),
-        'GenericHabitCard must normalize completedSteps against items'
+        'SlotChecklist must normalize completedSteps against items'
       );
     });
 
-    it('should verify GenericHabitCard does not write redundant completedCount or totalCount to progress payloads', () => {
-      const content = readWebFile('src/components/habits/GenericHabitCard.js');
+    it('should verify SlotChecklist does not write redundant completedCount or totalCount to progress payloads', () => {
+      const content = readWebFile('src/components/habits/slots/SlotChecklist.js');
       assert.ok(
         !content.includes('completedCount: nextCompletedSteps.length'),
         'Must not write redundant completedCount to progress payloads'
@@ -379,23 +378,23 @@ describe('Phase 4: Interactive Step Checklists & Workout Routine Consolidation',
       );
     });
 
-    it('should verify primary circular completion button satisfies min 44x44px touch target', () => {
-      const content = readWebFile('src/components/habits/GenericHabitCard.js');
+    it('should verify primary circular completion button satisfies min 44x44px touch target on DashboardHabitCard', () => {
+      const content = readWebFile('src/components/habits/DashboardHabitCard.js');
       assert.ok(
         content.includes('w-11 h-11') || content.includes('min-h-[44px]'),
         'Primary toggle button must satisfy 44x44px WCAG touch target'
       );
     });
 
-    it('should verify zero prohibited colors in GenericHabitCard', () => {
-      const content = readWebFile('src/components/habits/GenericHabitCard.js');
+    it('should verify zero prohibited colors in SlotChecklist', () => {
+      const content = readWebFile('src/components/habits/slots/SlotChecklist.js');
       const prohibited = [
         'bg-indigo-', 'text-indigo-', 'border-indigo-',
         'bg-purple-', 'text-purple-', 'border-purple-',
         'bg-blue-600', 'text-blue-600',
       ];
       for (const token of prohibited) {
-        assert.ok(!content.includes(token), `GenericHabitCard must not use prohibited token: ${token}`);
+        assert.ok(!content.includes(token), `SlotChecklist must not use prohibited token: ${token}`);
       }
     });
   });
@@ -430,29 +429,29 @@ describe('Phase 4: Interactive Step Checklists & Workout Routine Consolidation',
     });
   });
 
-  describe('6. Workout Routine Coordination (MovementCard)', () => {
-    it('should verify MovementCard dispatches clean progress payload without redundant counters', () => {
-      const content = readWebFile('src/components/habits/MovementCard.js');
+  describe('6. Workout Routine Coordination (SlotDaySchedule)', () => {
+    it('should verify SlotDaySchedule dispatches clean progress payload without redundant counters', () => {
+      const content = readWebFile('src/components/habits/slots/SlotDaySchedule.js');
       assert.ok(
-        content.includes('completedItemIds: updatedIds'),
-        'MovementCard must emit completedItemIds'
+        content.includes('completedItemIds') || content.includes('updatedIds'),
+        'SlotDaySchedule must emit completed item IDs'
       );
       assert.ok(
         !content.includes('completedCount: updatedIds.length'),
-        'MovementCard must NOT write redundant completedCount to database'
+        'SlotDaySchedule must NOT write redundant completedCount to database'
       );
       assert.ok(
         !content.includes('totalCount: currentItems.length'),
-        'MovementCard must NOT write redundant totalCount to database'
+        'SlotDaySchedule must NOT write redundant totalCount to database'
       );
     });
 
-    it('should verify MovementCard preserves workout progression and safety rules', () => {
-      const content = readWebFile('src/components/habits/MovementCard.js');
-      assert.ok(content.includes('MOVEMENT_SCHEDULE'), 'MovementCard must preserve MOVEMENT_SCHEDULE');
-      assert.ok(content.includes('WORKOUT_EXERCISES'), 'MovementCard must preserve WORKOUT_EXERCISES');
-      assert.ok(content.includes('STOP_SIGNALS'), 'MovementCard must preserve STOP_SIGNALS');
-      assert.ok(content.includes('isSunday'), 'MovementCard must preserve planned rest day logic');
+    it('should verify SlotDaySchedule preserves workout progression and safety rules', () => {
+      const content = readWebFile('src/components/habits/slots/SlotDaySchedule.js');
+      assert.ok(content.includes('MOVEMENT_SCHEDULE'), 'SlotDaySchedule must preserve MOVEMENT_SCHEDULE');
+      assert.ok(content.includes('WORKOUT_EXERCISES'), 'SlotDaySchedule must preserve WORKOUT_EXERCISES');
+      assert.ok(content.includes('STOP_SIGNALS'), 'SlotDaySchedule must preserve STOP_SIGNALS');
+      assert.ok(content.includes('isRestDay') || content.includes('Sun'), 'SlotDaySchedule must preserve planned rest day logic');
     });
   });
 

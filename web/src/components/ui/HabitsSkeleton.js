@@ -6,7 +6,7 @@ import Skeleton from './Skeleton';
  * HabitsSkeleton — Content-only loading skeleton for the Routine Manager (/habits).
  *
  * Designed to render inside the shared ProtectedLayout shell:
- * - RoutineCard anatomy placeholders with category top borders and tag chips
+ * - HabitManagerCard anatomy placeholders with category top borders and tag chips
  * - Bottom clearance (pb-32 sm:pb-36) matching the active Routine Manager
  * - Strict reduced-motion compliance via Skeleton primitive
  * - Clean semantic role="status" and aria-busy="true"

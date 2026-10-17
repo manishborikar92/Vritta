@@ -80,34 +80,23 @@ describe('Phase 3: UI/UX Component Polish (Mobile-First)', () => {
   });
 
   describe('2. WCAG 2.2 Target Size (min 44x44px for primary mobile actions)', () => {
-    it('should verify all core toggle habit cards define 44x44px toggle buttons', () => {
-      const toggleCards = [
-        'src/components/habits/MovementCard.js',
-        'src/components/habits/OshoCard.js',
-        'src/components/habits/ReadingCard.js',
-        'src/components/habits/SpeakingCard.js',
-        'src/components/habits/DiaryCard.js',
-        'src/components/habits/GenericHabitCard.js',
-      ];
-
-      for (const cardPath of toggleCards) {
-        const content = readWebFile(cardPath);
-        const has44pxCheckmark = content.includes('w-11 h-11') ||
-          (content.includes('w-11') && content.includes('h-11')) ||
-          (content.includes('min-w-[44px]') && content.includes('min-h-[44px]'));
-        assert.ok(
-          has44pxCheckmark,
-          `${cardPath} must specify 44x44px (w-11 h-11) on primary toggle button`
-        );
-      }
+    it('should verify DashboardHabitCard defines 44x44px toggle buttons', () => {
+      const content = readWebFile('src/components/habits/DashboardHabitCard.js');
+      const has44pxCheckmark = content.includes('w-11 h-11') ||
+        (content.includes('w-11') && content.includes('h-11')) ||
+        (content.includes('min-w-[44px]') && content.includes('min-h-[44px]'));
+      assert.ok(
+        has44pxCheckmark,
+        'DashboardHabitCard must specify 44x44px (w-11 h-11) on primary toggle button'
+      );
     });
 
-    it('should verify WorkbookCard stepper buttons meet WCAG 2.2 touch target standards (min 44x44px)', () => {
-      const content = readWebFile('src/components/habits/WorkbookCard.js');
+    it('should verify SlotStepper buttons meet WCAG 2.2 touch target standards (min 44x44px)', () => {
+      const content = readWebFile('src/components/habits/slots/SlotStepper.js');
       const has44pxStepper = content.includes('w-11 h-11') ||
         (content.includes('w-11') && content.includes('h-11')) ||
         (content.includes('min-w-[44px]') && content.includes('min-h-[44px]'));
-      assert.ok(has44pxStepper, 'WorkbookCard stepper must specify 44x44px (w-11 h-11)');
+      assert.ok(has44pxStepper, 'SlotStepper must specify 44x44px (w-11 h-11)');
     });
 
     it('should verify BottomNav items meet touch target accessibility guidelines', () => {
@@ -116,9 +105,12 @@ describe('Phase 3: UI/UX Component Polish (Mobile-First)', () => {
       assert.ok(content.includes('min-h-[52px]') || content.includes('min-w-[56px]'), 'BottomNav links must meet touch target guidelines');
     });
 
-    it('should verify Routine Manager actions meet minimum touch targets', () => {
-      const content = readWebFile('src/components/habits/RoutineCard.js');
-      assert.ok(content.includes('p-2.5') && content.includes('rounded-xl'), 'Habit action buttons must provide comfortable touch targets');
+    it('should verify Routine Manager actions meet minimum touch targets in HabitManagerCard', () => {
+      const content = readWebFile('src/components/habits/HabitManagerCard.js');
+      assert.ok(
+        (content.includes('w-11 h-11') || content.includes('p-2.5')) && content.includes('rounded-xl'),
+        'Habit action buttons must provide comfortable touch targets and rounded-xl styling'
+      );
     });
   });
 
