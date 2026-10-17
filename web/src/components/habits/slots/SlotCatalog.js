@@ -70,7 +70,8 @@ function SlotCatalog({
     const completedCount = items.filter(item => completedIds.includes(item.id || item.title)).length;
 
     const handleToggleItem = (itemId, e) => {
-      e.stopPropagation();
+      e?.stopPropagation?.();
+      e?.preventDefault?.();
       if (disabled) return;
       const isDone = completedIds.includes(itemId);
       const updated = isDone
@@ -106,7 +107,13 @@ function SlotCatalog({
               return (
                 <div
                   key={itemId}
+                  role="checkbox"
+                  aria-checked={isChecked}
+                  aria-disabled={disabled}
+                  tabIndex={disabled ? -1 : 0}
                   className={`p-2 rounded-xl border flex items-center justify-between gap-2.5 transition-all ${
+                    disabled ? 'cursor-not-allowed opacity-60 pointer-events-none select-none' : ''
+                  } ${
                     isChecked
                       ? 'bg-teal-50/50 dark:bg-teal-950/30 border-teal-200/60 dark:border-teal-800/60'
                       : 'bg-surface border-subtle hover:bg-surface-subtle'
@@ -114,8 +121,13 @@ function SlotCatalog({
                 >
                   <button
                     type="button"
-                    onClick={(e) => handleToggleItem(itemId, e)}
+                    onClick={(e) => {
+                      if (disabled) return;
+                      handleToggleItem(itemId, e);
+                    }}
                     disabled={disabled}
+                    aria-disabled={disabled}
+                    tabIndex={disabled ? -1 : 0}
                     className="flex-1 flex items-center gap-2.5 text-left min-h-[44px] py-1 focus-visible:outline-none"
                   >
                     <div

@@ -24,6 +24,7 @@ import {
     ValidationError,
     PERSISTED_OUTCOME_STATUSES,
     clampCounterProgress,
+    isHabitRestDay,
 } from '../constants/habit-models.js';
 
 /**
@@ -133,7 +134,15 @@ export async function deleteHabitDoc(habitId) {
  * @param {string} habitId
  * @param {boolean} isCurrentlyCompleted
  */
-export async function toggleHabitCompletion(userId, dateStr, habitId, isCurrentlyCompleted) {
+export async function toggleHabitCompletion(userId, dateStr, habitId, isCurrentlyCompleted, options = {}) {
+    const habit = options?.habit || (options && typeof options === 'object' && options.schedule ? options : null);
+    const timezone = options?.timezone || habit?.timezone || 'UTC';
+
+    if (!isCurrentlyCompleted && habit && isHabitRestDay(habit, dateStr, timezone)) {
+        // Routine is in a planned rest state for this date; rest days are neutral and cannot be marked complete
+        return null;
+    }
+
     const dailyLogRef = getDailyLogRef(userId, dateStr);
 
     return setDoc(dailyLogRef, {
@@ -232,7 +241,21 @@ export async function setDailyHabitOutcome(userId, dateStr, habitId, outcomeStat
  * @param {Object} progressDetails - Granular activity details
  * @param {boolean} [isFullyCompleted] - Whether the activity now satisfies completion requirements
  */
-export async function updateDailyHabitProgress(userId, dateStr, habitId, progressDetails, isFullyCompleted) {
+export async function updateDailyHabitProgress(userId, dateStr, habitId, progressDetails, isFullyCompleted, options = {}) {
+    if (!userId || !dateStr || !habitId) return null;
+
+    const habit = options?.habit || (options && typeof options === 'object' && options.schedule ? options : null);
+    const timezone = options?.timezone || habit?.timezone || 'UTC';
+    const isRest = options?.isRest || (habit ? isHabitRestDay(habit, dateStr, timezone) : false);
+
+    // Reject all writes on rest days:
+    // A planned rest day is neutral and its progress state is strictly immutable.
+    if (isRest) {
+        return null;
+    }
+
+    const effectiveCompleted = Boolean(isFullyCompleted);
+
     const dailyLogRef = getDailyLogRef(userId, dateStr);
 
     const updatePayload = {
@@ -247,8 +270,8 @@ export async function updateDailyHabitProgress(userId, dateStr, habitId, progres
         updatedAt: serverTimestamp(),
     };
 
-    if (typeof isFullyCompleted === 'boolean') {
-        if (isFullyCompleted) {
+    if (typeof effectiveCompleted === 'boolean') {
+        if (effectiveCompleted) {
             updatePayload.completedHabitIds = arrayUnion(habitId);
             updatePayload.habitOutcomes = {
                 [habitId]: {

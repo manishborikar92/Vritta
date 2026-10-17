@@ -10,6 +10,7 @@ import {
 import { DashboardSkeleton } from '@/components/ui';
 import { BRAND } from '@/lib/constants/brand';
 import { Compass } from 'lucide-react';
+import { getTodayString } from '@/utils/date-helpers';
 
 const EMPTY_PROGRESS = Object.freeze({});
 
@@ -121,6 +122,7 @@ export default function DashboardPage() {
         onUpdateProgress={updateProgress}
         userProfile={userProfile}
         onUpdateProfile={updateProfile}
+        date={getTodayString()}
       />
     );
   }, [todayLog, todayProgress, userProfile, updateProgress, toggleHabit, updateProfile]);

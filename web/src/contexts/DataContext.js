@@ -37,7 +37,7 @@ export function DataProvider({ children }) {
     updateProgress,
     setHabitOutcome,
     fetchDailyLogs,
-  } = useDailyLogs(user, todaysHabits);
+  } = useDailyLogs(user, todaysHabits, habits);
 
   const streak = useStreak(habits, dailyLogs);
 

@@ -304,9 +304,34 @@ export function evaluateHabitDayScenario(habit, dateStr, dayOfWeek, dailyLog, op
     }
   }
 
+  const outcomeStatus = dailyLog?.habitOutcomes?.[habit.id]?.status;
+
+  // Scenario 4: Intentional planned recurring rest day (e.g. Sunday) or date-specific rest day override
+  // A planned rest day is a neutral day, not a completion opportunity and not a missed occurrence.
+  // It bridges streaks and is excluded from all completion and failure denominators.
+  const isRest = isHabitRestDay(habit, dateStr || dayOfWeek, timezone) || outcomeStatus === 'rest';
+  if (isRest) {
+    return {
+      scenario: 4,
+      status: 'rest',
+      label: outcomeStatus === 'rest' ? 'Rest Day (Override)' : 'Planned Rest',
+      isScheduled: true,
+      isRecorded: outcomeStatus === 'rest',
+      isCompleted: false,
+      isMissed: false,
+      isRestDay: true,
+      isPending: false,
+      numerator: 0,
+      eligibleDenom: 0,
+      verifiedDenom: 0,
+      adherenceDenom: 0,
+      streakEffect: 'bridges',
+      colorBadge: 'amber-blue-recovery',
+    };
+  }
+
   // Check recorded status
   const completed = isHabitCompletedInLog(habit, dailyLog);
-  const outcomeStatus = dailyLog?.habitOutcomes?.[habit.id]?.status;
 
   // Scenario 1: Scheduled day with recorded completion
   if (completed) {
@@ -326,27 +351,6 @@ export function evaluateHabitDayScenario(habit, dateStr, dayOfWeek, dailyLog, op
       adherenceDenom: 1,
       streakEffect: 'extends',
       colorBadge: 'solid-green',
-    };
-  }
-
-  // Scenario 4 (Override): Explicit date-specific rest day override (bridges streak, excluded from failure denominators)
-  if (outcomeStatus === 'rest') {
-    return {
-      scenario: 4,
-      status: 'rest',
-      label: 'Rest Day (Override)',
-      isScheduled: true,
-      isRecorded: true,
-      isCompleted: false,
-      isMissed: false,
-      isRestDay: true,
-      isPending: false,
-      numerator: 0,
-      eligibleDenom: 0,
-      verifiedDenom: 0,
-      adherenceDenom: 0,
-      streakEffect: 'bridges',
-      colorBadge: 'amber-blue-recovery',
     };
   }
 
@@ -389,27 +393,6 @@ export function evaluateHabitDayScenario(habit, dateStr, dayOfWeek, dailyLog, op
       adherenceDenom: 1,
       streakEffect: 'breaks',
       colorBadge: 'muted-rose-outline',
-    };
-  }
-
-  // Scenario 4: Intentional planned recurring rest day (e.g. Sunday)
-  if (isHabitRestDay(habit, dayOfWeek)) {
-    return {
-      scenario: 4,
-      status: 'rest',
-      label: 'Planned Rest',
-      isScheduled: true,
-      isRecorded: false,
-      isCompleted: false,
-      isMissed: false,
-      isRestDay: true,
-      isPending: false,
-      numerator: 0,
-      eligibleDenom: 0,
-      verifiedDenom: 0,
-      adherenceDenom: 0,
-      streakEffect: 'bridges',
-      colorBadge: 'amber-blue-recovery',
     };
   }
 

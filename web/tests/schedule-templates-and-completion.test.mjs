@@ -379,28 +379,28 @@ describe('Progressive Day Schedule Checkbox Synchronization & Item Configuration
     assert.strictEqual(evaluateHabitCompletion(dayScheduleHabit, missingEx1, 'Mon'), false);
   });
 
-  it('should allow completing and uncompleting parent card on rest day (Sun)', () => {
+  it('should prevent completing parent card on rest day (Sun) and preserve rest-day neutrality', () => {
     const initialProgress = { completedItemIds: [] };
     assert.strictEqual(
       evaluateHabitCompletion(dayScheduleHabit, initialProgress, 'Sun'),
       false,
-      'Rest day is not automatically completed without user interaction'
+      'Rest day is not automatically completed'
     );
 
     const completedProgress = deriveCompletedProgressForHabit(dayScheduleHabit, initialProgress, 'Sun');
-    assert.strictEqual(completedProgress.workoutCompleted, true);
+    // On a rest day, deriveCompletedProgressForHabit strictly preserves existing progress without completing
+    assert.strictEqual(completedProgress.workoutCompleted, undefined);
     assert.strictEqual(
       evaluateHabitCompletion(dayScheduleHabit, completedProgress, 'Sun'),
-      true,
-      'Checking parent card on rest day completes observance'
+      false,
+      'Parent card on rest day cannot be marked completed'
     );
 
     const uncompletedProgress = deriveUncompletedProgressForHabit(dayScheduleHabit, completedProgress);
-    assert.strictEqual(uncompletedProgress.workoutCompleted, false);
     assert.strictEqual(
       evaluateHabitCompletion(dayScheduleHabit, uncompletedProgress, 'Sun'),
       false,
-      'Unchecking parent card on rest day reverses observance'
+      'Rest day remains neutral and non-completed'
     );
   });
 });

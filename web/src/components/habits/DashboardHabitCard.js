@@ -14,8 +14,9 @@ import {
   clampCounterProgress,
   deriveCompletedProgressForHabit,
   deriveUncompletedProgressForHabit,
+  resolveObservanceDate,
 } from '@/lib/constants/habit-models';
-import { getTimingDisplay, getDayOfWeek } from '@/utils/date-helpers';
+import { getTimingDisplay, getDayOfWeek, getTodayString } from '@/utils/date-helpers';
 import { isHabitRestDay } from '@/utils/analytics-helpers';
 import { useSound } from '@/contexts';
 import {
@@ -48,6 +49,7 @@ function DashboardHabitCard({
   onUpdateProgress,
   userProfile = {},
   onUpdateProfile,
+  date,
 }) {
   const { playStepToggleCue, playHabitCompleteCue } = useSound();
   const [showInstructions, setShowInstructions] = useState(false);
@@ -59,8 +61,17 @@ function DashboardHabitCard({
   const isNightTiming = timingText.toLowerCase().includes('bed') || timingText.toLowerCase().includes('night');
 
   // Check if today is a recurring planned rest day for this routine
-  const todayDow = getDayOfWeek(new Date());
-  const isPlannedRest = isHabitRestDay(habit, todayDow);
+  // Resolves against user anchor timezone, 04:00 AM observance window, and local today string
+  const timezone = userProfile?.preferences?.timezone || userProfile?.timezone || 'UTC';
+  const localToday = date || getTodayString();
+  const currentObservanceDate = resolveObservanceDate(new Date(), timezone);
+  const isScheduledRest = isHabitRestDay(habit, localToday, timezone) || isHabitRestDay(habit, currentObservanceDate, timezone);
+  const isExplicitRest =
+    progress?.status === 'rest' ||
+    progress?.outcome === 'rest' ||
+    progress?.outcomes?.[habit?.id]?.status === 'rest';
+
+  const isPlannedRest = Boolean(isScheduledRest || isExplicitRest);
 
   // Normalize features from canonical composable habit model or backward-compatible feature inference
   const features = habit.features || {};
@@ -111,7 +122,12 @@ function DashboardHabitCard({
 
   // Primary circular completion checkbox handler
   const handlePrimaryToggle = (e) => {
-    e.stopPropagation();
+    e?.stopPropagation();
+
+    // Guard: A planned rest day is a neutral day, not a completion opportunity.
+    if (isPlannedRest) {
+      return;
+    }
 
     if (isCompleted) {
       playStepToggleCue?.(false);
@@ -128,6 +144,7 @@ function DashboardHabitCard({
 
   // Slot update handlers with strict feature-driven completion evaluation
   const handleCounterChange = (newCount) => {
+    if (isPlannedRest) return;
     const clampedCount = clampCounterProgress(habit, newCount);
     const nextProgress = {
       ...progress,
@@ -139,6 +156,7 @@ function DashboardHabitCard({
   };
 
   const handleTimerComplete = ({ durationMinutes }) => {
+    if (isPlannedRest) return;
     const nextProgress = {
       ...progress,
       durationMinutes,
@@ -149,6 +167,7 @@ function DashboardHabitCard({
   };
 
   const handleChecklistChange = (nextSteps, allDone) => {
+    if (isPlannedRest) return;
     const nextProgress = {
       ...progress,
       completedSteps: nextSteps,
@@ -159,6 +178,7 @@ function DashboardHabitCard({
   };
 
   const handleDayScheduleChange = (updatedItemIds, allDone) => {
+    if (isPlannedRest) return;
     const nextProgress = {
       ...progress,
       completedItemIds: updatedItemIds,
@@ -170,6 +190,7 @@ function DashboardHabitCard({
   };
 
   const handleCatalogChange = (catalogUpdates) => {
+    if (isPlannedRest) return;
     const nextProgress = {
       ...progress,
       ...catalogUpdates,
@@ -265,21 +286,32 @@ function DashboardHabitCard({
             )}
           </div>
 
-          {/* Right Action Control: Single Primary Circular Completion Button (WCAG min 44x44px touch target) */}
+          {/* Right Action Control: Single Primary Circular Completion Button (WCAG min 44x44px touch target) or Rest Day Indicator */}
           <div className="flex items-center gap-1.5 flex-shrink-0 pt-0.5">
-            <button
-              type="button"
-              onClick={handlePrimaryToggle}
-              className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 flex items-center justify-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 active:scale-95 ${
-                isCompleted
-                  ? 'bg-teal-700 dark:bg-teal-600 border-teal-700 dark:border-teal-600 text-white shadow-teal-700/20 shadow-xs'
-                  : 'border-slate-300 dark:border-stone-600 hover:border-teal-500 bg-surface'
-              }`}
-              aria-label={isCompleted ? `Mark ${habit.title} incomplete` : `Mark ${habit.title} complete`}
-              title={isCompleted ? 'Completed' : 'Mark completed'}
-            >
-              {isCompleted && <Check className="w-5 h-5 text-white stroke-[3]" />}
-            </button>
+            {isPlannedRest ? (
+              <div
+                className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-dashed border-amber-300 dark:border-amber-800/80 bg-amber-50/50 dark:bg-amber-950/30 flex items-center justify-center text-amber-600 dark:text-amber-400 cursor-not-allowed select-none"
+                title="Planned Rest Day — Routine is resting today"
+                aria-label={`${habit.title} is resting today`}
+                role="status"
+              >
+                <Coffee className="w-5 h-5" />
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handlePrimaryToggle}
+                className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 flex items-center justify-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 active:scale-95 ${
+                  isCompleted
+                    ? 'bg-teal-700 dark:bg-teal-600 border-teal-700 dark:border-teal-600 text-white shadow-teal-700/20 shadow-xs'
+                    : 'border-slate-300 dark:border-stone-600 hover:border-teal-500 bg-surface'
+                }`}
+                aria-label={isCompleted ? `Mark ${habit.title} incomplete` : `Mark ${habit.title} complete`}
+                title={isCompleted ? 'Completed' : 'Mark completed'}
+              >
+                {isCompleted && <Check className="w-5 h-5 text-white stroke-[3]" />}
+              </button>
+            )}
           </div>
         </div>
 
@@ -292,6 +324,7 @@ function DashboardHabitCard({
               progress={progress}
               onChange={handleCounterChange}
               isHabitComplete={isCompleted}
+              disabled={isPlannedRest}
             />
           )}
 
@@ -303,6 +336,7 @@ function DashboardHabitCard({
               habit={habit}
               isCompleted={isCompleted}
               onComplete={handleTimerComplete}
+              disabled={isPlannedRest}
             />
           )}
 
@@ -314,6 +348,7 @@ function DashboardHabitCard({
               progress={progress}
               onChange={handleChecklistChange}
               isHabitComplete={isCompleted}
+              disabled={isPlannedRest}
             />
           )}
 
@@ -327,6 +362,7 @@ function DashboardHabitCard({
               userProfile={userProfile}
               onUpdateProfile={onUpdateProfile}
               isHabitComplete={isCompleted}
+              disabled={isPlannedRest}
             />
           )}
 
@@ -339,6 +375,7 @@ function DashboardHabitCard({
               onChange={handleCatalogChange}
               userProfile={userProfile}
               onUpdateProfile={onUpdateProfile}
+              disabled={isPlannedRest}
             />
           )}
 
@@ -349,6 +386,7 @@ function DashboardHabitCard({
               feature={features.notes || { isPrivateDiary: habit.completionMethod === 'diary_entry' }}
               progress={progress}
               onSave={handleNotesSave}
+              disabled={isPlannedRest}
             />
           )}
         </div>

@@ -248,64 +248,255 @@ export function createScheduleHistoryEntry(schedule, effectiveDate) {
 }
 
 /**
- * Retrieve the effective schedule for a habit on a specific calendar date.
+ * Retrieve the authoritative effective schedule for a habit on a specific calendar date,
+ * timestamp, or observance.
  * 
- * Evaluates `scheduleHistory` entries where `effectiveDate <= targetDate`,
- * returning the latest applicable entry. If no matching history entry exists,
- * returns the habit's canonical `schedule`.
+ * Invariants:
+ * 1. Evaluates `scheduleHistory` entries where `effectiveDate <= targetDate`,
+ *    returning the latest applicable entry with `source: 'schedule_history'`.
+ * 2. If targetDate precedes all history entries (before the earliest recorded schedule change),
+ *    returns the earliest history entry (baseline schedule) with `source: 'schedule_history_baseline'`
+ *    to prevent future schedule updates from retroactively rewriting historical expectations.
+ * 3. If scheduleHistory is empty or absent, returns the habit's current canonical schedule (`source: 'current_schedule'`).
+ * 4. Missing or malformed history (e.g. non-array, or entries missing effectiveDate or frequency)
+ *    is handled deliberately with a ValidationError rather than silently hiding scheduling corruption.
+ * 5. Handles input forms deterministically:
+ *    - Date string 'YYYY-MM-DD'
+ *    - Weekday name ('Mon'..'Sun') -> resolves to current schedule
+ *    - Date instance or timestamp -> resolves to observance date using user anchor timezone and 04:00 AM window
+ *    - null/undefined -> resolves to current schedule
  * 
- * Demonstrates that schedule edits do not retroactively rewrite historical expectations.
- * 
- * @param {Object} habit - ComposableHabitModel
- * @param {string} targetDate - 'YYYY-MM-DD'
- * @returns {Object} Effective schedule object active on targetDate
+ * @param {Object} habit - ComposableHabitModel or habit document
+ * @param {string|Date|number|null} [dateOrTimestampOrWeekday=null] - Calendar date ('YYYY-MM-DD'), Date, timestamp, or weekday ('Mon'..'Sun')
+ * @param {string} [timezone='UTC'] - User anchor timezone for observance resolution if timestamp/Date provided
+ * @returns {Object} Effective schedule object active on the target date
  */
-export function getEffectiveScheduleForDate(habit, targetDate) {
-  if (!habit || !habit.schedule) {
-    throw new ValidationError('Habit with schedule required to resolve effective schedule.');
+export function getEffectiveSchedule(habit, dateOrTimestampOrWeekday = null, timezone = 'UTC') {
+  if (!habit || typeof habit !== 'object') {
+    throw new ValidationError('Valid habit object is required to resolve effective schedule.');
+  }
+
+  // Validate schedule existence (support legacy un-normalized objects with frequency)
+  let baseSchedule = habit.schedule;
+  if (!baseSchedule || typeof baseSchedule !== 'object') {
+    if (Array.isArray(habit.frequency)) {
+      baseSchedule = {
+        frequency: [...habit.frequency],
+        restDays: Array.isArray(habit.metadata?.restDays)
+          ? [...habit.metadata.restDays]
+          : (Array.isArray(habit.restDays) ? [...habit.restDays] : []),
+        timingType: habit.timingType || 'anytime',
+        preferredPeriod: habit.preferredPeriod || null,
+        relativeTiming: habit.relativeTiming || null,
+        exactTime: habit.time && habit.time !== 'Flexible' ? habit.time : null,
+        order: typeof habit.order === 'number' ? habit.order : 0,
+      };
+    } else {
+      throw new ValidationError('Habit schedule is required to resolve effective schedule.');
+    }
+  }
+
+  // Validate scheduleHistory structure if present
+  if (habit.scheduleHistory !== undefined && habit.scheduleHistory !== null && !Array.isArray(habit.scheduleHistory)) {
+    throw new ValidationError('Habit scheduleHistory must be an array when present.');
+  }
+
+  // Resolve target calendar date ('YYYY-MM-DD') from input
+  let targetDate = null;
+  if (typeof dateOrTimestampOrWeekday === 'string') {
+    if (WEEKDAYS.includes(dateOrTimestampOrWeekday)) {
+      // Weekday name does not identify a calendar date; falls back to current schedule
+      targetDate = null;
+    } else if (/^\d{4}-\d{2}-\d{2}$/.test(dateOrTimestampOrWeekday)) {
+      targetDate = dateOrTimestampOrWeekday;
+    } else {
+      targetDate = resolveObservanceDate(dateOrTimestampOrWeekday, timezone);
+    }
+  } else if (dateOrTimestampOrWeekday instanceof Date || typeof dateOrTimestampOrWeekday === 'number') {
+    targetDate = resolveObservanceDate(dateOrTimestampOrWeekday, timezone);
   }
 
   const history = Array.isArray(habit.scheduleHistory) ? habit.scheduleHistory : [];
 
-  if (history.length > 0 && targetDate) {
-    // Sort ascending by effectiveDate
-    const sorted = [...history].sort((a, b) => a.effectiveDate.localeCompare(b.effectiveDate));
-    
-    // Find the latest entry that took effect on or before targetDate
-    let matchingEntry = null;
-    for (const entry of sorted) {
-      if (entry.effectiveDate <= targetDate) {
-        matchingEntry = entry;
-      } else {
-        break;
+  if (history.length > 0) {
+    // Validate all history entries deliberately
+    for (let i = 0; i < history.length; i++) {
+      const entry = history[i];
+      if (!entry || typeof entry !== 'object' || !entry.effectiveDate || !/^\d{4}-\d{2}-\d{2}$/.test(entry.effectiveDate)) {
+        throw new ValidationError(`Malformed scheduleHistory entry at index ${i}: missing or invalid effectiveDate.`);
+      }
+      if (!Array.isArray(entry.frequency)) {
+        throw new ValidationError(`Malformed scheduleHistory entry at index ${i}: frequency must be an array.`);
       }
     }
 
-    if (matchingEntry) {
+    if (targetDate) {
+      // Sort ascending by effectiveDate
+      const sorted = [...history].sort((a, b) => a.effectiveDate.localeCompare(b.effectiveDate));
+
+      // Find the latest entry that took effect on or before targetDate
+      let matchingEntry = null;
+      for (const entry of sorted) {
+        if (entry.effectiveDate <= targetDate) {
+          matchingEntry = entry;
+        } else {
+          break;
+        }
+      }
+
+      if (matchingEntry) {
+        return {
+          frequency: [...matchingEntry.frequency],
+          restDays: [...(matchingEntry.restDays || [])],
+          timingType: matchingEntry.timingType || 'anytime',
+          preferredPeriod: matchingEntry.preferredPeriod || null,
+          relativeTiming: matchingEntry.relativeTiming || null,
+          exactTime: matchingEntry.exactTime || null,
+          source: 'schedule_history',
+          effectiveDate: matchingEntry.effectiveDate,
+        };
+      }
+
+      // If targetDate precedes all history entries (before the earliest recorded change),
+      // the baseline schedule active from the beginning is the earliest entry in history.
+      const earliest = sorted[0];
       return {
-        frequency: [...matchingEntry.frequency],
-        restDays: [...(matchingEntry.restDays || [])],
-        timingType: matchingEntry.timingType || 'anytime',
-        preferredPeriod: matchingEntry.preferredPeriod || null,
-        relativeTiming: matchingEntry.relativeTiming || null,
-        exactTime: matchingEntry.exactTime || null,
-        source: 'schedule_history',
-        effectiveDate: matchingEntry.effectiveDate,
+        frequency: [...earliest.frequency],
+        restDays: [...(earliest.restDays || [])],
+        timingType: earliest.timingType || 'anytime',
+        preferredPeriod: earliest.preferredPeriod || null,
+        relativeTiming: earliest.relativeTiming || null,
+        exactTime: earliest.exactTime || null,
+        source: 'schedule_history_baseline',
+        effectiveDate: earliest.effectiveDate,
       };
     }
   }
 
-  // Fallback to current schedule
+  // Fallback to current schedule (empty history, or no target date specified)
   return {
-    frequency: [...habit.schedule.frequency],
-    restDays: [...(habit.schedule.restDays || [])],
-    timingType: habit.schedule.timingType || 'anytime',
-    preferredPeriod: habit.schedule.preferredPeriod || null,
-    relativeTiming: habit.schedule.relativeTiming || null,
-    exactTime: habit.schedule.exactTime || null,
+    frequency: [...(baseSchedule.frequency || WEEKDAYS)],
+    restDays: [...(baseSchedule.restDays || [])],
+    timingType: baseSchedule.timingType || 'anytime',
+    preferredPeriod: baseSchedule.preferredPeriod || null,
+    relativeTiming: baseSchedule.relativeTiming || null,
+    exactTime: baseSchedule.exactTime || null,
     source: 'current_schedule',
     effectiveDate: habit.lifecycle?.trackingHorizon?.startDate || null,
   };
+}
+
+/**
+ * Authoritative alias for backward compatibility with getEffectiveScheduleForDate callers.
+ */
+export const getEffectiveScheduleForDate = getEffectiveSchedule;
+
+/**
+ * Checks whether a habit has a planned rest day on a specific day of the week or date.
+ * Respects:
+ * 1. Authoritative effective-dated schedule history when a date string, Date, or timestamp is provided.
+ * 2. Explicit rest day configuration in schedule.restDays, metadata.restDays, or habit.restDays.
+ * 3. Progressive Day Schedule rest variants in features.daySchedule.dayVariations[dow] (type === 'rest', dayType === 'rest', or isRestDay === true).
+ * 4. Canonical movement routines (Sunday is an intentional planned rest day).
+ * 5. User-anchor timezone and 04:00 AM observance boundary when given a Date, timestamp, or resolved date.
+ *
+ * @param {Object} habit
+ * @param {string|Date|number} [dayOfWeekOrDate] - 'Mon'..'Sun', 'YYYY-MM-DD', Date instance, or timestamp.
+ * @param {string} [timezone='UTC'] - IANA timezone for observance resolution if timestamp/Date provided.
+ * @returns {boolean}
+ */
+export function isHabitRestDay(habit, dayOfWeekOrDate, timezone = 'UTC') {
+  if (!habit) return false;
+
+  let dow = null;
+  let targetDate = null;
+
+  if (typeof dayOfWeekOrDate === 'string') {
+    if (WEEKDAYS.includes(dayOfWeekOrDate)) {
+      dow = dayOfWeekOrDate;
+    } else if (/^\d{4}-\d{2}-\d{2}$/.test(dayOfWeekOrDate)) {
+      targetDate = dayOfWeekOrDate;
+      dow = getDayOfWeek(dayOfWeekOrDate);
+    } else {
+      targetDate = resolveObservanceDate(dayOfWeekOrDate, timezone);
+      dow = getDayOfWeek(targetDate);
+    }
+  } else if (dayOfWeekOrDate instanceof Date || typeof dayOfWeekOrDate === 'number') {
+    targetDate = resolveObservanceDate(dayOfWeekOrDate, timezone);
+    dow = getDayOfWeek(targetDate);
+  }
+
+  if (!dow) {
+    const ts = dayOfWeekOrDate || new Date();
+    targetDate = resolveObservanceDate(ts, timezone);
+    dow = getDayOfWeek(targetDate);
+  }
+
+  // 1. Authoritative effective-dated schedule resolution
+  if (habit.schedule || Array.isArray(habit.frequency)) {
+    try {
+      const effective = getEffectiveSchedule(habit, targetDate || dow, timezone);
+      if (Array.isArray(effective.restDays) && effective.restDays.includes(dow)) {
+        return true;
+      }
+      // If an authoritative historical schedule entry was resolved, its restDays definition governs this date.
+      if (effective.source === 'schedule_history' || effective.source === 'schedule_history_baseline') {
+        // Historical schedule is definitive; do not fall back to unversioned current schedule restDays
+      } else {
+        // Current schedule source; check legacy metadata/restDays if present
+        if (Array.isArray(habit.metadata?.restDays) && habit.metadata.restDays.includes(dow)) {
+          return true;
+        }
+        if (Array.isArray(habit.restDays) && habit.restDays.includes(dow)) {
+          return true;
+        }
+      }
+    } catch {
+      // If validation fails on non-standard test inputs, continue to explicit fallback properties
+      if (Array.isArray(habit.schedule?.restDays) && habit.schedule.restDays.includes(dow)) {
+        return true;
+      }
+      if (Array.isArray(habit.metadata?.restDays) && habit.metadata.restDays.includes(dow)) {
+        return true;
+      }
+      if (Array.isArray(habit.restDays) && habit.restDays.includes(dow)) {
+        return true;
+      }
+    }
+  } else {
+    // Fallback checks for legacy habit schemas without schedule or frequency
+    if (Array.isArray(habit.metadata?.restDays) && habit.metadata.restDays.includes(dow)) {
+      return true;
+    }
+    if (Array.isArray(habit.restDays) && habit.restDays.includes(dow)) {
+      return true;
+    }
+  }
+
+  // 2. Progressive Day Schedule rest variant (features.daySchedule)
+  const daySchedule = habit.features?.daySchedule;
+  if (daySchedule && (daySchedule.enabled || habit.completionMethod === 'exercise_plan')) {
+    const dayVar = daySchedule.dayVariations?.[dow];
+    if (dayVar && (dayVar.type === 'rest' || dayVar.dayType === 'rest' || dayVar.isRestDay === true)) {
+      return true;
+    }
+    // Sunday is default rest in daySchedule unless explicitly overridden by an active non-rest variation
+    if (dow === 'Sun' && (!dayVar || dayVar.type === 'rest' || dayVar.dayType === 'rest' || dayVar.isRestDay === true)) {
+      return true;
+    }
+  }
+
+  // 3. Canonical movement plan fallback: Sunday is an intentional planned rest day
+  const isCanonicalMovement =
+    habit.stableKey === 'canonical_exercise_plan' ||
+    habit.stableKey === 'routine_physical_movement' ||
+    habit.completionMethod === 'exercise_plan';
+
+  if (dow === 'Sun' && isCanonicalMovement) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
@@ -720,13 +911,14 @@ export function isFeatureSatisfied(featureKey, featureConfig = {}, progress = {}
       );
     }
     case 'daySchedule': {
-      if (progress.workoutCompleted || progress.walkCompleted) {
-        return true;
-      }
       const currentDay = dayOfWeek || getDayOfWeek();
       const dayVar = featureConfig.dayVariations?.[currentDay];
-      if (dayVar?.type === 'rest' || currentDay === 'Sun') {
-        return Boolean(progress.workoutCompleted || progress.walkCompleted);
+      const isRest = dayVar?.type === 'rest' || dayVar?.dayType === 'rest' || dayVar?.isRestDay === true || (currentDay === 'Sun' && (!dayVar || dayVar.type === 'rest' || dayVar.dayType === 'rest' || dayVar.isRestDay === true));
+      if (isRest) {
+        return false;
+      }
+      if (progress.workoutCompleted || progress.walkCompleted) {
+        return true;
       }
       const currentItems = Array.isArray(dayVar?.exercises) && dayVar.exercises.length > 0
         ? dayVar.exercises
@@ -738,7 +930,7 @@ export function isFeatureSatisfied(featureKey, featureConfig = {}, progress = {}
         item => item.isRequired !== false && item.isRequiredForCompletion !== false
       );
       if (requiredItems.length === 0) {
-        return Boolean(progress.workoutCompleted || progress.walkCompleted);
+        return false;
       }
       const completedIds = Array.isArray(progress.completedItemIds) ? progress.completedItemIds : [];
       return requiredItems.every(reqItem => completedIds.includes(reqItem.id));
@@ -791,6 +983,8 @@ export function clampCounterProgress(habit, count) {
  */
 export function deriveCompletedProgressForHabit(habit, existingProgress = {}, dayOfWeek = null) {
   if (!habit || !habit.features) return { ...existingProgress };
+  const currentDay = dayOfWeek || getDayOfWeek();
+  if (isHabitRestDay(habit, currentDay)) return { ...existingProgress };
   const f = habit.features;
   const next = { ...existingProgress };
 
@@ -839,7 +1033,7 @@ export function deriveCompletedProgressForHabit(habit, existingProgress = {}, da
       ? dayVar.exercises
       : (dayVar?.type === 'walk' || currentDay === 'Tue' || currentDay === 'Thu' || currentDay === 'Sat')
       ? WALK_DAY_ROUTINE
-      : (dayVar?.type === 'rest' || currentDay === 'Sun')
+      : (dayVar?.type === 'rest' || dayVar?.dayType === 'rest' || dayVar?.isRestDay === true || currentDay === 'Sun')
       ? []
       : WORKOUT_EXERCISES;
     const applicableIds = currentItems.map(item => item.id);
@@ -918,6 +1112,8 @@ export function deriveUncompletedProgressForHabit(habit, existingProgress = {}) 
  */
 export function evaluateHabitCompletion(habit, progress = {}, dayOfWeek = null) {
   if (!habit || !habit.features) return false;
+  const currentDay = dayOfWeek || getDayOfWeek();
+  if (isHabitRestDay(habit, currentDay)) return false;
 
   const f = habit.features;
   const activeFeatures = [];

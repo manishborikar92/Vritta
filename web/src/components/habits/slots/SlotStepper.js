@@ -43,7 +43,8 @@ function SlotStepper({
   const isMaxReached = currentCount >= maxCount;
 
   const handleDecrement = (e) => {
-    e.stopPropagation();
+    e?.stopPropagation?.();
+    e?.preventDefault?.();
     if (disabled || currentCount <= minCount) return;
     const next = Math.max(minCount, currentCount - step);
     playStepToggleCue?.(false);
@@ -51,7 +52,8 @@ function SlotStepper({
   };
 
   const handleIncrement = (e) => {
-    e.stopPropagation();
+    e?.stopPropagation?.();
+    e?.preventDefault?.();
     if (disabled || isMaxReached) return;
     const next = Math.min(maxCount, currentCount + step);
     if (next >= targetCount && !isTargetReached) {
@@ -85,6 +87,7 @@ function SlotStepper({
           type="button"
           onClick={handleDecrement}
           disabled={disabled || currentCount <= minCount}
+          aria-disabled={disabled || currentCount <= minCount}
           className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl border border-subtle bg-surface text-main hover:bg-surface-subtle disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 active:scale-95"
           aria-label={`Decrement ${unit}`}
           title={`Decrease ${unit}`}

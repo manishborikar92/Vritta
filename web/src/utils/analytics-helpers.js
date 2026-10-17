@@ -14,7 +14,13 @@
 
 import { getCategoryConfig } from '../lib/constants/categories.js';
 import { getDateString, getDaysAgo, getDayOfWeek } from './date-helpers.js';
-import { resolveObservanceDate, evaluateHabitCompletion } from '../lib/constants/habit-models.js';
+import {
+  resolveObservanceDate,
+  evaluateHabitCompletion,
+  isHabitRestDay,
+  getEffectiveSchedule,
+  getEffectiveScheduleForDate,
+} from '../lib/constants/habit-models.js';
 
 /**
  * Checks whether a habit is scheduled to run on a specific day of the week.
@@ -22,6 +28,7 @@ import { resolveObservanceDate, evaluateHabitCompletion } from '../lib/constants
  * Rules:
  * - Empty or missing frequency array indicates everyday recurrence.
  * - Explicit frequency array requires matching day name (e.g. 'Mon', 'Wed').
+ * - Supports composable habits (`schedule.frequency`) and legacy habits (`habit.frequency`).
  *
  * @param {Object} habit
  * @param {string} dayOfWeek - Short day name: 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
@@ -29,53 +36,14 @@ import { resolveObservanceDate, evaluateHabitCompletion } from '../lib/constants
  */
 export function isHabitScheduledOnDay(habit, dayOfWeek) {
   if (!habit || !dayOfWeek) return false;
-  if (!habit.frequency || !Array.isArray(habit.frequency) || habit.frequency.length === 0) {
+  const frequency = habit.schedule?.frequency || habit.frequency;
+  if (!frequency || !Array.isArray(frequency) || frequency.length === 0) {
     return true;
   }
-  return habit.frequency.includes(dayOfWeek);
+  return frequency.includes(dayOfWeek);
 }
 
-/**
- * Checks whether a habit has a planned rest day on a specific day of the week.
- *
- * Rules:
- * 1. Explicit rest day configuration in metadata.restDays (or root restDays) takes precedence.
- * 2. Canonical movement routines (stableKey === 'canonical_exercise_plan' or completionMethod === 'exercise_plan')
- *    have Sunday as an intentional planned recovery day.
- * 3. Custom habits with category === 'Movement & Strength' DO NOT default to Sunday rest
- *    unless explicitly configured in metadata.restDays or using completionMethod 'exercise_plan'.
- *
- * @param {Object} habit
- * @param {string} dayOfWeek - Short day name: 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
- * @returns {boolean}
- */
-export function isHabitRestDay(habit, dayOfWeek) {
-  if (!habit || !dayOfWeek) return false;
-
-  // 1. Explicit rest day configuration
-  if (Array.isArray(habit.schedule?.restDays) && habit.schedule.restDays.includes(dayOfWeek)) {
-    return true;
-  }
-  if (Array.isArray(habit.metadata?.restDays) && habit.metadata.restDays.includes(dayOfWeek)) {
-    return true;
-  }
-  if (Array.isArray(habit.restDays) && habit.restDays.includes(dayOfWeek)) {
-    return true;
-  }
-
-  // 2. Canonical movement plan fallback: Sunday is an intentional planned rest day
-  // Confined to canonical routines and exercise_plan completion mode
-  const isCanonicalMovement =
-    habit.stableKey === 'canonical_exercise_plan' ||
-    habit.stableKey === 'routine_physical_movement' ||
-    habit.completionMethod === 'exercise_plan';
-
-  if (dayOfWeek === 'Sun' && isCanonicalMovement) {
-    return true;
-  }
-
-  return false;
-}
+export { isHabitRestDay, getEffectiveSchedule, getEffectiveScheduleForDate };
 
 /**
  * Checks whether a habit is required on a given day (scheduled AND not in planned rest).

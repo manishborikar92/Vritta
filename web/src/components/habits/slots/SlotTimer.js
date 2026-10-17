@@ -21,6 +21,7 @@ function SlotTimer({
   habit = {},
   isCompleted = false,
   onComplete,
+  disabled = false,
 }) {
   const targetMinutes = Number(feature.targetDurationMinutes) > 0
     ? Number(feature.targetDurationMinutes)
@@ -46,7 +47,9 @@ function SlotTimer({
   });
 
   const handleTogglePlay = (e) => {
-    e.stopPropagation();
+    e?.stopPropagation?.();
+    e?.preventDefault?.();
+    if (disabled) return;
     if (timerActive) {
       pauseTimer();
     } else {
@@ -55,7 +58,9 @@ function SlotTimer({
   };
 
   const handleReset = (e) => {
-    e.stopPropagation();
+    e?.stopPropagation?.();
+    e?.preventDefault?.();
+    if (disabled) return;
     resetTimer();
   };
 
@@ -102,7 +107,8 @@ function SlotTimer({
           <button
             type="button"
             onClick={handleReset}
-            disabled={secondsRemaining === targetSeconds && !timerActive}
+            disabled={disabled || (secondsRemaining === targetSeconds && !timerActive)}
+            aria-disabled={disabled || (secondsRemaining === targetSeconds && !timerActive)}
             className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl border border-subtle bg-surface text-muted hover:text-main hover:bg-surface-subtle disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 active:scale-95"
             aria-label="Reset Timer"
             title="Reset timer to beginning"
@@ -114,7 +120,9 @@ function SlotTimer({
           <button
             type="button"
             onClick={handleTogglePlay}
-            className={`px-4 h-11 min-h-[44px] rounded-xl font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 active:scale-95 ${
+            disabled={disabled}
+            aria-disabled={disabled}
+            className={`px-4 h-11 min-h-[44px] rounded-xl font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed ${
               timerActive
                 ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/20'
                 : 'bg-teal-700 dark:bg-teal-600 hover:bg-teal-800 dark:hover:bg-teal-500 text-white shadow-teal-700/20'

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, memo } from 'react';
-import { Check, ListChecks, ChevronDown } from 'lucide-react';
+import { Check, ListChecks, ChevronDown, Coffee } from 'lucide-react';
 import { useSound } from '@/contexts';
 import {
   isStepCompleted,
@@ -18,6 +18,7 @@ import {
  *
  * Supports robust step normalization (preserving completed state across step reorders/renames),
  * WCAG 2.2 touch targets (min 44x44px), and audio completion feedback.
+ * Strictly locks and prevents mutations on planned rest days.
  */
 function SlotChecklist({
   feature = {},
@@ -50,7 +51,8 @@ function SlotChecklist({
   if (items.length === 0) return null;
 
   const handleStepToggle = (index, e) => {
-    e.stopPropagation();
+    e?.stopPropagation?.();
+    e?.preventDefault?.();
     if (disabled) return;
 
     const isCurrentlyChecked = isStepCompleted(items[index], index, completedSteps, isHabitComplete, items);
@@ -92,6 +94,18 @@ function SlotChecklist({
         </span>
       </div>
 
+      {/* Planned Rest Inactive Banner */}
+      {disabled && (
+        <div
+          role="status"
+          aria-label="Checklist paused for planned rest"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-2xs font-semibold select-none"
+        >
+          <Coffee className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+          <span>Planned Rest Day — Checklist items are paused and locked today.</span>
+        </div>
+      )}
+
       {/* Progress track */}
       <div className="w-full bg-slate-200 dark:bg-stone-800 h-1.5 rounded-full overflow-hidden">
         <div
@@ -112,8 +126,26 @@ function SlotChecklist({
             return (
               <div
                 key={item?.id || `step_${index}`}
-                onClick={(e) => handleStepToggle(index, e)}
-                className={`flex items-center gap-3 p-2 sm:p-2.5 rounded-xl border transition-all cursor-pointer ${
+                onClick={(e) => {
+                  if (disabled) return;
+                  handleStepToggle(index, e);
+                }}
+                onKeyDown={(e) => {
+                  if (disabled) return;
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleStepToggle(index, e);
+                  }
+                }}
+                role="checkbox"
+                aria-checked={stepChecked}
+                aria-disabled={disabled}
+                tabIndex={disabled ? -1 : 0}
+                className={`flex items-center gap-3 p-2 sm:p-2.5 rounded-xl border transition-all ${
+                  disabled
+                    ? 'opacity-60 cursor-not-allowed select-none bg-surface-subtle/50 border-subtle pointer-events-none'
+                    : 'cursor-pointer'
+                } ${
                   stepChecked
                     ? 'bg-teal-50/50 dark:bg-teal-950/30 border-teal-200 dark:border-teal-900/60 text-slate-500 dark:text-slate-400'
                     : 'bg-surface border-subtle text-main hover:bg-surface-subtle'
@@ -122,14 +154,21 @@ function SlotChecklist({
                 {/* Checkbox button (WCAG 2.2 min 44x44px touch target) */}
                 <button
                   type="button"
-                  onClick={(e) => handleStepToggle(index, e)}
+                  onClick={(e) => {
+                    if (disabled) return;
+                    handleStepToggle(index, e);
+                  }}
                   disabled={disabled}
+                  aria-disabled={disabled}
+                  tabIndex={disabled ? -1 : 0}
                   className={`w-9 h-9 min-w-[36px] min-h-[36px] sm:w-8 sm:h-8 rounded-lg border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+                    disabled ? 'cursor-not-allowed opacity-60' : ''
+                  } ${
                     stepChecked
                       ? 'bg-teal-700 dark:bg-teal-600 border-teal-700 dark:border-teal-600 text-white'
                       : 'border-slate-300 dark:border-slate-600 hover:border-teal-500 bg-surface'
                   }`}
-                  aria-label={`Toggle ${label}`}
+                  aria-label={disabled ? `${label} (Locked - Planned Rest)` : `Toggle ${label}`}
                 >
                   {stepChecked && <Check className="w-4 h-4 stroke-[3]" />}
                 </button>

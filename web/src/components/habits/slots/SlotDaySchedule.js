@@ -19,6 +19,7 @@ import {
   GENERAL_HEALTH_NOTES,
 } from '@/lib/fixtures/exercise-plan';
 import { getDayOfWeek } from '@/utils/date-helpers';
+import { resolveObservanceDate } from '@/lib/constants/habit-models';
 import { useSound } from '@/contexts';
 
 /**
@@ -47,13 +48,15 @@ function SlotDaySchedule({
   const [showSafetyModal, setShowSafetyModal] = useState(false);
   const [expandedExerciseId, setExpandedExerciseId] = useState(null);
 
-  const dayOfWeek = getDayOfWeek();
+  const timezone = userProfile?.preferences?.timezone || userProfile?.timezone || 'UTC';
+  const currentObservanceDate = resolveObservanceDate(new Date(), timezone);
+  const dayOfWeek = getDayOfWeek(currentObservanceDate);
 
   // Resolve today's schedule from feature.dayVariations or fallback to MOVEMENT_SCHEDULE
   const dayVariation = feature.dayVariations?.[dayOfWeek];
   const scheduleForToday = dayVariation || MOVEMENT_SCHEDULE[dayOfWeek] || MOVEMENT_SCHEDULE.Mon;
 
-  const isRestDay = scheduleForToday.type === 'rest' || dayOfWeek === 'Sun';
+  const isRestDay = scheduleForToday.type === 'rest' || dayVariation?.isRestDay === true || dayOfWeek === 'Sun';
   const isWalkDay = scheduleForToday.type === 'walk';
   const isWorkoutDay = scheduleForToday.type === 'workout' || (!isRestDay && !isWalkDay);
 
@@ -79,8 +82,9 @@ function SlotDaySchedule({
   const isComplete = Boolean(isHabitComplete || progress.workoutCompleted || allRequiredChecked);
 
   const handleToggleItem = (itemId, e) => {
-    e.stopPropagation();
-    if (disabled) return;
+    e?.stopPropagation?.();
+    e?.preventDefault?.();
+    if (disabled || isRestDay) return;
 
     const isCurrentlyChecked = completedItemIds.includes(itemId);
     const updatedIds = isCurrentlyChecked
@@ -189,20 +193,37 @@ function SlotDaySchedule({
               }`}
             >
               <div
-                onClick={(e) => handleToggleItem(item.id, e)}
-                className="flex items-center gap-3 p-2 sm:p-2.5 cursor-pointer"
+                onClick={(e) => {
+                  if (disabled || isRestDay) return;
+                  handleToggleItem(item.id, e);
+                }}
+                role="checkbox"
+                aria-checked={isItemDone}
+                aria-disabled={disabled || isRestDay}
+                tabIndex={disabled || isRestDay ? -1 : 0}
+                className={`flex items-center gap-3 p-2 sm:p-2.5 ${
+                  disabled || isRestDay ? 'cursor-not-allowed opacity-60 pointer-events-none select-none' : 'cursor-pointer'
+                }`}
               >
                 {/* Checkbox button (min 44x44px touch target) */}
                 <button
                   type="button"
-                  onClick={(e) => handleToggleItem(item.id, e)}
-                  disabled={disabled}
+                  onClick={(e) => {
+                    if (disabled || isRestDay) return;
+                    handleToggleItem(item.id, e);
+                  }}
+                  disabled={disabled || isRestDay}
+                  aria-disabled={disabled || isRestDay}
+                  tabIndex={disabled || isRestDay ? -1 : 0}
                   className={`w-9 h-9 min-w-[36px] min-h-[36px] sm:w-8 sm:h-8 rounded-lg border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+                    disabled || isRestDay ? 'cursor-not-allowed opacity-60' : ''
+                  } ${
                     isItemDone
                       ? 'bg-teal-700 dark:bg-teal-600 border-teal-700 dark:border-teal-600 text-white'
                       : 'border-slate-300 dark:border-slate-600 hover:border-teal-500 bg-surface'
                   }`}
                   aria-label={`Toggle ${item.name}`}
+                  title={disabled || isRestDay ? `${item.name} (Locked — Planned Rest)` : undefined}
                 >
                   {isItemDone && <Check className="w-4 h-4 stroke-[3]" />}
                 </button>

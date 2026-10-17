@@ -10,7 +10,7 @@ import {
     fetchHistoricalLogs,
 } from '@/lib/firebase/firestore';
 import { getTodayString, getDayOfWeek } from '@/utils/date-helpers';
-import { isHabitRequiredOnDay } from '@/utils/analytics-helpers';
+import { isHabitRequiredOnDay, isHabitRestDay } from '@/utils/analytics-helpers';
 
 /**
  * Hook for managing daily logs — binary toggles, granular progress updates,
@@ -20,7 +20,7 @@ import { isHabitRequiredOnDay } from '@/utils/analytics-helpers';
  * @param {Array} todaysHabits - Today's filtered habits (from useHabits)
  * @returns {Object} Daily log state and actions
  */
-export function useDailyLogs(user, todaysHabits = []) {
+export function useDailyLogs(user, todaysHabits = [], allHabits = []) {
     const [dailyLogs, setDailyLogs] = useState({});
     const [todayLog, setTodayLog] = useState([]);
     const [todayProgress, setTodayProgress] = useState({});
@@ -82,7 +82,21 @@ export function useDailyLogs(user, todaysHabits = []) {
     const toggleHabit = useCallback(async (habitId) => {
         if (!user) return;
 
+        const habit = todaysHabits.find(h => h.id === habitId) || (allHabits || []).find(h => h.id === habitId);
         const isCompleted = todayLog.includes(habitId);
+
+        const isScheduleRest = habit ? isHabitRestDay(habit, today) : false;
+        const currentProgress = todayProgress[habitId] || {};
+        const isExplicitRest =
+            currentProgress.status === 'rest' ||
+            currentProgress.outcome === 'rest' ||
+            todayProgress.outcomes?.[habitId]?.status === 'rest';
+
+        // Guard: Planned rest days are neutral days, not completion opportunities.
+        // Ineligible completion attempts are rejected without creating or updating records.
+        if (isScheduleRest || isExplicitRest) {
+            return;
+        }
 
         // Optimistic update using functional state updater
         setTodayLog(prev => isCompleted
@@ -91,7 +105,7 @@ export function useDailyLogs(user, todaysHabits = []) {
         );
 
         try {
-            await toggleHabitCompletion(user.uid, today, habitId, isCompleted);
+            await toggleHabitCompletion(user.uid, today, habitId, isCompleted, { habit });
         } catch (err) {
             console.error('Error toggling habit:', err);
             // Revert only this specific habit to avoid stomping concurrent updates
@@ -100,11 +114,32 @@ export function useDailyLogs(user, todaysHabits = []) {
                 : prev.filter(id => id !== habitId)
             );
         }
-    }, [user, today, todayLog]);
+    }, [user, today, todayLog, todaysHabits, allHabits, todayProgress]);
 
     // Update granular progress (workbook sessions, review status, exercise checklists, reading, diary)
     const updateProgress = useCallback(async (habitId, progressData, isFullyCompleted) => {
         if (!user) return;
+
+        const habit = todaysHabits.find(h => h.id === habitId) || (allHabits || []).find(h => h.id === habitId);
+        const isScheduleRest = habit ? isHabitRestDay(habit, today) : false;
+        const currentProgress = todayProgress[habitId] || {};
+        const isExplicitRest =
+            currentProgress.status === 'rest' ||
+            currentProgress.outcome === 'rest' ||
+            todayProgress.outcomes?.[habitId]?.status === 'rest';
+
+        const isRest = Boolean(isScheduleRest || isExplicitRest);
+
+        // Guard: Planned rest days are neutral and immutable.
+        // Reject any attempt to mutate checklist or progress state on a rest day.
+        // Do NOT perform optimistic updates.
+        // Do NOT call updateDailyHabitProgress in Firestore.
+        // Preserve existing state without corruption.
+        if (isRest) {
+            return;
+        }
+
+        const effectiveCompleted = Boolean(isFullyCompleted);
 
         // Optimistic update
         setTodayProgress(prev => ({
@@ -115,12 +150,12 @@ export function useDailyLogs(user, todaysHabits = []) {
             },
         }));
 
-        if (typeof isFullyCompleted === 'boolean') {
+        if (typeof effectiveCompleted === 'boolean') {
             setTodayLog(prev => {
-                if (isFullyCompleted && !prev.includes(habitId)) {
+                if (effectiveCompleted && !prev.includes(habitId)) {
                     return [...prev, habitId];
                 }
-                if (!isFullyCompleted && prev.includes(habitId)) {
+                if (!effectiveCompleted && prev.includes(habitId)) {
                     return prev.filter(id => id !== habitId);
                 }
                 return prev;
@@ -128,11 +163,11 @@ export function useDailyLogs(user, todaysHabits = []) {
         }
 
         try {
-            await updateDailyHabitProgress(user.uid, today, habitId, progressData, isFullyCompleted);
+            await updateDailyHabitProgress(user.uid, today, habitId, progressData, effectiveCompleted, { habit });
         } catch (err) {
             console.error('Error updating habit progress:', err);
         }
-    }, [user, today]);
+    }, [user, today, todaysHabits, allHabits, todayProgress]);
 
     // Record an explicit outcome (completed, skipped, missed, or null to clear)
     const setHabitOutcome = useCallback(async (habitId, outcomeStatus, reason = null) => {
