@@ -35,8 +35,8 @@ describe('Phase 5: TopNav Responsive Sizing and Layout Refinement', () => {
         'Logo container must declare flex-shrink-0'
       );
       assert.ok(
-        content.includes('w-8 h-8 sm:w-9 sm:h-9'),
-        'Logo container must specify responsive w-8 h-8 sm:w-9 sm:h-9 sizing'
+        content.includes('w-9 h-9 sm:w-10 sm:h-10'),
+        'Logo container must specify responsive w-9 h-9 sm:w-10 sm:h-10 sizing'
       );
     });
   });

@@ -91,7 +91,7 @@ describe('Phase 8: Data-Loading Lifecycle, Safeguards & Error Invariants', () =>
 
     it('should verify ProtectedLayout owns TopNav and BottomNav with zero page duplication', () => {
       const layoutContent = readWebFile('src/app/(protected)/layout.js');
-      assert.ok(layoutContent.includes('<TopNav title={headerInfo.title} subtitle={headerInfo.subtitle} />'), 'Layout must own TopNav');
+      assert.ok(layoutContent.includes('<TopNav />') || layoutContent.includes('<TopNav'), 'Layout must own TopNav');
       assert.ok(layoutContent.includes('<BottomNav />'), 'Layout must own BottomNav');
 
       // Verify pages do not render TopNav

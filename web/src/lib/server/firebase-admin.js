@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { initializeApp, getApps, cert, applicationDefault } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
 
 function resolveCredential() {
   const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
@@ -144,4 +144,4 @@ function initializeFirebaseAdmin() {
 
 const { adminApp, adminAuth, adminDb } = initializeFirebaseAdmin();
 
-export { adminApp, adminAuth, adminDb, Timestamp };
+export { adminApp, adminAuth, adminDb, Timestamp, FieldValue };
