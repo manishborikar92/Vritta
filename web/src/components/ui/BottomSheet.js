@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/utils/cn';
 
 /**
  * Modal bottom sheet built on the native <dialog>:

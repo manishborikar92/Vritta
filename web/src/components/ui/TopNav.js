@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { BRAND } from '@/lib/constants/brand';
 import { formatDate } from '@/utils/date-helpers';
 import { useScrolled } from '@/hooks/useScrolled';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/utils/cn';
 import Logo from './Logo';
 import ProfileMenu from './ProfileMenu';
 import SignInButton from './SignInButton';

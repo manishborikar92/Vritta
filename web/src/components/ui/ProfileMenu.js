@@ -4,7 +4,7 @@ import { useId, useRef, useState } from 'react';
 import { ChevronDown, LogOut } from 'lucide-react';
 import { useDismissable } from '@/hooks/useDismissable';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/utils/cn';
 import Avatar from './Avatar';
 import BottomSheet from './BottomSheet';
 import SoundControl from './SoundControl';

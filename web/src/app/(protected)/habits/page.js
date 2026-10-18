@@ -5,7 +5,7 @@ import { Plus, Compass, BookOpen } from 'lucide-react';
 import { useData, useToast, useSound } from '@/contexts';
 import { ConfirmDialog, HabitsSkeleton } from '@/components/ui';
 import { HabitModal, HabitManagerCard, TemplateBrowserModal } from '@/components/habits';
-import { getSafeSaveErrorMessage, logDiagnosticError } from '@/lib/utils/error-helpers';
+import { getSafeSaveErrorMessage, logDiagnosticError } from '@/utils/error-helpers';
 
 export default function HabitsPage() {
   const { habits, loading, addHabit, updateHabit, deleteHabit, seedHabits } = useData();

@@ -327,7 +327,7 @@ describe('Multi-Item Catalog Creation & Lifecycle Parity', () => {
 });
 
 describe('Routine Persistence Safe Error Reporting & Diagnostics', async () => {
-  const { getSafeSaveErrorMessage, logDiagnosticError } = await import('../src/lib/utils/error-helpers.js');
+  const { getSafeSaveErrorMessage, logDiagnosticError } = await import('../src/utils/error-helpers.js');
 
   it('should return safe user-friendly message for internal Firestore undefined errors without leaking internals', () => {
     const rawError = new Error('Function addDoc() called with invalid data. Unsupported field value: undefined (found in field features.catalog.items[0].description in document habits/123)');

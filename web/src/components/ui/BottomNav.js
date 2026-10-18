@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useSound } from '@/contexts/SoundContext';
 import { NAV_ITEMS, isRouteActive } from '@/lib/constants/navigation';
 import { useKeyboardOpen } from '@/hooks/useKeyboardOpen';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/utils/cn';
 
 function NavTab({ href, label, Icon, active, onClick }) {
   return (

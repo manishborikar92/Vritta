@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/utils/cn';
 
 /**
  * Remote photo with an initial fallback. Pass `key={photoURL}` from the parent so
