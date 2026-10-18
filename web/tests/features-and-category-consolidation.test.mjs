@@ -99,25 +99,25 @@ describe('Features Architecture & Life-Area Category Consolidation', () => {
       assert.equal(matches, null, 'Must have 0 occurrences of duplicate "Target Reading Duration" section');
     });
 
-    it('should derive legacy completionMethod on save to preserve dashboard cards and backward compatibility', () => {
+    it('should derive canonical completionMethod on save for document schema and analytics consistency', () => {
       assert.ok(
-        habitModalContent.includes('let legacyCompletionMethod ='),
-        'HabitModal must derive legacyCompletionMethod on save'
+        habitModalContent.includes('let derivedCompletionMethod ='),
+        'HabitModal must derive derivedCompletionMethod on save'
       );
       assert.ok(
-        habitModalContent.includes("legacyCompletionMethod = 'reading_duration'"),
+        habitModalContent.includes("derivedCompletionMethod = 'reading_duration'"),
         'Must derive reading_duration when timer is enabled'
       );
       assert.ok(
-        habitModalContent.includes("legacyCompletionMethod = 'workbook_sessions'"),
+        habitModalContent.includes("derivedCompletionMethod = 'workbook_sessions'"),
         'Must derive workbook_sessions when counter is enabled'
       );
       assert.ok(
-        habitModalContent.includes("legacyCompletionMethod = 'osho_listening'"),
+        habitModalContent.includes("derivedCompletionMethod = 'osho_listening'"),
         'Must derive osho_listening when catalog is enabled'
       );
       assert.ok(
-        habitModalContent.includes("legacyCompletionMethod = 'exercise_plan'"),
+        habitModalContent.includes("derivedCompletionMethod = 'exercise_plan'"),
         'Must derive exercise_plan when daySchedule is enabled'
       );
     });
