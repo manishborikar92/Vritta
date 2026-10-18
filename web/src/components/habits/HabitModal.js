@@ -968,6 +968,17 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
           </button>
           <button
             type="button"
+            onClick={() => setActiveTab('schedule')}
+            className={`py-2.5 text-xs font-semibold border-b-2 transition-all ${
+              activeTab === 'schedule'
+                ? 'border-teal-600 text-teal-700 dark:text-teal-400'
+                : 'border-transparent text-muted hover:text-main'
+            }`}
+          >
+            Schedule
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveTab('features')}
             className={`py-2.5 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
               activeTab === 'features'
@@ -977,17 +988,6 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
           >
             <Sliders className="w-3.5 h-3.5" />
             <span>Features ({Object.values(formData.features).filter(f => f.enabled).length})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('schedule')}
-            className={`py-2.5 text-xs font-semibold border-b-2 transition-all ${
-              activeTab === 'schedule'
-                ? 'border-teal-600 text-teal-700 dark:text-teal-400'
-                : 'border-transparent text-muted hover:text-main'
-            }`}
-          >
-            Rhythm & Schedule
           </button>
         </div>
 
@@ -1067,7 +1067,7 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
               </div>
             )}
 
-            {/* TAB 2: RHYTHM & SCHEDULE */}
+            {/* TAB 2: SCHEDULE */}
             {activeTab === 'schedule' && (
               <div className="space-y-4">
                 {/* Timing Preference Model (Compact 2x2 Responsive Architecture) */}
