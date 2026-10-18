@@ -1605,8 +1605,8 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
 
                   {formData.features.catalog.enabled && (
                     <div className="mt-3 pt-3 border-t border-sky-200/60 dark:border-sky-900/40 space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+                        <div className="flex-1 min-w-0">
                           <label className="block text-2xs font-semibold text-main mb-1">Catalog Title</label>
                           <input
                             type="text"
@@ -1627,11 +1627,11 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                             <p className="text-2xs text-rose-500 mt-1">{errors.catalogTitle}</p>
                           )}
                         </div>
-                        <div className="pt-4">
+                        <div className="flex-shrink-0 sm:pt-4">
                           <button
                             type="button"
                             onClick={loadOshoPreset}
-                            className="px-2.5 py-1.5 bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 hover:bg-amber-200 border border-amber-300 dark:border-amber-700/60 rounded-lg text-2xs font-semibold flex items-center gap-1 transition-colors"
+                            className="w-full sm:w-auto px-2.5 py-1.5 bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 hover:bg-amber-200 border border-amber-300 dark:border-amber-700/60 rounded-lg text-2xs font-semibold flex items-center justify-center gap-1 transition-colors"
                             title="Load 30 Osho Discourses preset"
                           >
                             <BookOpen className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
@@ -1656,9 +1656,9 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                           {(formData.features.catalog.items || []).map((item, idx) => (
                             <div
                               key={item.id || idx}
-                              className="p-2 rounded-lg bg-surface border border-subtle space-y-1 text-xs"
+                              className="p-2 sm:p-2.5 rounded-lg bg-surface border border-subtle space-y-1.5 text-xs"
                             >
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1.5 sm:gap-2">
                                 <span className="text-2xs font-bold text-slate-400 w-4 text-center select-none flex-shrink-0">
                                   {idx + 1}.
                                 </span>
@@ -1677,31 +1677,33 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                                     }));
                                   }}
                                   placeholder="Item title..."
-                                  className="flex-1 text-xs bg-transparent text-main border-0 focus:outline-none focus:ring-1 focus:ring-teal-500 rounded px-1.5 py-0.5"
+                                  className="min-w-0 flex-1 text-xs bg-surface-subtle text-main border border-subtle focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 rounded-lg px-2.5 py-1.5"
                                 />
-                                <div className="flex items-center gap-0.5 flex-shrink-0">
-                                  <button
-                                    type="button"
-                                    onClick={() => moveCatalogItem(idx, -1)}
-                                    disabled={idx === 0}
-                                    className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-main disabled:opacity-30 rounded"
-                                    aria-label={`Move item ${idx + 1} up`}
-                                  >
-                                    <ChevronUp className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => moveCatalogItem(idx, 1)}
-                                    disabled={idx === (formData.features.catalog.items?.length || 0) - 1}
-                                    className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-main disabled:opacity-30 rounded"
-                                    aria-label={`Move item ${idx + 1} down`}
-                                  >
-                                    <ChevronDown className="w-3.5 h-3.5" />
-                                  </button>
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <div className="flex items-center border border-subtle bg-surface rounded-md p-0.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => moveCatalogItem(idx, -1)}
+                                      disabled={idx === 0}
+                                      className="w-7 h-7 sm:w-6 sm:h-6 flex items-center justify-center text-slate-400 hover:text-main disabled:opacity-30 rounded hover:bg-surface-subtle transition-colors"
+                                      aria-label={`Move item ${idx + 1} up`}
+                                    >
+                                      <ChevronUp className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => moveCatalogItem(idx, 1)}
+                                      disabled={idx === (formData.features.catalog.items?.length || 0) - 1}
+                                      className="w-7 h-7 sm:w-6 sm:h-6 flex items-center justify-center text-slate-400 hover:text-main disabled:opacity-30 rounded hover:bg-surface-subtle transition-colors"
+                                      aria-label={`Move item ${idx + 1} down`}
+                                    >
+                                      <ChevronDown className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
                                   <button
                                     type="button"
                                     onClick={() => removeCatalogItem(idx)}
-                                    className="w-6 h-6 flex items-center justify-center text-rose-500 hover:text-rose-700 rounded"
+                                    className="w-7 h-7 sm:w-6 sm:h-6 flex items-center justify-center text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-subtle rounded-md transition-colors ml-0.5"
                                     aria-label={`Remove item ${idx + 1}`}
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -1753,7 +1755,7 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                               type="button"
                               onClick={addCatalogItem}
                               disabled={!newCatalogItemTitle.trim()}
-                              className="px-3 py-1.5 bg-teal-700 dark:bg-teal-600 text-white rounded-lg text-xs font-semibold hover:bg-teal-800 disabled:opacity-50 flex items-center gap-1"
+                              className="px-3 py-1.5 mbg-teal-700 dark:bg-teal-600 text-white rounded-lg text-xs font-semibold hover:bg-teal-800 disabled:opacity-50 flex items-center justify-center gap-1.5"
                             >
                               <Plus className="w-3.5 h-3.5" />
                               <span>Add Item</span>
@@ -1843,12 +1845,12 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                       </div>
 
                       {/* Presets & Actions */}
-                      <div className="flex items-center justify-between pt-1">
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                         <span className="text-2xs font-semibold text-main">Weekday Variations</span>
                         <button
                           type="button"
                           onClick={handleLoad12WeekMovementDefaults}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 text-2xs font-medium rounded-lg bg-rose-100/80 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-200/80 transition-colors"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-2xs font-medium rounded-lg bg-rose-100/80 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-200/80 transition-colors flex-shrink-0"
                         >
                           <Sparkles className="w-3 h-3 text-rose-600 dark:text-rose-400" />
                           <span>Reset 12-Week Defaults</span>
@@ -1856,7 +1858,11 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                       </div>
 
                       {/* Weekday Selector Tabs */}
-                      <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+                      <div
+                        role="tablist"
+                        aria-label="Select weekday variation"
+                        className="flex sm:grid sm:grid-cols-7 gap-1 sm:gap-1.5 overflow-x-auto pb-1.5 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0 scrollbar-thin"
+                      >
                         {DAYS.map(day => {
                           const variation = formData.features.daySchedule.dayVariations?.[day] || {};
                           const isSelected = selectedDayScheduleWeekday === day;
@@ -1865,16 +1871,20 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                           return (
                             <button
                               key={day}
+                              role="tab"
+                              id={`day-tab-${day}`}
+                              aria-selected={isSelected}
+                              aria-controls={`day-panel-${day}`}
                               type="button"
                               onClick={() => handleSelectDayScheduleWeekday(day)}
-                              className={`h-11 min-h-[44px] flex flex-col items-center justify-center rounded-xl text-xs font-bold transition-all relative ${
+                              className={`flex-shrink-0 w-14 sm:w-auto h-12 min-h-[44px] flex flex-col items-center justify-center rounded-xl text-xs font-bold transition-all relative ${
                                 isSelected
                                   ? 'bg-rose-600 text-white shadow-2xs'
                                   : 'bg-surface border border-subtle text-slate-700 dark:text-slate-300 hover:bg-surface-subtle'
                               }`}
                             >
                               <span>{day}</span>
-                              <span className={`text-[9px] font-medium leading-none mt-0.5 ${
+                              <span className={`text-[10px] sm:text-[9px] font-medium leading-none mt-0.5 ${
                                 isSelected
                                   ? 'text-rose-100'
                                   : isRest
@@ -1898,7 +1908,12 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                         const isRest = activeVar.type === 'rest';
 
                         return (
-                          <div className="p-3 bg-surface rounded-xl border border-subtle space-y-3">
+                          <div
+                            id={`day-panel-${activeDay}`}
+                            role="tabpanel"
+                            aria-labelledby={`day-tab-${activeDay}`}
+                            className="p-3 bg-surface rounded-xl border border-subtle space-y-3"
+                          >
                             {/* Day Meta Header */}
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                               <div>
@@ -1945,7 +1960,6 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between text-2xs font-semibold text-main">
                                   <span>{activeDay} Exercises & Steps ({exercises.length})</span>
-                                  <span className="text-muted">Required items gate completion</span>
                                 </div>
 
                                 {/* List of exercises */}
