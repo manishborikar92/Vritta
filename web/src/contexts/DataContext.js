@@ -25,6 +25,7 @@ export function DataProvider({ children }) {
     addHabit,
     updateHabit,
     deleteHabit,
+    reorderHabit,
     seedHabits,
   } = useHabits(user);
 
@@ -88,6 +89,7 @@ export function DataProvider({ children }) {
     addHabit,
     updateHabit,
     deleteHabit,
+    reorderHabit,
     seedHabits,
     fetchDailyLogs,
   }), [
@@ -108,6 +110,7 @@ export function DataProvider({ children }) {
     addHabit,
     updateHabit,
     deleteHabit,
+    reorderHabit,
     seedHabits,
     fetchDailyLogs,
   ]);

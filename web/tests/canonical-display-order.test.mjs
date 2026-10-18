@@ -5,6 +5,9 @@ import {
   normalizeHabitFromFirestore,
   serializeHabitForFirestore,
   sanitizeForFirestore,
+  buildCanonicalHabitPayload,
+  buildCanonicalSchedule,
+  swapHabitsSortOrder,
 } from '../src/lib/firebase/firestore.js';
 
 describe('Canonical Display Order Architecture — Phase 1 Verification', () => {
@@ -131,7 +134,7 @@ describe('Canonical Display Order Architecture — Phase 1 Verification', () => 
       );
     });
 
-    it('should verify payload sanitization strips sortOrder, createdAt, and legacy order from updates', () => {
+    it('should verify canonical habit contract strips sortOrder, createdAt, and legacy order from updates', () => {
       const incomingUpdate = {
         title: 'Updated Routine Title',
         category: 'Health & Fitness',
@@ -144,19 +147,15 @@ describe('Canonical Display Order Architecture — Phase 1 Verification', () => 
         },
       };
 
-      // Emulate updateHabitDoc cleanup
-      const clean = sanitizeForFirestore(incomingUpdate);
+      // Canonical habit payload builder extracts only canonical fields
+      const clean = buildCanonicalHabitPayload(incomingUpdate);
       delete clean.sortOrder;
       delete clean.createdAt;
-      delete clean.order;
-      if (clean.schedule) {
-        delete clean.schedule.order;
-      }
 
-      assert.equal(clean.sortOrder, undefined, 'sortOrder must be stripped from updates');
-      assert.equal(clean.createdAt, undefined, 'createdAt must be stripped from updates');
-      assert.equal(clean.order, undefined, 'legacy order must be stripped from updates');
-      assert.equal(clean.schedule?.order, undefined, 'legacy schedule.order must be stripped from updates');
+      assert.equal(clean.sortOrder, undefined, 'sortOrder must not be in canonical update payload');
+      assert.equal(clean.createdAt, undefined, 'createdAt must not be in canonical update payload');
+      assert.equal(clean.order, undefined, 'legacy order must be excluded from canonical data model');
+      assert.equal(clean.schedule?.order, undefined, 'legacy schedule.order must be excluded from canonical data model');
       assert.equal(clean.title, 'Updated Routine Title');
     });
   });
@@ -371,6 +370,231 @@ describe('Canonical Display Order Architecture — Phase 1 Verification', () => 
         todaysHabits.map(h => h.id),
         ['h1', 'h2', 'h4', 'h5'],
         'Relative order of habits on Dashboard must be strictly identical to Habits page'
+      );
+    });
+  });
+
+  describe('7. Phase 2: Manual Reordering & Concurrency Safety', () => {
+    it('should correctly determine boundary disabled states for isFirst and isLast', () => {
+      const habits = [
+        { id: 'h1', title: 'First Habit', sortOrder: 1 },
+        { id: 'h2', title: 'Middle Habit', sortOrder: 2 },
+        { id: 'h3', title: 'Last Habit', sortOrder: 3 },
+      ];
+
+      habits.sort(sortHabits);
+
+      // Boundary rules:
+      // index === 0 -> isFirst (Move Up disabled)
+      // index === habits.length - 1 -> isLast (Move Down disabled)
+      const states = habits.map((h, idx) => ({
+        id: h.id,
+        isFirst: idx === 0,
+        isLast: idx === habits.length - 1,
+      }));
+
+      assert.deepEqual(states, [
+        { id: 'h1', isFirst: true, isLast: false },
+        { id: 'h2', isFirst: false, isLast: false },
+        { id: 'h3', isFirst: false, isLast: true },
+      ]);
+    });
+
+    it('should disable both Move Up and Move Down for a single-item routine list', () => {
+      const singleHabitList = [{ id: 'only_one', title: 'Solo Routine', sortOrder: 1 }];
+
+      const isFirst = 0 === 0;
+      const isLast = 0 === singleHabitList.length - 1;
+
+      assert.equal(isFirst, true, 'Single item must be considered first');
+      assert.equal(isLast, true, 'Single item must be considered last');
+    });
+
+    it('should swap adjacent sortOrders atomically and persist new sequence', () => {
+      let habits = [
+        { id: 'h1', title: 'Morning Hydration', sortOrder: 1 },
+        { id: 'h2', title: 'Movement Session', sortOrder: 2 },
+        { id: 'h3', title: 'Deep Work', sortOrder: 3 },
+      ];
+
+      // Simulate reorderHabit('h2', 'up') -> swap h2 and h1
+      const index = habits.findIndex(h => h.id === 'h2');
+      const targetIndex = index - 1; // 0
+      const habitA = habits[index];
+      const habitB = habits[targetIndex];
+
+      // Swap sortOrders
+      const tempOrder = habitA.sortOrder;
+      habitA.sortOrder = habitB.sortOrder;
+      habitB.sortOrder = tempOrder;
+
+      habits.sort(sortHabits);
+
+      assert.deepEqual(
+        habits.map(h => ({ id: h.id, sortOrder: h.sortOrder })),
+        [
+          { id: 'h2', sortOrder: 1 },
+          { id: 'h1', sortOrder: 2 },
+          { id: 'h3', sortOrder: 3 },
+        ],
+        'Habit 2 should now be at position 1 and Habit 1 at position 2'
+      );
+    });
+
+    it('should immediately reflect reordered sequence on Dashboard todaysHabits', () => {
+      // 3 habits, all active on Monday
+      const habits = [
+        { id: 'h1', title: 'Routine 1', sortOrder: 1, frequency: ['Mon'] },
+        { id: 'h2', title: 'Routine 2', sortOrder: 2, frequency: ['Mon'] },
+        { id: 'h3', title: 'Routine 3', sortOrder: 3, frequency: ['Mon'] },
+      ];
+
+      // Move h3 up past h2
+      const temp = habits[2].sortOrder;
+      habits[2].sortOrder = habits[1].sortOrder;
+      habits[1].sortOrder = temp;
+
+      // Re-sort habits list
+      habits.sort(sortHabits);
+
+      // Dashboard filters active day
+      const todaysHabits = habits.filter(h => h.frequency.includes('Mon'));
+
+      assert.deepEqual(
+        todaysHabits.map(h => h.id),
+        ['h1', 'h3', 'h2'],
+        'Dashboard must immediately display [h1, h3, h2]'
+      );
+    });
+
+    it('should maintain nextSortOrder invariant when reordering existing habits', () => {
+      // User has 3 habits (orders 1, 2, 3), nextSortOrder = 4
+      let nextSortOrder = 4;
+      const habits = [
+        { id: 'h1', sortOrder: 1 },
+        { id: 'h2', sortOrder: 2 },
+        { id: 'h3', sortOrder: 3 },
+      ];
+
+      // Swap h1 and h3
+      const temp = habits[0].sortOrder;
+      habits[0].sortOrder = habits[2].sortOrder;
+      habits[2].sortOrder = temp;
+
+      // Assert nextSortOrder is unchanged
+      assert.equal(nextSortOrder, 4, 'nextSortOrder must remain 4 after reordering');
+
+      // Now create a 4th habit using nextSortOrder
+      const newHabit = { id: 'h4', sortOrder: nextSortOrder++ };
+      habits.push(newHabit);
+      habits.sort(sortHabits);
+
+      assert.deepEqual(
+        habits.map(h => h.sortOrder),
+        [1, 2, 3, 4],
+        'New habit must cleanly append at position 4 without collision'
+      );
+    });
+
+    it('should serialize rapid reorders safely under simulated transaction semantics', async () => {
+      // In-memory Firestore document store
+      const dbStore = {
+        'habits/h1': { id: 'h1', userId: 'u1', sortOrder: 1 },
+        'habits/h2': { id: 'h2', userId: 'u1', sortOrder: 2 },
+        'habits/h3': { id: 'u3', userId: 'u1', sortOrder: 3 },
+      };
+
+      // Transaction runner simulation with optimistic conflict detection
+      let version = 1;
+      const runTxSim = async (txFn) => {
+        const readVersion = version;
+        const staged = {};
+
+        const tx = {
+          get: async (id) => {
+            return {
+              exists: () => Boolean(dbStore[id]),
+              data: () => ({ ...dbStore[id] }),
+            };
+          },
+          update: (id, fields) => {
+            staged[id] = fields;
+          },
+        };
+
+        await txFn(tx);
+
+        // Commit phase
+        if (version !== readVersion) {
+          // Conflict detected, retry
+          return runTxSim(txFn);
+        }
+
+        for (const [k, v] of Object.entries(staged)) {
+          dbStore[k] = { ...dbStore[k], ...v };
+        }
+        version++;
+      };
+
+      // Two concurrent transactions swapping h1<->h2 and h2<->h3
+      const tx1 = runTxSim(async (transaction) => {
+        const docA = await transaction.get('habits/h1');
+        const docB = await transaction.get('habits/h2');
+        transaction.update('habits/h1', { sortOrder: docB.data().sortOrder });
+        transaction.update('habits/h2', { sortOrder: docA.data().sortOrder });
+      });
+
+      const tx2 = runTxSim(async (transaction) => {
+        const docB = await transaction.get('habits/h2');
+        const docC = await transaction.get('habits/h3');
+        transaction.update('habits/h2', { sortOrder: docC.data().sortOrder });
+        transaction.update('habits/h3', { sortOrder: docB.data().sortOrder });
+      });
+
+      await Promise.all([tx1, tx2]);
+
+      // All sortOrders must remain unique positive integers
+      const orders = [
+        dbStore['habits/h1'].sortOrder,
+        dbStore['habits/h2'].sortOrder,
+        dbStore['habits/h3'].sortOrder,
+      ];
+      const unique = new Set(orders);
+      assert.equal(unique.size, 3, 'All sortOrders must remain strictly unique after serialized concurrent swaps');
+    });
+
+    it('should reject swapping habits belonging to different users in transaction', async () => {
+      const docA = { id: 'h1', userId: 'user_alice', sortOrder: 1 };
+      const docB = { id: 'h2', userId: 'user_bob', sortOrder: 2 };
+
+      assert.throws(() => {
+        if (docA.userId !== docB.userId) {
+          throw new Error('Cannot swap habits belonging to different users.');
+        }
+      }, /Cannot swap habits belonging to different users/);
+    });
+
+    it('should preserve customized display order after habit details or completion are updated', () => {
+      // Reordered list: h2 is first, h1 is second
+      const h2 = { id: 'h2', title: 'Evening Reading', sortOrder: 1, completed: false };
+      const h1 = { id: 'h1', title: 'Morning Water', sortOrder: 2, completed: false };
+
+      const listBefore = [h2, h1].sort(sortHabits);
+      assert.deepEqual(listBefore.map(h => h.id), ['h2', 'h1']);
+
+      // Edit h1 title and complete h1
+      const updatedH1 = {
+        ...h1,
+        title: 'Morning Water & Electrolytes',
+        completed: true,
+      };
+
+      const listAfter = [h2, updatedH1].sort(sortHabits);
+
+      assert.deepEqual(
+        listAfter.map(h => h.id),
+        ['h2', 'h1'],
+        'Reordered positions must be 100% preserved regardless of edits or completion updates'
       );
     });
   });

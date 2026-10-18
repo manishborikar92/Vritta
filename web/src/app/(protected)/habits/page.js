@@ -8,7 +8,7 @@ import { HabitModal, HabitManagerCard, TemplateBrowserModal } from '@/components
 import { getSafeSaveErrorMessage, logDiagnosticError } from '@/utils/error-helpers';
 
 export default function HabitsPage() {
-  const { habits, loading, addHabit, updateHabit, deleteHabit, seedHabits } = useData();
+  const { habits, loading, addHabit, updateHabit, deleteHabit, reorderHabit, seedHabits } = useData();
   const { addToast } = useToast();
   const { playActionSuccessCue, playActionDeleteCue } = useSound();
   const [showModal, setShowModal] = useState(false);
@@ -17,7 +17,36 @@ export default function HabitsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [reorderingId, setReorderingId] = useState(null);
   const isSeedingRef = useRef(false);
+
+  const handleMoveUp = async (habitId) => {
+    if (reorderingId) return;
+    setReorderingId(habitId);
+    try {
+      await reorderHabit(habitId, 'up');
+      playActionSuccessCue?.();
+    } catch (err) {
+      console.error('Error reordering routine up:', err);
+      addToast('Failed to reorder routine. Please try again.', 'error');
+    } finally {
+      setReorderingId(null);
+    }
+  };
+
+  const handleMoveDown = async (habitId) => {
+    if (reorderingId) return;
+    setReorderingId(habitId);
+    try {
+      await reorderHabit(habitId, 'down');
+      playActionSuccessCue?.();
+    } catch (err) {
+      console.error('Error reordering routine down:', err);
+      addToast('Failed to reorder routine. Please try again.', 'error');
+    } finally {
+      setReorderingId(null);
+    }
+  };
 
   const handleSave = async (formData) => {
     try {
@@ -141,10 +170,15 @@ export default function HabitsPage() {
             </div>
 
             <div className="space-y-3">
-              {habits.map((habit) => (
+              {habits.map((habit, index) => (
                 <HabitManagerCard
                   key={habit.id}
                   habit={habit}
+                  isFirst={index === 0}
+                  isLast={index === habits.length - 1}
+                  isReordering={reorderingId !== null}
+                  onMoveUp={() => handleMoveUp(habit.id)}
+                  onMoveDown={() => handleMoveDown(habit.id)}
                   onEdit={(h) => {
                     setEditingHabit(h);
                     setShowModal(true);

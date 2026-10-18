@@ -90,6 +90,86 @@ export function sanitizeForFirestore(val) {
 }
 
 /**
+ * Construct a canonical schedule sub-document.
+ * Enforces strict whitelist of allowed schedule attributes.
+ * Obsolete legacy fields (e.g. order) are completely excluded from the data model.
+ * 
+ * @param {Object} schedule 
+ * @returns {Object} Canonical schedule
+ */
+export function buildCanonicalSchedule(schedule = {}) {
+    if (!schedule || typeof schedule !== 'object') {
+        return {
+            frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            restDays: [],
+            timingType: 'anytime',
+            preferredPeriod: null,
+            relativeTiming: null,
+            exactTime: null,
+        };
+    }
+    return {
+        frequency: Array.isArray(schedule.frequency) ? [...schedule.frequency] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        restDays: Array.isArray(schedule.restDays) ? [...schedule.restDays] : [],
+        timingType: schedule.timingType || 'anytime',
+        preferredPeriod: schedule.preferredPeriod || null,
+        relativeTiming: schedule.relativeTiming || null,
+        exactTime: schedule.exactTime || null,
+    };
+}
+
+/**
+ * Construct a canonical habit payload for Cloud Firestore storage.
+ * Enforces an explicit canonical whitelist contract:
+ * - Obsolete ordering fields (e.g. order, schedule.order) cannot enter the data model
+ * - Arbitrary invalid properties are excluded
+ * - Nested objects (schedule, features, lifecycle) are strictly formatted
+ * 
+ * @param {Object} habitData 
+ * @returns {Object} Clean canonical payload ready for Firestore
+ */
+export function buildCanonicalHabitPayload(habitData) {
+    if (!habitData || typeof habitData !== 'object') {
+        throw new ValidationError('Habit data must be a valid object.');
+    }
+
+    const payload = {};
+
+    if (habitData.title !== undefined) payload.title = typeof habitData.title === 'string' ? habitData.title.trim() : '';
+    if (habitData.category !== undefined) payload.category = habitData.category;
+    if (habitData.customCategory !== undefined) payload.customCategory = habitData.customCategory;
+    if (habitData.description !== undefined) payload.description = habitData.description;
+    if (habitData.instructions !== undefined) payload.instructions = habitData.instructions;
+    if (habitData.completionMethod !== undefined) payload.completionMethod = habitData.completionMethod;
+    if (habitData.time !== undefined) payload.time = habitData.time;
+    if (habitData.targetMinutes !== undefined) payload.targetMinutes = habitData.targetMinutes;
+
+    if (habitData.frequency !== undefined) payload.frequency = Array.isArray(habitData.frequency) ? [...habitData.frequency] : [];
+    if (habitData.checklistItems !== undefined) payload.checklistItems = Array.isArray(habitData.checklistItems) ? habitData.checklistItems : [];
+    if (habitData.schedule !== undefined) payload.schedule = buildCanonicalSchedule(habitData.schedule);
+    if (habitData.features !== undefined && typeof habitData.features === 'object') payload.features = habitData.features;
+    if (habitData.lifecycle !== undefined && typeof habitData.lifecycle === 'object') payload.lifecycle = habitData.lifecycle;
+    if (habitData.scheduleHistory !== undefined && Array.isArray(habitData.scheduleHistory)) payload.scheduleHistory = habitData.scheduleHistory;
+    if (habitData.metadata !== undefined && typeof habitData.metadata === 'object') payload.metadata = habitData.metadata;
+
+    if (habitData.seedOrigin !== undefined) payload.seedOrigin = habitData.seedOrigin;
+    if (habitData.stableKey !== undefined) payload.stableKey = habitData.stableKey;
+    if (habitData.templateReference !== undefined) payload.templateReference = habitData.templateReference;
+    if (habitData.sourceTemplateId !== undefined) payload.sourceTemplateId = habitData.sourceTemplateId;
+    if (habitData.templateCategory !== undefined) payload.templateCategory = habitData.templateCategory;
+    if (habitData.templateDescription !== undefined) payload.templateDescription = habitData.templateDescription;
+    if (habitData.tags !== undefined && Array.isArray(habitData.tags)) payload.tags = [...habitData.tags];
+    if (habitData.archived !== undefined) payload.archived = Boolean(habitData.archived);
+    if (habitData.archivedAt !== undefined) payload.archivedAt = habitData.archivedAt;
+    if (habitData.deleted !== undefined) payload.deleted = Boolean(habitData.deleted);
+    if (habitData.deletedAt !== undefined) payload.deletedAt = habitData.deletedAt;
+    if (habitData.icon !== undefined) payload.icon = habitData.icon;
+    if (habitData.color !== undefined) payload.color = habitData.color;
+
+    return sanitizeForFirestore(payload);
+}
+
+/**
  * Create a new habit document with atomic sortOrder allocation.
  * Guarantees monotonic sequence (First Added, First Displayed) across concurrent tabs.
  * Safely recovers missing nextSortOrder counters from existing habit records.
@@ -111,9 +191,7 @@ export async function createHabit(userId, habitData) {
         let maxOrder = 0;
         habitsSnap.forEach(d => {
             const data = d.data();
-            const val = typeof data?.sortOrder === 'number'
-                ? data.sortOrder
-                : (typeof data?.order === 'number' ? data.order : (typeof data?.schedule?.order === 'number' ? data.schedule.order : 0));
+            const val = typeof data?.sortOrder === 'number' ? data.sortOrder : 0;
             if (val > maxOrder) {
                 maxOrder = val;
             }
@@ -121,13 +199,7 @@ export async function createHabit(userId, habitData) {
         fallbackBaseOrder = maxOrder + 1;
     }
 
-    const cleanHabitData = sanitizeForFirestore(habitData);
-    // Explicit canonical data structures: strip obsolete ordering fields
-    delete cleanHabitData.order;
-    if (cleanHabitData.schedule) {
-        delete cleanHabitData.schedule.order;
-    }
-
+    const canonicalPayload = buildCanonicalHabitPayload(habitData);
     const newHabitRef = doc(collection(db, 'habits'));
 
     await runTransaction(db, async (transaction) => {
@@ -143,7 +215,7 @@ export async function createHabit(userId, habitData) {
         const nextSortOrder = allocatedOrder + 1;
 
         const habitToSave = {
-            ...cleanHabitData,
+            ...canonicalPayload,
             userId,
             sortOrder: allocatedOrder,
             createdAt: serverTimestamp(),
@@ -159,21 +231,21 @@ export async function createHabit(userId, habitData) {
 
 /**
  * Update an existing habit document.
- * Guarantees sortOrder, createdAt, and legacy order cannot be modified by habit updates.
+ * Guarantees sortOrder, createdAt, and userId cannot be modified by habit updates.
+ * Canonical data contracts strictly prevent obsolete ordering fields from entering Firestore.
  * 
  * @param {string} habitId
  * @param {Object} habitData
  */
 export async function updateHabitDoc(habitId, habitData) {
-    const cleanHabitData = sanitizeForFirestore(habitData);
-    delete cleanHabitData.sortOrder;
-    delete cleanHabitData.createdAt;
-    delete cleanHabitData.order;
-    if (cleanHabitData.schedule) {
-        delete cleanHabitData.schedule.order;
-    }
+    if (!habitId) throw new Error('Habit ID is required to update a habit.');
+    const canonicalPayload = buildCanonicalHabitPayload(habitData);
+    delete canonicalPayload.sortOrder;
+    delete canonicalPayload.createdAt;
+    delete canonicalPayload.userId;
+
     return updateDoc(doc(db, 'habits', habitId), {
-        ...cleanHabitData,
+        ...canonicalPayload,
         updatedAt: serverTimestamp(),
     });
 }
@@ -184,6 +256,58 @@ export async function updateHabitDoc(habitId, habitData) {
  */
 export async function deleteHabitDoc(habitId) {
     return deleteDoc(doc(db, 'habits', habitId));
+}
+
+/**
+ * Atomically swap the sortOrder of two habits using a Firestore transaction.
+ * Guarantees race-condition safety and serialization under rapid or concurrent user interactions.
+ * 
+ * Invariants:
+ * 1. Executes in a Firestore transaction to read current sortOrders before writing.
+ * 2. Rejects if either document no longer exists.
+ * 3. Preserves ownership invariant (both habits must belong to the same user).
+ * 4. Does not alter nextSortOrder on the user document (N+1 append monotonic property remains intact).
+ * 
+ * @param {string} habitIdA 
+ * @param {string} habitIdB 
+ * @returns {Promise<void>}
+ */
+export async function swapHabitsSortOrder(habitIdA, habitIdB) {
+    if (!habitIdA || !habitIdB) {
+        throw new Error('Both habit IDs are required to swap display order.');
+    }
+    if (habitIdA === habitIdB) return;
+
+    const refA = doc(db, 'habits', habitIdA);
+    const refB = doc(db, 'habits', habitIdB);
+
+    return runTransaction(db, async (transaction) => {
+        const docSnapA = await transaction.get(refA);
+        const docSnapB = await transaction.get(refB);
+
+        if (!docSnapA.exists() || !docSnapB.exists()) {
+            throw new Error('Cannot reorder: one or both habits do not exist.');
+        }
+
+        const dataA = docSnapA.data();
+        const dataB = docSnapB.data();
+
+        if (dataA.userId !== dataB.userId) {
+            throw new Error('Cannot swap habits belonging to different users.');
+        }
+
+        const orderA = typeof dataA.sortOrder === 'number' ? dataA.sortOrder : 1;
+        const orderB = typeof dataB.sortOrder === 'number' ? dataB.sortOrder : 2;
+
+        transaction.update(refA, {
+            sortOrder: orderB,
+            updatedAt: serverTimestamp(),
+        });
+        transaction.update(refB, {
+            sortOrder: orderA,
+            updatedAt: serverTimestamp(),
+        });
+    });
 }
 
 /**
@@ -381,14 +505,10 @@ export async function seedHabitsForUser(userId, seedData) {
         const docId = `${userId}_${key}`;
         const habitRef = doc(db, 'habits', docId);
 
-        const cleanHabit = sanitizeForFirestore(habit);
-        delete cleanHabit.order;
-        if (cleanHabit.schedule) {
-            delete cleanHabit.schedule.order;
-        }
+        const canonicalPayload = buildCanonicalHabitPayload(habit);
 
         const dataToSave = {
-            ...cleanHabit,
+            ...canonicalPayload,
             id: docId,
             userId,
             sortOrder: index + 1,

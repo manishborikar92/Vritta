@@ -7,6 +7,7 @@ import {
     createHabit,
     updateHabitDoc,
     deleteHabitDoc,
+    swapHabitsSortOrder,
     seedHabitsForUser,
     fetchScheduleTemplates,
 } from '@/lib/firebase/firestore';
@@ -85,6 +86,21 @@ export function useHabits(user) {
         return deleteHabitDoc(habitId);
     }, [user]);
 
+    // Reorder habit (direction: 'up' | 'down') via atomic Firestore transaction
+    const reorderHabit = useCallback(async (habitId, direction) => {
+        if (!user || !habitId) return;
+        const currentIndex = habits.findIndex(h => h.id === habitId);
+        if (currentIndex === -1) return;
+
+        const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+        if (targetIndex < 0 || targetIndex >= habits.length) return;
+
+        const currentHabit = habits[currentIndex];
+        const targetHabit = habits[targetIndex];
+
+        return swapHabitsSortOrder(currentHabit.id, targetHabit.id);
+    }, [user, habits]);
+
     // Seed or update foundation habits (idempotent, safe to rerun anytime)
     const seedHabits = useCallback(async (seedData) => {
         if (!user) return;
@@ -104,6 +120,7 @@ export function useHabits(user) {
         addHabit,
         updateHabit,
         deleteHabit,
+        reorderHabit,
         seedHabits,
     };
 }
