@@ -207,7 +207,7 @@ function DashboardHabitCard({
 
   return (
     <div
-      className={`relative rounded-2xl border border-t-[3px] bg-surface shadow-2xs transition-all duration-200 hover:shadow-xs ${
+      className={`relative rounded-3xl border border-t-[3px] bg-surface shadow-2xs transition-all duration-200 hover:shadow-xs ${
         config.borderTopColor || 'border-t-teal-600 dark:border-t-teal-400'
       } ${
         isCompleted
