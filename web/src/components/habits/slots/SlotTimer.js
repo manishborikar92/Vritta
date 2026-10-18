@@ -81,35 +81,12 @@ function SlotTimer({
       {/* Main Timer Display & Action Controls */}
       <div className="flex items-center justify-between gap-3">
         {/* Time Readout */}
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl sm:text-3xl font-mono font-extrabold text-main tracking-tight">
-            {timeFormatted}
-          </span>
-          {isPaused && (
-            <span className="text-2xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-              Paused
-            </span>
-          )}
-          {timerActive && (
-            <span className="inline-block w-2 h-2 rounded-full bg-teal-600 dark:bg-teal-400 animate-pulse" />
-          )}
-        </div>
+        <span className="text-2xl sm:text-3xl font-mono font-extrabold text-main tracking-tight">
+          {timeFormatted}
+        </span>
 
         {/* Action Controls (min 44x44px touch targets) */}
         <div className="flex items-center gap-2">
-          {/* Reset Button */}
-          <button
-            type="button"
-            onClick={handleReset}
-            disabled={disabled || (secondsRemaining === targetSeconds && !timerActive)}
-            aria-disabled={disabled || (secondsRemaining === targetSeconds && !timerActive)}
-            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl border border-subtle bg-surface text-muted hover:text-main hover:bg-surface-subtle disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 active:scale-95"
-            aria-label="Reset Timer"
-            title="Reset timer to beginning"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-
           {/* Start / Pause Button */}
           <button
             type="button"
@@ -134,6 +111,19 @@ function SlotTimer({
                 <span>{secondsRemaining < targetSeconds ? 'Resume' : 'Start'}</span>
               </>
             )}
+          </button>
+
+          {/* Reset Button */}
+          <button
+            type="button"
+            onClick={handleReset}
+            disabled={disabled || (secondsRemaining === targetSeconds && !timerActive)}
+            aria-disabled={disabled || (secondsRemaining === targetSeconds && !timerActive)}
+            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl border border-subtle bg-surface text-muted hover:text-main hover:bg-surface-subtle disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 active:scale-95"
+            aria-label="Reset Timer"
+            title="Reset timer to beginning"
+          >
+            <RotateCcw className="w-4 h-4" />
           </button>
         </div>
       </div>
