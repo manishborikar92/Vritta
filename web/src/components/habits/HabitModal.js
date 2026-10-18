@@ -408,23 +408,24 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
       order: formData.order || 1,
     };
 
-    let legacyCompletionMethod = formData.completionMethod;
+    // Derive canonical completionMethod from active composable features for document schema and analytics consistency
+    let derivedCompletionMethod = formData.completionMethod || 'simple';
     if (cleanFeatures.counter.enabled && cleanFeatures.checklist.enabled) {
-      legacyCompletionMethod = 'workbook_sessions';
+      derivedCompletionMethod = 'workbook_sessions';
     } else if (cleanFeatures.daySchedule.enabled) {
-      legacyCompletionMethod = 'exercise_plan';
+      derivedCompletionMethod = 'exercise_plan';
     } else if (cleanFeatures.catalog.enabled) {
       if (cleanFeatures.catalog.catalogId === 'osho_discourses' || formData.stableKey === 'canonical_listen_osho' || formData.title?.toLowerCase().includes('osho')) {
-        legacyCompletionMethod = 'osho_listening';
+        derivedCompletionMethod = 'osho_listening';
       } else {
-        legacyCompletionMethod = 'catalog';
+        derivedCompletionMethod = 'catalog';
       }
     } else if (cleanFeatures.timer.enabled) {
-      legacyCompletionMethod = 'reading_duration';
+      derivedCompletionMethod = 'reading_duration';
     } else if (cleanFeatures.checklist.enabled) {
-      legacyCompletionMethod = 'checklist';
+      derivedCompletionMethod = 'checklist';
     } else {
-      legacyCompletionMethod = 'simple';
+      derivedCompletionMethod = 'simple';
     }
 
     const payload = {
@@ -440,7 +441,7 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
       metadata: cleanMetadata,
       schedule,
       features: cleanFeatures,
-      completionMethod: legacyCompletionMethod,
+      completionMethod: derivedCompletionMethod,
       seedOrigin: formData.seedOrigin,
     };
 
