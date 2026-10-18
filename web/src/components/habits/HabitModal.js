@@ -1473,7 +1473,7 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                         ))}
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="space-y-2">
                         <input
                           type="text"
                           value={newChecklistItem}
@@ -1485,15 +1485,19 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                             }
                           }}
                           placeholder="Add step or exercise..."
-                          className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-base sm:text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400"
+                          className="w-full px-2.5 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-xs bg-surface text-main"
                         />
-                        <button
-                          type="button"
-                          onClick={addChecklistItem}
-                          className="min-h-[38px] px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold"
-                        >
-                          Add Step
-                        </button>
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={addChecklistItem}
+                            disabled={!newChecklistItem.trim()}
+                            className="px-3 py-1.5 bg-teal-700 dark:bg-teal-600 text-white rounded-lg text-xs font-semibold hover:bg-teal-800 disabled:opacity-50 flex items-center gap-1"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Add Step</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1559,7 +1563,7 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                             },
                           }))}
                           placeholder="e.g., Today's learnings, insights, or gratitude..."
-                          className="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-xs bg-surface text-main"
+                          className="w-full px-2.5 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-xs bg-surface text-main"
                         />
                       </div>
 
@@ -1583,7 +1587,7 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                             </span>
                           ))}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="space-y-2">
                           <input
                             type="text"
                             value={newPromptChip}
@@ -1595,15 +1599,19 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                               }
                             }}
                             placeholder="Add a guiding prompt chip..."
-                            className="flex-1 px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-xs bg-surface text-main"
+                            className="w-full px-2.5 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-xs bg-surface text-main"
                           />
-                          <button
-                            type="button"
-                            onClick={addPromptChip}
-                            className="px-3 py-1.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg text-xs font-semibold"
-                          >
-                            Add Chip
-                          </button>
+                          <div className="flex justify-end">
+                            <button
+                              type="button"
+                              onClick={addPromptChip}
+                              disabled={!newPromptChip.trim()}
+                              className="px-3 py-1.5 bg-teal-700 dark:bg-teal-600 text-white rounded-lg text-xs font-semibold hover:bg-teal-800 disabled:opacity-50 flex items-center gap-1"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Add Chip</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
