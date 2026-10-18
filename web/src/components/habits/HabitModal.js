@@ -1955,93 +1955,103 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                                 </div>
 
                                 {/* List of exercises */}
-                                <div className="space-y-1.5 max-h-56 overflow-y-auto">
+                                <div className="space-y-1.5 md:max-h-56 md:overflow-y-auto md:pr-1">
                                   {exercises.map((ex, idx) => {
                                     const isRequired = ex.isRequired !== false && ex.isRequiredForCompletion !== false;
                                     const hasError = errors[`daySchedule_${activeDay}_${idx}`];
                                     return (
                                       <div
                                         key={ex.id || idx}
-                                        className={`p-2 rounded-lg bg-surface border space-y-1.5 text-xs ${
+                                        className={`grid items-center gap-x-1.5 gap-y-1.5 p-2 rounded-lg bg-surface border text-xs grid-cols-[1.25rem_minmax(0,1fr)_auto] md:grid-cols-[1.25rem_minmax(0,1fr)_7rem_auto_auto_auto] ${
                                           hasError ? 'border-rose-400 bg-rose-50/20' : 'border-subtle'
                                         }`}
                                       >
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                          {/* Tier 1 on mobile, left on desktop: Step number + Exercise name */}
-                                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                                            <span className="text-2xs font-bold text-muted w-5 text-center select-none flex-shrink-0">
-                                              {idx + 1}.
-                                            </span>
-                                            <input
-                                              type="text"
-                                              value={ex.name || ex.label || ''}
-                                              onChange={(e) => handleUpdateDayScheduleExercise(activeDay, idx, 'name', e.target.value)}
-                                              placeholder="Exercise or step name *"
-                                              className={`flex-1 min-w-0 px-2.5 py-1.5 border rounded-lg text-xs bg-surface text-main ${
-                                                hasError ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
-                                              }`}
-                                            />
-                                          </div>
+                                        {/* Step number */}
+                                        <span className="col-start-1 row-start-1 text-center text-2xs font-bold text-muted select-none">
+                                          {idx + 1}.
+                                        </span>
 
-                                          {/* Tier 2 on mobile, right on desktop: Target + Required badge + Reorder + Remove */}
-                                          <div className="flex items-center justify-between sm:justify-end gap-1.5 pl-7 sm:pl-0 flex-shrink-0">
-                                            <input
-                                              type="text"
-                                              value={ex.target || ex.reps || ''}
-                                              onChange={(e) => handleUpdateDayScheduleExercise(activeDay, idx, 'target', e.target.value)}
-                                              placeholder="Target / reps"
-                                              className="w-28 sm:w-28 px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs bg-surface text-main"
-                                            />
+                                        {/* Exercise name */}
+                                        <input
+                                          type="text"
+                                          value={ex.name || ex.label || ''}
+                                          onChange={(e) => handleUpdateDayScheduleExercise(activeDay, idx, 'name', e.target.value)}
+                                          placeholder="Exercise or step name *"
+                                          aria-label={`Step ${idx + 1} name`}
+                                          aria-invalid={!!hasError}
+                                          className={`col-start-2 row-start-1 w-full min-w-0 h-8 md:h-7 px-2.5 rounded-lg border bg-surface text-main text-xs placeholder:text-muted transition-colors focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 ${
+                                            hasError ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
+                                          }`}
+                                        />
 
-                                            {/* Required / Optional Toggle */}
+                                        {/* Remove Button: top-right on mobile, last column on desktop */}
+                                        <button
+                                          type="button"
+                                          onClick={() => handleRemoveDayScheduleExercise(activeDay, idx)}
+                                          className="col-start-3 row-start-1 md:col-start-6 inline-flex items-center justify-center flex-shrink-0 w-8 h-8 md:w-7 md:h-7 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                                          title="Remove exercise"
+                                          aria-label={`Remove step ${idx + 1}`}
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+
+                                        {/* Row 2 on mobile (full card width, never wraps); md:contents lets children join the parent grid on desktop */}
+                                        <div className="col-start-1 col-span-3 row-start-2 flex flex-nowrap items-center gap-1.5 md:contents">
+                                          {/* Target / reps */}
+                                          <input
+                                            type="text"
+                                            value={ex.target || ex.reps || ''}
+                                            onChange={(e) => handleUpdateDayScheduleExercise(activeDay, idx, 'target', e.target.value)}
+                                            placeholder="Target / reps"
+                                            aria-label={`Step ${idx + 1} target`}
+                                            className="flex-1 min-w-0 md:col-start-3 md:row-start-1 w-full h-8 md:h-7 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-surface text-main text-xs placeholder:text-muted transition-colors focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500"
+                                          />
+
+                                          {/* Required / Optional Toggle */}
+                                          <button
+                                            type="button"
+                                            onClick={() => handleToggleDayScheduleExerciseRequired(activeDay, idx)}
+                                            aria-pressed={isRequired}
+                                            className={`md:col-start-4 md:row-start-1 h-8 md:h-7 px-2 md:px-2.5 rounded-lg border flex-shrink-0 text-2xs font-semibold transition-colors ${
+                                              isRequired
+                                                ? 'bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-200 border-teal-300 dark:border-teal-700'
+                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                            }`}
+                                            title="Toggle Required / Optional for habit completion"
+                                          >
+                                            {isRequired ? 'Required' : 'Optional'}
+                                          </button>
+
+                                          {/* Reorder Buttons */}
+                                          <div className="md:col-start-5 md:row-start-1 inline-flex flex-shrink-0 overflow-hidden rounded-lg border border-subtle bg-surface">
                                             <button
                                               type="button"
-                                              onClick={() => handleToggleDayScheduleExerciseRequired(activeDay, idx)}
-                                              className={`px-2.5 py-1 rounded-lg text-2xs font-semibold transition-colors flex-shrink-0 min-h-[34px] sm:min-h-[28px] ${
-                                                isRequired
-                                                  ? 'bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-200 border border-teal-300 dark:border-teal-700'
-                                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
-                                              }`}
-                                              title="Toggle Required / Optional for habit completion"
+                                              disabled={idx === 0}
+                                              onClick={() => handleMoveDayScheduleExercise(activeDay, idx, -1)}
+                                              className="inline-flex items-center justify-center w-7 h-8 md:w-7 md:h-7 text-slate-400 enabled:hover:text-slate-700 enabled:hover:bg-slate-100 dark:enabled:hover:text-slate-200 dark:enabled:hover:bg-slate-800 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                                              title="Move up"
+                                              aria-label={`Move step ${idx + 1} up`}
                                             >
-                                              {isRequired ? 'Required' : 'Optional'}
+                                              <ChevronUp className="w-3.5 h-3.5" />
                                             </button>
-
-                                            {/* Reorder Buttons */}
-                                            <div className="flex items-center bg-surface border border-subtle rounded-md flex-shrink-0">
-                                              <button
-                                                type="button"
-                                                disabled={idx === 0}
-                                                onClick={() => handleMoveDayScheduleExercise(activeDay, idx, -1)}
-                                                className="w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-20 rounded-l"
-                                                title="Move up"
-                                              >
-                                                <ChevronUp className="w-3.5 h-3.5" />
-                                              </button>
-                                              <button
-                                                type="button"
-                                                disabled={idx === exercises.length - 1}
-                                                onClick={() => handleMoveDayScheduleExercise(activeDay, idx, 1)}
-                                                className="w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-20 rounded-r"
-                                                title="Move down"
-                                              >
-                                                <ChevronDown className="w-3.5 h-3.5" />
-                                              </button>
-                                            </div>
-
-                                            {/* Remove Button */}
                                             <button
                                               type="button"
-                                              onClick={() => handleRemoveDayScheduleExercise(activeDay, idx)}
-                                              className="w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-md transition-colors flex-shrink-0"
-                                              title="Remove exercise"
+                                              disabled={idx === exercises.length - 1}
+                                              onClick={() => handleMoveDayScheduleExercise(activeDay, idx, 1)}
+                                              className="inline-flex items-center justify-center w-7 h-8 md:w-7 md:h-7 border-l border-subtle text-slate-400 enabled:hover:text-slate-700 enabled:hover:bg-slate-100 dark:enabled:hover:text-slate-200 dark:enabled:hover:bg-slate-800 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                                              title="Move down"
+                                              aria-label={`Move step ${idx + 1} down`}
                                             >
-                                              <Trash2 className="w-3.5 h-3.5" />
+                                              <ChevronDown className="w-3.5 h-3.5" />
                                             </button>
                                           </div>
                                         </div>
+
+                                        {/* Validation error: aligned under the name field */}
                                         {hasError && (
-                                          <p className="text-rose-500 text-2xs pl-6">{hasError}</p>
+                                          <p className="col-start-2 col-span-2 row-start-3 md:col-span-5 md:row-start-2 text-rose-500 text-2xs">
+                                            {hasError}
+                                          </p>
                                         )}
                                       </div>
                                     );
