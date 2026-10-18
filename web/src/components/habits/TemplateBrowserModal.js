@@ -141,7 +141,6 @@ export default function TemplateBrowserModal({ isOpen, onClose, onSelectTemplate
         relativeTiming: template.schedule?.relativeTiming || null,
         exactTime: template.schedule?.exactTime || null,
         restDays: Array.isArray(template.schedule?.restDays) ? [...template.schedule.restDays] : [],
-        order: template.schedule?.order || 1,
       },
       features: {
         counter: template.features?.counter ? { ...template.features.counter } : { enabled: false },

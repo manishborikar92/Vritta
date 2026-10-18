@@ -14,6 +14,7 @@ import {
     where,
     orderBy,
     serverTimestamp,
+    runTransaction,
 } from 'firebase/firestore';
 import { db } from './config.js';
 import {
@@ -89,27 +90,88 @@ export function sanitizeForFirestore(val) {
 }
 
 /**
- * Create a new habit document.
+ * Create a new habit document with atomic sortOrder allocation.
+ * Guarantees monotonic sequence (First Added, First Displayed) across concurrent tabs.
+ * Safely recovers missing nextSortOrder counters from existing habit records.
+ * 
  * @param {string} userId
  * @param {Object} habitData
+ * @returns {Promise<DocumentReference>}
  */
 export async function createHabit(userId, habitData) {
+    if (!userId) throw new Error('User ID is required to create a habit.');
+
+    const userRef = getUserRef(userId);
+
+    // Fallback counter resolution if user document lacks nextSortOrder
+    let fallbackBaseOrder = null;
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists() || typeof userSnap.data()?.nextSortOrder !== 'number' || userSnap.data().nextSortOrder < 1) {
+        const habitsSnap = await getDocs(getHabitsQuery(userId));
+        let maxOrder = 0;
+        habitsSnap.forEach(d => {
+            const data = d.data();
+            const val = typeof data?.sortOrder === 'number'
+                ? data.sortOrder
+                : (typeof data?.order === 'number' ? data.order : (typeof data?.schedule?.order === 'number' ? data.schedule.order : 0));
+            if (val > maxOrder) {
+                maxOrder = val;
+            }
+        });
+        fallbackBaseOrder = maxOrder + 1;
+    }
+
     const cleanHabitData = sanitizeForFirestore(habitData);
-    return addDoc(collection(db, 'habits'), {
-        ...cleanHabitData,
-        userId,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+    // Explicit canonical data structures: strip obsolete ordering fields
+    delete cleanHabitData.order;
+    if (cleanHabitData.schedule) {
+        delete cleanHabitData.schedule.order;
+    }
+
+    const newHabitRef = doc(collection(db, 'habits'));
+
+    await runTransaction(db, async (transaction) => {
+        const userDoc = await transaction.get(userRef);
+        let allocatedOrder;
+
+        if (userDoc.exists() && typeof userDoc.data()?.nextSortOrder === 'number' && userDoc.data().nextSortOrder >= 1) {
+            allocatedOrder = userDoc.data().nextSortOrder;
+        } else {
+            allocatedOrder = fallbackBaseOrder || 1;
+        }
+
+        const nextSortOrder = allocatedOrder + 1;
+
+        const habitToSave = {
+            ...cleanHabitData,
+            userId,
+            sortOrder: allocatedOrder,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        };
+
+        transaction.set(userRef, { nextSortOrder, updatedAt: serverTimestamp() }, { merge: true });
+        transaction.set(newHabitRef, habitToSave);
     });
+
+    return newHabitRef;
 }
 
 /**
  * Update an existing habit document.
+ * Guarantees sortOrder, createdAt, and legacy order cannot be modified by habit updates.
+ * 
  * @param {string} habitId
  * @param {Object} habitData
  */
 export async function updateHabitDoc(habitId, habitData) {
     const cleanHabitData = sanitizeForFirestore(habitData);
+    delete cleanHabitData.sortOrder;
+    delete cleanHabitData.createdAt;
+    delete cleanHabitData.order;
+    if (cleanHabitData.schedule) {
+        delete cleanHabitData.schedule.order;
+    }
     return updateDoc(doc(db, 'habits', habitId), {
         ...cleanHabitData,
         updatedAt: serverTimestamp(),
@@ -319,15 +381,17 @@ export async function seedHabitsForUser(userId, seedData) {
         const docId = `${userId}_${key}`;
         const habitRef = doc(db, 'habits', docId);
 
-        const cleanHabit = {};
-        for (const [k, v] of Object.entries(habit)) {
-            if (v !== undefined) cleanHabit[k] = v;
+        const cleanHabit = sanitizeForFirestore(habit);
+        delete cleanHabit.order;
+        if (cleanHabit.schedule) {
+            delete cleanHabit.schedule.order;
         }
 
         const dataToSave = {
             ...cleanHabit,
             id: docId,
             userId,
+            sortOrder: index + 1,
             seedOrigin: habit.seedOrigin || 'foundation_preset',
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
@@ -338,7 +402,15 @@ export async function seedHabitsForUser(userId, seedData) {
         return docId;
     });
 
-    return Promise.all(promises);
+    const docIds = await Promise.all(promises);
+
+    // Initialize nextSortOrder counter on user document
+    await setDoc(getUserRef(userId), {
+        nextSortOrder: seedData.length + 1,
+        updatedAt: serverTimestamp(),
+    }, { merge: true });
+
+    return docIds;
 }
 
 /**
@@ -571,7 +643,6 @@ export function normalizeHabitFromFirestore(data, id) {
             relativeTiming: data.schedule?.relativeTiming || null,
             exactTime: data.schedule?.exactTime || null,
             restDays: Array.isArray(data.schedule?.restDays) ? [...data.schedule.restDays] : [],
-            order: typeof data.schedule?.order === 'number' ? data.schedule.order : (data.order || 0),
         };
 
         const trackingHorizon = data.lifecycle?.trackingHorizon || deriveTrackingHorizon(data, [], data.timezone || 'UTC');
@@ -588,6 +659,7 @@ export function normalizeHabitFromFirestore(data, id) {
             category: data.category || 'English Learning',
             icon: data.icon || null,
             color: data.color || null,
+            sortOrder: typeof data.sortOrder === 'number' ? data.sortOrder : 1,
             schedule,
             scheduleHistory,
             features: {
@@ -625,7 +697,6 @@ export function normalizeHabitFromFirestore(data, id) {
         relativeTiming: data.relativeTiming || null,
         exactTime: data.time && data.time !== 'Flexible' ? data.time : null,
         restDays: Array.isArray(data.metadata?.restDays) ? [...data.metadata.restDays] : [],
-        order: typeof data.order === 'number' ? data.order : 0,
     };
 
     const trackingHorizon = deriveTrackingHorizon(data, [], data.timezone || 'UTC');
@@ -714,6 +785,7 @@ export function normalizeHabitFromFirestore(data, id) {
         category: data.category || 'English Learning',
         icon: null,
         color: null,
+        sortOrder: typeof data.sortOrder === 'number' ? data.sortOrder : 1,
         schedule,
         scheduleHistory,
         features,
@@ -766,6 +838,7 @@ export function serializeHabitForFirestore(habit) {
         category: habit.category,
         icon: habit.icon || null,
         color: habit.color || null,
+        sortOrder: typeof habit.sortOrder === 'number' ? habit.sortOrder : 1,
         schedule: {
             frequency: habit.schedule.frequency,
             timingType: habit.schedule.timingType || 'anytime',
@@ -773,7 +846,6 @@ export function serializeHabitForFirestore(habit) {
             relativeTiming: habit.schedule.relativeTiming || null,
             exactTime: habit.schedule.exactTime || null,
             restDays: habit.schedule.restDays || [],
-            order: typeof habit.schedule.order === 'number' ? habit.schedule.order : 0,
         },
         scheduleHistory: habit.scheduleHistory || [],
         features: habit.features,
