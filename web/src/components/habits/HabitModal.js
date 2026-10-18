@@ -1164,7 +1164,7 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                         type="text"
                         value={formData.relativeTiming}
                         onChange={(e) => setFormData(prev => ({ ...prev, relativeTiming: e.target.value }))}
-                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-base sm:text-xs bg-surface text-main placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-xs bg-surface text-main placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                         placeholder="e.g., Before bed, After waking"
                       />
                     </div>
@@ -1195,7 +1195,7 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                         type="text"
                         value={formData.time}
                         onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-base sm:text-xs bg-surface text-main placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-xs bg-surface text-main placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                         placeholder="e.g., 04:30 PM"
                       />
                     </div>
