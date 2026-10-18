@@ -137,18 +137,18 @@ describe('Phase 6: Reading Timer & Routine Timing-Mode Controls', () => {
       assert.equal(getTimingDisplay({ timingType: 'anytime' }), 'Anytime');
     });
 
-    it('should format preferred period routines with "(Preferred)" suffix', () => {
+    it('should format preferred period routines with clean period label', () => {
       assert.equal(
         getTimingDisplay({ timingType: 'preferred_period', preferredPeriod: 'Morning' }),
-        'Morning (Preferred)'
+        'Morning'
       );
       assert.equal(
         getTimingDisplay({ timingType: 'preferred_period', preferredPeriod: 'Afternoon' }),
-        'Afternoon (Preferred)'
+        'Afternoon'
       );
       assert.equal(
         getTimingDisplay({ timingType: 'preferred_period', preferredPeriod: 'Evening' }),
-        'Evening (Preferred)'
+        'Evening'
       );
     });
 

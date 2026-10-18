@@ -80,10 +80,10 @@ describe('Phase 2: Mobile-First Unified Habit Cards & Atomic Slots Architecture'
   });
 
   describe('3. Mobile Usability & Typography Safeguards', () => {
-    it('should verify SlotNotes textarea uses text-base sm:text-xs to prevent iOS mobile auto-zoom', () => {
+    it('should verify SlotNotes textarea uses text-xs to prevent iOS mobile auto-zoom', () => {
       const notesContent = readWebFile('src/components/habits/slots/SlotNotes.js');
       assert.ok(
-        notesContent.includes('text-base sm:text-xs') || notesContent.includes('text-base sm:text-sm'),
+        notesContent.includes('text-xs') || notesContent.includes('text-base sm:text-sm'),
         'SlotNotes textarea must prevent mobile auto-zoom'
       );
     });

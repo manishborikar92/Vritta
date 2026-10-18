@@ -98,8 +98,6 @@ function DashboardHabitCard({
 
   const hasNotes = Boolean(
     features.notes?.enabled ||
-    habit.completionMethod === 'simple_with_notes' ||
-    habit.completionMethod === 'diary_entry' ||
     habit.stableKey === 'canonical_english_speaking' ||
     habit.stableKey === 'canonical_maintain_diary'
   );
@@ -204,7 +202,6 @@ function DashboardHabitCard({
     onUpdateProgress?.(habit.id, {
       ...progress,
       notes: notesText,
-      diaryEntry: notesText,
     });
   };
 
@@ -383,7 +380,7 @@ function DashboardHabitCard({
           {hasNotes && (
             <SlotNotes
               habitId={habit.id}
-              feature={features.notes || { isPrivateDiary: habit.completionMethod === 'diary_entry' }}
+              feature={features.notes}
               progress={progress}
               onSave={handleNotesSave}
               disabled={isPlannedRest}

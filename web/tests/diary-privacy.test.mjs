@@ -3,17 +3,19 @@ import assert from 'node:assert/strict';
 import { CANONICAL_ROUTINES } from '../src/lib/server/schedule-templates.js';
 
 describe('Diary Privacy & Scoping Integrity', () => {
-  it('should verify diary routine is flagged as a private journal', () => {
+  it('should verify diary routine is configured as a reflection journal without obsolete private flags', () => {
     const diaryHabit = CANONICAL_ROUTINES.find(r => r.stableKey === 'canonical_maintain_diary');
     assert.ok(diaryHabit, 'Diary routine must exist');
     assert.equal(diaryHabit.category, 'Reflection & Journaling');
-    assert.equal(diaryHabit.completionMethod, 'diary_entry');
-    assert.equal(diaryHabit.metadata?.isPrivateJournal, true);
+    assert.equal(diaryHabit.features?.notes?.enabled, true);
+    assert.equal(diaryHabit.features?.notes?.isPrivateDiary, undefined);
+    assert.equal(diaryHabit.metadata?.isPrivateJournal, undefined);
+    assert.notEqual(diaryHabit.completionMethod, 'diary_entry');
   });
 
-  it('should include the 5 specified reflection prompts in diary metadata', () => {
+  it('should include the 5 specified reflection prompts in diary notes feature', () => {
     const diaryHabit = CANONICAL_ROUTINES.find(r => r.stableKey === 'canonical_maintain_diary');
-    const prompts = diaryHabit.metadata?.reflectivePrompts || [];
+    const prompts = diaryHabit.features?.notes?.reflectionPrompts || [];
 
     assert.equal(prompts.length, 5);
     assert.ok(prompts.includes('What happened or what thought came to mind?'));

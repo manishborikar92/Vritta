@@ -251,14 +251,14 @@ describe('Phase 1: Domain Foundation & Architecture Modernization', () => {
           assert.equal(normalized.features.timer.enabled, true);
         } else if (legacyRoutine.completionMethod === 'reading_duration') {
           assert.equal(normalized.features.timer.enabled, true);
-          assert.equal(normalized.features.timer.soundOnComplete, true);
-        } else if (legacyRoutine.completionMethod === 'simple_with_notes') {
+          assert.equal(normalized.features.timer.soundOnComplete, undefined);
+        } else if (legacyRoutine.stableKey === 'canonical_maintain_diary') {
           assert.equal(normalized.features.notes.enabled, true);
-          assert.equal(normalized.features.notes.isPrivateDiary, false);
-        } else if (legacyRoutine.completionMethod === 'diary_entry') {
-          assert.equal(normalized.features.notes.enabled, true);
-          assert.equal(normalized.features.notes.isPrivateDiary, true);
+          assert.equal(normalized.features.notes.isPrivateDiary, undefined);
           assert.ok(normalized.features.notes.reflectionPrompts.length > 0);
+        } else if (legacyRoutine.stableKey === 'canonical_english_speaking') {
+          assert.equal(normalized.features.notes.enabled, true);
+          assert.equal(normalized.features.notes.isPrivateDiary, undefined);
         }
 
         // Test serialization round-trip

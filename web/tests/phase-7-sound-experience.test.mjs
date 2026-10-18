@@ -304,7 +304,8 @@ describe('Phase 7: Interactive Sound Experience & Audio Polish', () => {
       const daySchedule = readWebFile('src/components/habits/slots/SlotDaySchedule.js');
 
       assert.ok(dashboard.includes('playHabitCompleteCue'), 'DashboardHabitCard must support completion cue');
-      assert.ok(timer.includes('soundOnComplete'), 'SlotTimer must support sound cues');
+      assert.ok(!timer.includes('soundOnComplete'), 'SlotTimer must not contain obsolete soundOnComplete');
+      assert.ok(timer.includes('useTimer'), 'SlotTimer must support sound cues via useTimer');
       assert.ok(checklist.includes('playHabitCompleteCue'), 'SlotChecklist must support completion cues');
       assert.ok(daySchedule.includes('playHabitCompleteCue'), 'SlotDaySchedule must support completion cues');
     });

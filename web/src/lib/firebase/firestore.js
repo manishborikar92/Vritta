@@ -682,27 +682,18 @@ export function normalizeHabitFromFirestore(data, id) {
             enabled: data.features?.timer ? Boolean(data.features.timer.enabled) : Boolean(data.targetMinutes),
             targetDurationMinutes: data.targetMinutes || 30,
             mode: 'countdown',
-            soundOnComplete: false,
         };
     } else if (completionMethod === 'reading_duration') {
         features.timer = {
             enabled: true,
             targetDurationMinutes: data.targetMinutes || 30,
             mode: 'countdown',
-            soundOnComplete: true,
         };
-    } else if (completionMethod === 'simple_with_notes') {
+    } else if (completionMethod === 'notes') {
         features.notes = {
             enabled: true,
-            isPrivateDiary: false,
-            placeholder: 'Practice English speaking notes...',
-        };
-    } else if (completionMethod === 'diary_entry') {
-        features.notes = {
-            enabled: true,
-            isPrivateDiary: true,
             reflectionPrompts: data.metadata?.reflectivePrompts || data.metadata?.reflectionPrompts || [],
-            placeholder: 'Write in your personal diary...',
+            placeholder: data.metadata?.placeholder || '',
         };
     } else if (Array.isArray(data.checklistItems) && data.checklistItems.length > 0) {
         features.checklist = {

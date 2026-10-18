@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import { Play, Pause, RotateCcw, Timer, Volume2 } from 'lucide-react';
+import { Play, Pause, RotateCcw, Timer } from 'lucide-react';
 import { useTimer } from '@/hooks/use-timer';
 import { getReadingTargetMinutes } from '@/utils/reading-helpers';
 
@@ -11,7 +11,6 @@ import { getReadingTargetMinutes } from '@/utils/reading-helpers';
  * Configured via `habit.features.timer`:
  * - `targetDurationMinutes`: Configurable target (e.g., 10, 15, 20, 25, 30, 45, 60 min)
  * - `mode`: 'countdown' | 'stopwatch'
- * - `soundOnComplete`: Web Audio procedural chime trigger
  *
  * Employs background-resilient timestamp tracking and Web Audio API completion cues.
  */
@@ -76,11 +75,6 @@ function SlotTimer({
           <span className="px-2 py-0.5 rounded bg-surface border border-subtle">
             {targetMinutes}m target
           </span>
-          {feature.soundOnComplete !== false && (
-            <span className="text-muted flex items-center gap-1" title="Chime on completion">
-              <Volume2 className="w-3 h-3 text-slate-400" />
-            </span>
-          )}
         </div>
       </div>
 

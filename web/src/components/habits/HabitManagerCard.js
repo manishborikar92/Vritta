@@ -80,10 +80,10 @@ function HabitManagerCard({ habit, onEdit, onDelete }) {
     });
   }
 
-  if (features.notes?.enabled || habit.completionMethod === 'simple_with_notes' || habit.completionMethod === 'diary_entry') {
+  if (features.notes?.enabled) {
     activeFeatures.push({
       key: 'notes',
-      label: features.notes?.isPrivateDiary || habit.completionMethod === 'diary_entry' ? 'Private Diary' : 'Reflection Notes',
+      label: 'Reflection Notes',
       icon: PenLine,
     });
   }

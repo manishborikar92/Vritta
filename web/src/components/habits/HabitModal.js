@@ -82,18 +82,11 @@ const TIMING_TYPES = [
   { id: 'exact', label: 'Exact Time', description: 'Suggested target', icon: Clock },
 ];
 
-const GENERIC_COMPLETION_STYLES = [
-  { id: 'simple', label: 'Standard Check-off', description: 'One tap to mark as completed' },
-  { id: 'checklist', label: 'Step-by-Step Checklist', description: 'List of steps or sub-tasks to guide your routine' },
-  { id: 'diary_entry', label: 'Reflection & Notes', description: 'Private journal note with guided prompts' },
-];
-
 export const SPECIALIZED_COMPLETION_STYLES = {
   workbook_sessions: { label: 'Specialized: Two-Session Workbook Counter', description: 'Word Power Made Easy 2-session tracker' },
   exercise_plan: { label: 'Specialized: Structured Movement Plan', description: '12-week progressive movement schedule' },
   osho_listening: { label: 'Specialized: Discourse Listening Session', description: '30-discourse audio library catalog' },
   reading_duration: { label: 'Specialized: Reading Duration Target', description: 'Configurable reading timer session' },
-  simple_with_notes: { label: 'Specialized: Speaking Practice with Notes', description: 'Conversational practice with autosaving notes' },
 };
 
 /**
@@ -120,9 +113,9 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
     seedOrigin: habit?.seedOrigin || 'custom',
     features: {
       counter: { enabled: false, targetCount: 2, unit: 'sessions', step: 1, minCount: 0 },
-      timer: { enabled: false, targetDurationMinutes: 30, mode: 'countdown', soundOnComplete: true },
+      timer: { enabled: false, targetDurationMinutes: 30, mode: 'countdown' },
       checklist: { enabled: false, items: [] },
-      notes: { enabled: false, isPrivateDiary: false, placeholder: '', reflectionPrompts: [] },
+      notes: { enabled: false, placeholder: '', reflectionPrompts: [] },
       catalog: { enabled: false, catalogId: 'custom_catalog', catalogTitle: 'Catalog Items', totalItems: 0, items: [] },
       daySchedule: { enabled: false, planTitle: '12-Week Progressive Movement Plan', totalWeeks: 12, dayVariations: buildDefaultDayVariations() },
     },
@@ -146,9 +139,9 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
       // Map features
       let features = {
         counter: { enabled: false, targetCount: 2, unit: 'sessions', step: 1, minCount: 0 },
-        timer: { enabled: false, targetDurationMinutes: 30, mode: 'countdown', soundOnComplete: true },
+        timer: { enabled: false, targetDurationMinutes: 30, mode: 'countdown' },
         checklist: { enabled: false, items: [] },
-        notes: { enabled: false, isPrivateDiary: false, placeholder: '', reflectionPrompts: [] },
+        notes: { enabled: false, placeholder: '', reflectionPrompts: [] },
         catalog: { enabled: false, catalogId: 'custom_catalog', catalogTitle: 'Catalog Items', totalItems: 0, items: [] },
         daySchedule: { enabled: false, planTitle: '12-Week Progressive Movement Plan', totalWeeks: 12, dayVariations: buildDefaultDayVariations() },
       };
@@ -181,15 +174,12 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
             features.checklist = { enabled: true, items: normalizeChecklistItems(habit.checklistItems) };
           }
         } else if (cm === 'reading_duration') {
-          features.timer = { enabled: true, targetDurationMinutes: getReadingTargetMinutes(habit), mode: 'countdown', soundOnComplete: true };
-        } else if (cm === 'simple_with_notes') {
-          features.notes = { enabled: true, isPrivateDiary: false, placeholder: 'Practice English speaking notes...' };
-        } else if (cm === 'diary_entry') {
+          features.timer = { enabled: true, targetDurationMinutes: getReadingTargetMinutes(habit), mode: 'countdown' };
+        } else if (cm === 'notes') {
           features.notes = {
             enabled: true,
-            isPrivateDiary: true,
             reflectionPrompts: habit.metadata?.reflectivePrompts || habit.metadata?.reflectionPrompts || [],
-            placeholder: 'Write in your personal diary...',
+            placeholder: habit.features?.notes?.placeholder || '',
           };
         } else if (cm === 'exercise_plan') {
           features.daySchedule = {
@@ -200,7 +190,7 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
           };
         } else if (cm === 'osho_listening') {
           features.catalog = { enabled: true, catalogId: 'osho_discourses', catalogTitle: 'Osho Discourses', totalItems: 30, items: [] };
-          features.timer = { enabled: false, targetDurationMinutes: habit.targetMinutes || 30, mode: 'countdown', soundOnComplete: false };
+          features.timer = { enabled: false, targetDurationMinutes: habit.targetMinutes || 30, mode: 'countdown' };
         } else if (Array.isArray(habit.checklistItems) && habit.checklistItems.length > 0) {
           features.checklist = { enabled: true, items: normalizeChecklistItems(habit.checklistItems) };
         }
@@ -334,7 +324,6 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
             enabled: true,
             targetDurationMinutes: targetMinutes,
             mode: formData.features.timer.mode || 'countdown',
-            soundOnComplete: Boolean(formData.features.timer.soundOnComplete),
           }
         : { enabled: false },
       checklist: (formData.features.checklist.enabled || formData.checklistItems.length > 0)
@@ -350,7 +339,6 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
       notes: formData.features.notes.enabled
         ? {
             enabled: true,
-            isPrivateDiary: Boolean(formData.features.notes.isPrivateDiary),
             placeholder: formData.features.notes.placeholder || '',
             reflectionPrompts: Array.isArray(formData.features.notes.reflectionPrompts)
               ? [...formData.features.notes.reflectionPrompts]
@@ -433,10 +421,10 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
       }
     } else if (cleanFeatures.timer.enabled) {
       legacyCompletionMethod = 'reading_duration';
-    } else if (cleanFeatures.notes.enabled) {
-      legacyCompletionMethod = cleanFeatures.notes.isPrivateDiary ? 'diary_entry' : 'simple_with_notes';
     } else if (cleanFeatures.checklist.enabled) {
       legacyCompletionMethod = 'checklist';
+    } else {
+      legacyCompletionMethod = 'simple';
     }
 
     const payload = {
@@ -1371,24 +1359,6 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                           ))}
                         </div>
                       </div>
-
-                      <div className="flex items-center justify-between pt-1">
-                        <label className="text-2xs text-muted flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={formData.features.timer.soundOnComplete}
-                            onChange={(e) => setFormData(prev => ({
-                              ...prev,
-                              features: {
-                                ...prev.features,
-                                timer: { ...prev.features.timer, soundOnComplete: e.target.checked },
-                              },
-                            }))}
-                            className="rounded text-teal-600 focus:ring-teal-500 w-3.5 h-3.5"
-                          />
-                          <span>Play peaceful audio chime on timer completion</span>
-                        </label>
-                      </div>
                     </div>
                   )}
                 </div>
@@ -1424,11 +1394,11 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
 
                   {formData.features.checklist.enabled && (
                     <div className="mt-3 pt-3 border-t border-emerald-200/60 dark:border-emerald-900/40 space-y-2">
-                      <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                      <div className="space-y-1 max-h-48 overflow-y-auto">
                         {formData.checklistItems.map((item, index) => (
                           <div
                             key={item.id || index}
-                            className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/80 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700"
+                            className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/80 px-2 rounded-lg border border-slate-200 dark:border-slate-700"
                           >
                             <span className="text-2xs font-bold text-slate-400 w-4 text-center select-none flex-shrink-0">
                               {index + 1}.
@@ -1437,33 +1407,35 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                               type="text"
                               value={item.label}
                               onChange={(e) => updateChecklistItemLabel(index, e.target.value)}
-                              className="flex-1 text-xs bg-transparent text-slate-800 dark:text-slate-200 border-0 focus:outline-none focus:ring-1 focus:ring-teal-500 rounded px-1.5 py-1"
+                              className="flex-1 min-w-0 text-xs bg-transparent text-slate-800 dark:text-slate-200 border-0 focus:outline-none focus:ring-1 focus:ring-teal-500 rounded px-1.5 py-1"
                               placeholder="Step description..."
                               aria-label={`Step ${index + 1} description`}
                             />
-                            <div className="flex items-center gap-0.5 flex-shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => moveChecklistItem(index, -1)}
-                                disabled={index === 0}
-                                className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed rounded"
-                                aria-label={`Move step ${index + 1} up`}
-                              >
-                                <ChevronUp className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => moveChecklistItem(index, 1)}
-                                disabled={index === formData.checklistItems.length - 1}
-                                className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed rounded"
-                                aria-label={`Move step ${index + 1} down`}
-                              >
-                                <ChevronDown className="w-3.5 h-3.5" />
-                              </button>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <div className="flex items-center bg-surface border border-subtle rounded-md">
+                                <button
+                                  type="button"
+                                  onClick={() => moveChecklistItem(index, -1)}
+                                  disabled={index === 0}
+                                  className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed rounded-l"
+                                  aria-label={`Move step ${index + 1} up`}
+                                >
+                                  <ChevronUp className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => moveChecklistItem(index, 1)}
+                                  disabled={index === formData.checklistItems.length - 1}
+                                  className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed rounded-r"
+                                  aria-label={`Move step ${index + 1} down`}
+                                >
+                                  <ChevronDown className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                               <button
                                 type="button"
                                 onClick={() => removeChecklistItem(index)}
-                                className="w-7 h-7 flex items-center justify-center text-rose-500 hover:text-rose-700 rounded"
+                                className="w-6 h-6 flex items-center justify-center text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-md transition-colors"
                                 aria-label={`Remove step ${index + 1}`}
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1534,22 +1506,6 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
 
                   {formData.features.notes.enabled && (
                     <div className="mt-3 pt-3 border-t border-teal-200/60 dark:border-teal-900/40 space-y-2.5">
-                      <label className="text-2xs text-muted flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={Boolean(formData.features.notes.isPrivateDiary)}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            features: {
-                              ...prev.features,
-                              notes: { ...prev.features.notes, isPrivateDiary: e.target.checked },
-                            },
-                          }))}
-                          className="rounded text-teal-600 w-3.5 h-3.5"
-                        />
-                        <span className="font-semibold text-main">Private Diary Mode (Strict user isolation)</span>
-                      </label>
-
                       <div>
                         <label className="block text-2xs font-semibold text-main mb-1">Textarea Placeholder</label>
                         <input
@@ -2004,72 +1960,79 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                                           hasError ? 'border-rose-400 bg-rose-50/20' : 'border-subtle'
                                         }`}
                                       >
-                                        <div className="flex items-center gap-1.5">
-                                          <span className="text-2xs font-bold text-muted w-4 text-center select-none flex-shrink-0">
-                                            {idx + 1}.
-                                          </span>
-                                          <input
-                                            type="text"
-                                            value={ex.name || ex.label || ''}
-                                            onChange={(e) => handleUpdateDayScheduleExercise(activeDay, idx, 'name', e.target.value)}
-                                            placeholder="Exercise or step name *"
-                                            className={`flex-1 min-w-0 px-2 py-1 border rounded text-xs bg-surface text-main ${
-                                              hasError ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
-                                            }`}
-                                          />
-                                          <input
-                                            type="text"
-                                            value={ex.target || ex.reps || ''}
-                                            onChange={(e) => handleUpdateDayScheduleExercise(activeDay, idx, 'target', e.target.value)}
-                                            placeholder="Target / reps"
-                                            className="w-24 sm:w-32 px-2 py-1 border border-slate-200 dark:border-slate-700 rounded text-xs bg-surface text-main"
-                                          />
-
-                                          {/* Required / Optional Toggle */}
-                                          <button
-                                            type="button"
-                                            onClick={() => handleToggleDayScheduleExerciseRequired(activeDay, idx)}
-                                            className={`px-2 py-1 rounded text-2xs font-semibold transition-colors flex-shrink-0 min-h-[32px] ${
-                                              isRequired
-                                                ? 'bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-200 border border-teal-300 dark:border-teal-700'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
-                                            }`}
-                                            title="Toggle Required / Optional for habit completion"
-                                          >
-                                            {isRequired ? 'Required' : 'Optional'}
-                                          </button>
-
-                                          {/* Reorder Buttons */}
-                                          <div className="flex items-center gap-0.5 flex-shrink-0">
-                                            <button
-                                              type="button"
-                                              disabled={idx === 0}
-                                              onClick={() => handleMoveDayScheduleExercise(activeDay, idx, -1)}
-                                              className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-20"
-                                              title="Move up"
-                                            >
-                                              <ChevronUp className="w-3.5 h-3.5" />
-                                            </button>
-                                            <button
-                                              type="button"
-                                              disabled={idx === exercises.length - 1}
-                                              onClick={() => handleMoveDayScheduleExercise(activeDay, idx, 1)}
-                                              className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-20"
-                                              title="Move down"
-                                            >
-                                              <ChevronDown className="w-3.5 h-3.5" />
-                                            </button>
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                          {/* Tier 1 on mobile, left on desktop: Step number + Exercise name */}
+                                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                                            <span className="text-2xs font-bold text-muted w-5 text-center select-none flex-shrink-0">
+                                              {idx + 1}.
+                                            </span>
+                                            <input
+                                              type="text"
+                                              value={ex.name || ex.label || ''}
+                                              onChange={(e) => handleUpdateDayScheduleExercise(activeDay, idx, 'name', e.target.value)}
+                                              placeholder="Exercise or step name *"
+                                              className={`flex-1 min-w-0 px-2.5 py-1.5 border rounded-lg text-xs bg-surface text-main ${
+                                                hasError ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
+                                              }`}
+                                            />
                                           </div>
 
-                                          {/* Remove Button */}
-                                          <button
-                                            type="button"
-                                            onClick={() => handleRemoveDayScheduleExercise(activeDay, idx)}
-                                            className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors flex-shrink-0"
-                                            title="Remove exercise"
-                                          >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                          </button>
+                                          {/* Tier 2 on mobile, right on desktop: Target + Required badge + Reorder + Remove */}
+                                          <div className="flex items-center justify-between sm:justify-end gap-1.5 pl-7 sm:pl-0 flex-shrink-0">
+                                            <input
+                                              type="text"
+                                              value={ex.target || ex.reps || ''}
+                                              onChange={(e) => handleUpdateDayScheduleExercise(activeDay, idx, 'target', e.target.value)}
+                                              placeholder="Target / reps"
+                                              className="w-28 sm:w-28 px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs bg-surface text-main"
+                                            />
+
+                                            {/* Required / Optional Toggle */}
+                                            <button
+                                              type="button"
+                                              onClick={() => handleToggleDayScheduleExerciseRequired(activeDay, idx)}
+                                              className={`px-2.5 py-1 rounded-lg text-2xs font-semibold transition-colors flex-shrink-0 min-h-[34px] sm:min-h-[28px] ${
+                                                isRequired
+                                                  ? 'bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-200 border border-teal-300 dark:border-teal-700'
+                                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
+                                              }`}
+                                              title="Toggle Required / Optional for habit completion"
+                                            >
+                                              {isRequired ? 'Required' : 'Optional'}
+                                            </button>
+
+                                            {/* Reorder Buttons */}
+                                            <div className="flex items-center bg-surface border border-subtle rounded-md flex-shrink-0">
+                                              <button
+                                                type="button"
+                                                disabled={idx === 0}
+                                                onClick={() => handleMoveDayScheduleExercise(activeDay, idx, -1)}
+                                                className="w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-20 rounded-l"
+                                                title="Move up"
+                                              >
+                                                <ChevronUp className="w-3.5 h-3.5" />
+                                              </button>
+                                              <button
+                                                type="button"
+                                                disabled={idx === exercises.length - 1}
+                                                onClick={() => handleMoveDayScheduleExercise(activeDay, idx, 1)}
+                                                className="w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-20 rounded-r"
+                                                title="Move down"
+                                              >
+                                                <ChevronDown className="w-3.5 h-3.5" />
+                                              </button>
+                                            </div>
+
+                                            {/* Remove Button */}
+                                            <button
+                                              type="button"
+                                              onClick={() => handleRemoveDayScheduleExercise(activeDay, idx)}
+                                              className="w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-md transition-colors flex-shrink-0"
+                                              title="Remove exercise"
+                                            >
+                                              <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                          </div>
                                         </div>
                                         {hasError && (
                                           <p className="text-rose-500 text-2xs pl-6">{hasError}</p>
@@ -2117,7 +2080,7 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                                         type="button"
                                         onClick={() => handleAddDayScheduleExercise(activeDay)}
                                         disabled={!newDayExerciseName.trim()}
-                                        className="w-full min-h-[34px] px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold disabled:opacity-40 flex items-center justify-center gap-1 transition-colors"
+                                        className="w-full min-h-[38px] sm:min-h-[32px] px-2.5 py-1.5 sm:py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold disabled:opacity-40 flex items-center justify-center gap-1 transition-colors"
                                       >
                                         <Plus className="w-3.5 h-3.5" />
                                         <span>Add</span>
@@ -2151,12 +2114,12 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
           </div>
 
           {/* Sticky Modal Action Bar */}
-          <div className="bg-surface border-t border-subtle px-5 py-2 flex items-center gap-3 flex-shrink-0 z-10">
+          <div className="bg-surface border-t border-subtle px-4 sm:px-5 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-3 flex-shrink-0 z-10">
             {habit && onDelete && (
               <button
                 type="button"
                 onClick={() => onDelete(habit.id)}
-                className="px-3.5 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl text-xs font-semibold transition-colors"
+                className="min-h-[40px] sm:min-h-[36px] px-3.5 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl text-xs font-semibold transition-colors"
               >
                 Delete
               </button>
@@ -2165,14 +2128,14 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-medium transition-colors"
+              className="min-h-[40px] sm:min-h-[36px] px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-medium transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2 bg-teal-700 dark:bg-teal-600 text-white rounded-xl text-xs font-semibold hover:bg-teal-800 dark:hover:bg-teal-500 transition-colors disabled:opacity-50 shadow-2xs"
+              className="min-h-[40px] sm:min-h-[36px] px-5 py-2 bg-teal-700 dark:bg-teal-600 text-white rounded-xl text-xs font-semibold hover:bg-teal-800 dark:hover:bg-teal-500 transition-colors disabled:opacity-50 shadow-2xs"
             >
               {saving ? 'Saving...' : habit ? 'Update Routine' : 'Create Routine'}
             </button>
