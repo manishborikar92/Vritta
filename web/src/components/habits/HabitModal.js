@@ -1220,14 +1220,6 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                     ))}
                   </div>
                   {errors.frequency && <p className="text-rose-500 text-xs mt-1">{errors.frequency}</p>}
-
-                  {/* Integrated Planned Rest Days Notice (Single source of truth) */}
-                  <div className="mt-2.5 flex items-start gap-2 p-2.5 bg-surface-subtle dark:bg-slate-800/40 rounded-xl border border-subtle dark:border-slate-700/60 text-2xs text-sub leading-relaxed">
-                    <Info className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 flex-shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-main font-semibold">Planned Rest Days:</strong> Weekdays not selected above are automatically treated as planned rest days and will never break streaks.
-                    </span>
-                  </div>
                 </div>
               </div>
             )}
