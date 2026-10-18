@@ -289,7 +289,6 @@ export function getEffectiveSchedule(habit, dateOrTimestampOrWeekday = null, tim
         preferredPeriod: habit.preferredPeriod || null,
         relativeTiming: habit.relativeTiming || null,
         exactTime: habit.time && habit.time !== 'Flexible' ? habit.time : null,
-        order: typeof habit.order === 'number' ? habit.order : 0,
       };
     } else {
       throw new ValidationError('Habit schedule is required to resolve effective schedule.');

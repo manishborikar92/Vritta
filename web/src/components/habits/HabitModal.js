@@ -108,7 +108,6 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
     restDays: [],
     checklistItems: [],
     targetMinutes: habit?.features?.timer?.enabled ? getReadingTargetMinutes(habit) : null,
-    order: habit?.order || 99,
     stableKey: null,
     seedOrigin: habit?.seedOrigin || 'custom',
     features: {
@@ -227,7 +226,6 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
         restDays,
         checklistItems: normalizeChecklistItems(habit.checklistItems || features.checklist.items),
         targetMinutes,
-        order: typeof schedule.order === 'number' ? schedule.order : (habit.order || 1),
         stableKey: habit.stableKey || null,
         seedOrigin: habit.seedOrigin || 'custom',
         features,
@@ -405,7 +403,6 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
       relativeTiming: formData.timingType === 'relative' ? formData.relativeTiming : null,
       exactTime: formData.timingType === 'exact' ? formData.time : null,
       restDays: DAYS.filter(d => !formData.frequency.includes(d)),
-      order: formData.order || 1,
     };
 
     // Derive canonical completionMethod from active composable features for document schema and analytics consistency

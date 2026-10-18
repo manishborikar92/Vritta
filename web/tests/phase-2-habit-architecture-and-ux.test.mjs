@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getTimingSortWeight, sortHabitsByTiming } from '../src/utils/date-helpers.js';
+import { sortHabits } from '../src/utils/date-helpers.js';
 import { MANISH_PERSONAL_ROUTINES, DEFAULT_ROUTINES } from '../src/lib/server/schedule-templates.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -125,11 +125,15 @@ describe('Phase 2: Habit Architecture & UX Simplification', () => {
       );
     });
 
-    it('should verify HabitModal preserves habit.order in payload for backward compatibility', () => {
+    it('should verify HabitModal eliminates legacy order in payload', () => {
       const content = readWebFile(habitModalPath);
       assert.ok(
-        content.includes('order: habit?.order || 99') || content.includes('habit.order'),
-        'HabitModal must preserve existing order in payload for Firestore compatibility'
+        !content.includes('order: formData.order'),
+        'HabitModal must NOT include order in schedule payload'
+      );
+      assert.ok(
+        !content.includes('order: habit?.order'),
+        'HabitModal must NOT initialize order from habit.order'
       );
     });
   });
@@ -178,99 +182,65 @@ describe('Phase 2: Habit Architecture & UX Simplification', () => {
     });
   });
 
-  describe('4. Standardized Timing Rhythm Sorting and Grouping', () => {
-    it('should correctly calculate timing sort weights for daily human rhythm', () => {
-      // 10: Flexible / Anytime (First position)
-      assert.equal(getTimingSortWeight({ timingType: 'anytime' }), 10);
-      assert.equal(getTimingSortWeight({ time: 'Flexible' }), 10);
-      assert.equal(getTimingSortWeight({}), 10);
-      assert.equal(getTimingSortWeight(null), 10);
-
-      // 20: Morning
-      assert.equal(getTimingSortWeight({ preferredPeriod: 'Morning' }), 20);
-      assert.equal(getTimingSortWeight({ time: 'Morning' }), 20);
-      assert.equal(getTimingSortWeight({ relativeTiming: 'After waking' }), 20);
-      assert.equal(getTimingSortWeight({ timingType: 'exact', time: '08:00 AM' }), 20);
-
-      // 30: Afternoon
-      assert.equal(getTimingSortWeight({ preferredPeriod: 'Afternoon' }), 30);
-      assert.equal(getTimingSortWeight({ relativeTiming: 'After lunch' }), 30);
-      assert.equal(getTimingSortWeight({ timingType: 'exact', time: '02:00 PM' }), 30);
-
-      // 40: Evening
-      assert.equal(getTimingSortWeight({ preferredPeriod: 'Evening' }), 40);
-      assert.equal(getTimingSortWeight({ relativeTiming: 'Evening wind-down' }), 40);
-      assert.equal(getTimingSortWeight({ timingType: 'exact', time: '07:30 PM' }), 40);
-
-      // 50: Before Bed / Night
-      assert.equal(getTimingSortWeight({ relativeTiming: 'Before bed' }), 50);
-      assert.equal(getTimingSortWeight({ preferredPeriod: 'Night' }), 50);
-      assert.equal(getTimingSortWeight({ time: 'Before bed' }), 50);
-      assert.equal(getTimingSortWeight({ timingType: 'exact', time: '10:00 PM' }), 50);
-    });
-
-    it('should predictably sort habits by timing sequence with title tie-breaker', () => {
+  describe('4. Canonical Display Order Architecture (First Added, First Displayed)', () => {
+    it('should sort habits strictly by sortOrder ascending', () => {
       const habits = [
-        { id: '1', title: 'Bedtime Reading', relativeTiming: 'Before bed' },
-        { id: '2', title: 'Morning Hydration', preferredPeriod: 'Morning' },
-        { id: '3', title: 'English Workbook', time: 'Flexible' },
-        { id: '4', title: 'Afternoon Movement', preferredPeriod: 'Afternoon' },
-        { id: '5', title: 'Evening Reflection', preferredPeriod: 'Evening' },
+        { id: 'h3', title: 'Routine C', sortOrder: 3 },
+        { id: 'h1', title: 'Routine A', sortOrder: 1 },
+        { id: 'h2', title: 'Routine B', sortOrder: 2 },
       ];
 
-      habits.sort(sortHabitsByTiming);
+      habits.sort(sortHabits);
 
-      assert.equal(habits[0].title, 'English Workbook');
-      assert.equal(habits[1].title, 'Morning Hydration');
-      assert.equal(habits[2].title, 'Afternoon Movement');
-      assert.equal(habits[3].title, 'Evening Reflection');
-      assert.equal(habits[4].title, 'Bedtime Reading');
+      assert.equal(habits[0].title, 'Routine A');
+      assert.equal(habits[1].title, 'Routine B');
+      assert.equal(habits[2].title, 'Routine C');
     });
 
-    it('should verify useHabits hook applies sortHabitsByTiming on real-time snapshot', () => {
+    it('should use deterministic creation time and document ID tie-breakers when sortOrder is tied', () => {
+      const habits = [
+        { id: 'b_doc', title: 'Habit B', sortOrder: 1, createdAt: '2026-10-18T10:05:00Z' },
+        { id: 'a_doc', title: 'Habit A', sortOrder: 1, createdAt: '2026-10-18T10:00:00Z' },
+        { id: 'c_doc', title: 'Habit C', sortOrder: 1, createdAt: '2026-10-18T10:00:00Z' },
+      ];
+
+      habits.sort(sortHabits);
+
+      // Earliest createdAt wins first
+      assert.equal(habits[0].id, 'a_doc');
+      assert.equal(habits[1].id, 'c_doc');
+      assert.equal(habits[2].id, 'b_doc');
+    });
+
+    it('should verify useHabits hook applies sortHabits on real-time snapshot', () => {
       const content = readWebFile(useHabitsPath);
       assert.ok(
-        content.includes('sortHabitsByTiming'),
-        'use-habits.js must import and use sortHabitsByTiming'
+        content.includes('sortHabits'),
+        'use-habits.js must import and use sortHabits'
       );
       assert.ok(
-        content.includes('habitsData.sort(sortHabitsByTiming)'),
-        'use-habits.js must sort snapshot documents with sortHabitsByTiming'
+        content.includes('habitsData.sort(sortHabits)'),
+        'use-habits.js must sort snapshot documents with sortHabits'
+      );
+      assert.ok(
+        !content.includes('sortHabitsByTiming'),
+        'use-habits.js must eliminate obsolete sortHabitsByTiming'
       );
     });
 
-    it('should verify Dashboard renders all 5 standardized daily rhythm sections in correct order', () => {
+    it('should verify Dashboard renders unified list directly without obsolete timing grouping', () => {
       const content = readWebFile(dashboardPath);
-      assert.ok(content.includes('groupedHabits.morning'), 'Must group morning habits');
-      assert.ok(content.includes('groupedHabits.afternoon'), 'Must group afternoon habits');
-      assert.ok(content.includes('groupedHabits.evening'), 'Must group evening habits');
-      assert.ok(content.includes('groupedHabits.beforeBed'), 'Must group before-bed habits');
-      assert.ok(content.includes('groupedHabits.flexible'), 'Must group flexible habits');
-
-      // Verify rendering order: Flexible -> Morning -> Afternoon -> Evening -> Before Bed
-      const idxFlexible = content.indexOf('groupedHabits.flexible.map');
-      const idxMorning = content.indexOf('groupedHabits.morning.map');
-      const idxAfternoon = content.indexOf('groupedHabits.afternoon.map');
-      const idxEvening = content.indexOf('groupedHabits.evening.map');
-      const idxBeforeBed = content.indexOf('groupedHabits.beforeBed.map');
-
-      assert.ok(idxFlexible !== -1 && idxMorning !== -1, 'Flexible and Morning sections must exist in JSX');
-      assert.ok(idxFlexible < idxMorning, 'Flexible must render before Morning');
-      assert.ok(idxMorning < idxAfternoon, 'Morning must render before Afternoon');
-      assert.ok(idxAfternoon < idxEvening, 'Afternoon must render before Evening');
-      assert.ok(idxEvening < idxBeforeBed, 'Evening must render before Before Bed');
-
-      // Verify clean section headers
-      assert.ok(/Flexible \/ Anytime/.test(content), 'Must render Flexible header');
-      assert.ok(/Morning/.test(content), 'Must render Morning section header');
-      assert.ok(/Afternoon/.test(content), 'Must render Afternoon header');
-      assert.ok(/Evening/.test(content), 'Must render Evening header');
-      assert.ok(/Before Bed/.test(content), 'Must render Before Bed header');
-
-      // Verify elimination of arbitrary "Additional Routines" dumping
       assert.ok(
-        !content.includes('Additional Routines'),
-        'Dashboard must eliminate arbitrary "Additional Routines" section'
+        !content.includes('groupedHabits'),
+        'Dashboard must completely eliminate groupedHabits'
+      );
+      assert.ok(
+        content.includes('todaysHabits.map(renderHabitCard)'),
+        'Dashboard must render todaysHabits directly in canonical order'
+      );
+      assert.ok(
+        !content.includes('Flexible / Anytime'),
+        'Dashboard must eliminate hardcoded timing section headers'
       );
     });
   });

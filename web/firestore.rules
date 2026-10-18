@@ -50,16 +50,17 @@ service cloud.firestore {
         );
       }
 
-      // CREATE: Must be authenticated, must own data, valid title & category
+      // CREATE: Must be authenticated, must own data, valid title & category, valid sortOrder
       allow create: if isAuthenticated()
                     && request.resource.data.userId == request.auth.uid
                     && request.resource.data.title is string
                     && request.resource.data.title.size() > 0
                     && request.resource.data.title.size() <= 200
                     && isValidCategory(request.resource.data.category)
-                    && isValidCustomCategory(request.resource.data);
+                    && isValidCustomCategory(request.resource.data)
+                    && (!('sortOrder' in request.resource.data) || (request.resource.data.sortOrder is number && request.resource.data.sortOrder >= 1));
 
-      // UPDATE: Must own existing doc, cannot change ownership (immutable userId), valid title & category
+      // UPDATE: Must own existing doc, cannot change ownership (immutable userId), valid title & category, valid sortOrder
       allow update: if isAuthenticated()
                     && resource.data.userId == request.auth.uid
                     && request.resource.data.userId == resource.data.userId
@@ -67,7 +68,8 @@ service cloud.firestore {
                     && request.resource.data.title.size() > 0
                     && request.resource.data.title.size() <= 200
                     && isValidCategory(request.resource.data.category)
-                    && isValidCustomCategory(request.resource.data);
+                    && isValidCustomCategory(request.resource.data)
+                    && (!('sortOrder' in request.resource.data) || (request.resource.data.sortOrder is number && request.resource.data.sortOrder >= 1));
 
       // READ: Must own existing doc, or be non-existent check by authenticated user, or match user UID prefix
       allow read: if isAuthenticated()
@@ -108,7 +110,9 @@ service cloud.firestore {
     // Users: Users can R/W their own profile & private progress
     // =============================================
     match /users/{userId} {
-      allow read, create, update, delete: if isOwner(userId);
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId)
+                            && (!('nextSortOrder' in request.resource.data) || (request.resource.data.nextSortOrder is number && request.resource.data.nextSortOrder >= 1));
 
       // HabitState Subcollection: Decoupled cumulative routine progression
       match /habitState/{habitId} {

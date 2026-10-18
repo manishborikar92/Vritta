@@ -7,10 +7,11 @@ import {
     createHabit,
     updateHabitDoc,
     deleteHabitDoc,
+    swapHabitsSortOrder,
     seedHabitsForUser,
     fetchScheduleTemplates,
 } from '@/lib/firebase/firestore';
-import { getDayOfWeek, sortHabitsByTiming } from '@/utils/date-helpers';
+import { getDayOfWeek, sortHabits } from '@/utils/date-helpers';
 
 /**
  * Hook for managing habits — CRUD operations, real-time sync, and idempotent seeding.
@@ -46,8 +47,8 @@ export function useHabits(user) {
                     ...data,
                 };
             });
-            // Predictable, automatic ordering based on daily timing rhythm
-            habitsData.sort(sortHabitsByTiming);
+            // Canonical ordering based on sortOrder (first added, first displayed)
+            habitsData.sort(sortHabits);
             setHabits(habitsData);
             setLoading(false);
         }, (err) => {
@@ -85,6 +86,21 @@ export function useHabits(user) {
         return deleteHabitDoc(habitId);
     }, [user]);
 
+    // Reorder habit (direction: 'up' | 'down') via atomic Firestore transaction
+    const reorderHabit = useCallback(async (habitId, direction) => {
+        if (!user || !habitId) return;
+        const currentIndex = habits.findIndex(h => h.id === habitId);
+        if (currentIndex === -1) return;
+
+        const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+        if (targetIndex < 0 || targetIndex >= habits.length) return;
+
+        const currentHabit = habits[currentIndex];
+        const targetHabit = habits[targetIndex];
+
+        return swapHabitsSortOrder(currentHabit.id, targetHabit.id);
+    }, [user, habits]);
+
     // Seed or update foundation habits (idempotent, safe to rerun anytime)
     const seedHabits = useCallback(async (seedData) => {
         if (!user) return;
@@ -104,6 +120,7 @@ export function useHabits(user) {
         addHabit,
         updateHabit,
         deleteHabit,
+        reorderHabit,
         seedHabits,
     };
 }

@@ -13,6 +13,8 @@ import {
   Layers,
   Activity,
   ChevronDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { getCategoryConfig } from '@/lib/constants/categories';
 import { getTimingDisplay, getFrequencyDisplay } from '@/utils/date-helpers';
@@ -25,10 +27,20 @@ import { getTimingDisplay, getFrequencyDisplay } from '@/utils/date-helpers';
  * - Clear, consistent display of routine title, canonical category, and active feature indicators.
  * - Schedule and timing recurrence display.
  * - WCAG 2.2 AA compliant touch targets (min 44x44px) for Edit and Delete actions.
+ * - Move Up and Move Down reordering controls in bottom-right corner.
  * - Collapsible instructions accordion preventing visual clutter on mobile.
  * - Zero hardcoding of personal email accounts or legacy category aliases.
  */
-function HabitManagerCard({ habit, onEdit, onDelete }) {
+function HabitManagerCard({
+  habit,
+  isFirst = false,
+  isLast = false,
+  isReordering = false,
+  onMoveUp,
+  onMoveDown,
+  onEdit,
+  onDelete,
+}) {
   const [showInstructions, setShowInstructions] = useState(false);
 
   if (!habit) return null;
@@ -211,20 +223,46 @@ function HabitManagerCard({ habit, onEdit, onDelete }) {
         </div>
       )}
 
-      {/* Metadata & Recurrence row */}
-      <div className="flex flex-wrap items-center gap-2 mt-3 pt-2.5 border-t border-subtle/60">
-        <span className="inline-flex items-center gap-1.5 text-2xs sm:text-xs text-sub bg-surface-subtle border border-subtle px-2 py-0.5 rounded-md font-medium">
-          <Clock className="w-3 h-3 text-slate-400" />
-          <span>{timingText}</span>
-        </span>
+      {/* Metadata, Recurrence row & Reorder Controls */}
+      <div className="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-subtle/60">
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
+          <span className="inline-flex items-center gap-1.5 text-2xs sm:text-xs text-sub bg-surface-subtle border border-subtle px-2 py-0.5 rounded-md font-medium">
+            <Clock className="w-3 h-3 text-slate-400" />
+            <span>{timingText}</span>
+          </span>
 
-        <span
-          className="inline-flex items-center gap-1.5 text-2xs sm:text-xs text-sub bg-surface-subtle border border-subtle px-2 py-0.5 rounded-md font-medium"
-          title={Array.isArray(habit.frequency) ? `Active on: ${habit.frequency.join(', ')}` : habit.frequency ? `Active: ${habit.frequency}` : 'Active every day'}
-        >
-          <Repeat className="w-3 h-3 text-slate-400" />
-          <span>{frequencyText}</span>
-        </span>
+          <span
+            className="inline-flex items-center gap-1.5 text-2xs sm:text-xs text-sub bg-surface-subtle border border-subtle px-2 py-0.5 rounded-md font-medium"
+            title={Array.isArray(habit.frequency) ? `Active on: ${habit.frequency.join(', ')}` : habit.frequency ? `Active: ${habit.frequency}` : 'Active every day'}
+          >
+            <Repeat className="w-3 h-3 text-slate-400" />
+            <span>{frequencyText}</span>
+          </span>
+        </div>
+
+        {/* Reordering Controls (Bottom-Right, WCAG min 44x44px touch targets) */}
+        <div className="flex items-center gap-1 flex-shrink-0 -mr-1">
+          <button
+            type="button"
+            onClick={() => onMoveUp?.(habit)}
+            disabled={isFirst || isReordering}
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-teal-700 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/50 rounded-xl transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 active:scale-95"
+            title={isFirst ? 'Already at top' : 'Move Up'}
+            aria-label={`Move ${habit.title} up`}
+          >
+            <ArrowUp className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onMoveDown?.(habit)}
+            disabled={isLast || isReordering}
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-teal-700 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/50 rounded-xl transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 active:scale-95"
+            title={isLast ? 'Already at bottom' : 'Move Down'}
+            aria-label={`Move ${habit.title} down`}
+          >
+            <ArrowDown className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
