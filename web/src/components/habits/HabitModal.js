@@ -2061,7 +2061,7 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                                 {/* Add new exercise row */}
                                 <div className="pt-2 border-t border-subtle/80 space-y-2">
                                   <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
-                                    <div className="sm:col-span-6">
+                                    <div className="sm:col-span-7">
                                       <input
                                         type="text"
                                         value={newDayExerciseName}
@@ -2076,7 +2076,7 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                                         className="w-full px-2.5 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-xs bg-surface text-main"
                                       />
                                     </div>
-                                    <div className="sm:col-span-4">
+                                    <div className="sm:col-span-5">
                                       <input
                                         type="text"
                                         value={newDayExerciseTarget}
@@ -2091,27 +2091,35 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
                                         className="w-full px-2.5 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-xs bg-surface text-main"
                                       />
                                     </div>
-                                    <div className="sm:col-span-2 flex items-center justify-end gap-1.5">
-                                      <button
-                                        type="button"
-                                        onClick={() => handleAddDayScheduleExercise(activeDay)}
-                                        disabled={!newDayExerciseName.trim()}
-                                        className="w-full min-h-[38px] sm:min-h-[32px] px-2.5 py-1.5 sm:py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold disabled:opacity-40 flex items-center justify-center gap-1 transition-colors"
-                                      >
-                                        <Plus className="w-3.5 h-3.5" />
-                                        <span>Add</span>
-                                      </button>
-                                    </div>
                                   </div>
-                                  <label className="flex items-center gap-1.5 text-2xs text-muted cursor-pointer">
-                                    <input
-                                      type="checkbox"
-                                      checked={newDayExerciseRequired}
-                                      onChange={(e) => setNewDayExerciseRequired(e.target.checked)}
-                                      className="rounded text-rose-600 focus:ring-rose-500 w-3.5 h-3.5"
-                                    />
-                                    <span>Mark as required for day completion</span>
-                                  </label>
+
+                                  {/* Footer: required checkbox card (start) + Add Step button (end) */}
+                                  <div className="flex items-center justify-between gap-2">
+                                    <label className="flex flex-1 min-w-0 items-center gap-2.5 h-9 pl-2 pr-3.5 rounded-full border border-subtle bg-surface cursor-pointer select-none transition-colors hover:bg-surface-subtle">
+                                      <input
+                                        type="checkbox"
+                                        checked={newDayExerciseRequired}
+                                        onChange={(e) => setNewDayExerciseRequired(e.target.checked)}
+                                        className="peer sr-only"
+                                      />
+                                      <span className="w-5 h-5 flex-shrink-0 flex items-center justify-center rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent transition-colors peer-checked:bg-rose-600 peer-checked:border-rose-600 peer-focus-visible:ring-2 peer-focus-visible:ring-rose-500/40 [&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100">
+                                        <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                          <path d="M2.5 6.5l2.5 2.5 4.5-5.5" />
+                                        </svg>
+                                      </span>
+                                      <span className="min-w-0 whitespace-nowrap text-xs font-medium text-main">Required step</span>
+                                    </label>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => handleAddDayScheduleExercise(activeDay)}
+                                      disabled={!newDayExerciseName.trim()}
+                                      className="inline-flex items-center justify-center gap-1 flex-shrink-0 h-9 pl-3 pr-4 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-rose-600"
+                                    >
+                                      <Plus className="w-3.5 h-3.5" />
+                                      <span>Add Step</span>
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             )}
