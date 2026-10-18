@@ -190,7 +190,7 @@ function SlotCatalog({
         <div className="p-3 bg-surface/90 dark:bg-stone-900/80 rounded-xl border border-amber-200/60 dark:border-amber-800/40 space-y-2">
           {/* Top row of banner: Label + Language on left, Change Series on right */}
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 max-[400px]:flex-col max-[400px]:items-start max-[400px]:gap-1">
               <span className="text-2xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider">
                 Active Series
               </span>

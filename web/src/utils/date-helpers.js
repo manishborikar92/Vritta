@@ -88,13 +88,13 @@ export function getTimingDisplay(habit) {
     return habit.relativeTiming || 'Before bed';
   }
   if (habit.timingType === 'preferred_period') {
-    return habit.preferredPeriod ? `${habit.preferredPeriod} (Preferred)` : 'Anytime';
+    return habit.preferredPeriod ? `${habit.preferredPeriod}` : 'Anytime';
   }
   if (habit.timingType === 'exact' && habit.time) {
     return habit.time;
   }
   if (habit.preferredPeriod) {
-    return `${habit.preferredPeriod} (Preferred)`;
+    return `${habit.preferredPeriod}`;
   }
   if (habit.time) {
     return habit.time;

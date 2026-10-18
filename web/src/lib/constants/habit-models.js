@@ -756,9 +756,6 @@ export function validateComposableHabit(habit) {
 
     // 4. Notes & Reflection Slot
     if (f.notes && f.notes.enabled) {
-      if (f.notes.isPrivateDiary !== undefined && typeof f.notes.isPrivateDiary !== 'boolean') {
-        errors.push('Notes isPrivateDiary must be a boolean.');
-      }
       if (f.notes.reflectionPrompts !== undefined && (!Array.isArray(f.notes.reflectionPrompts) || f.notes.reflectionPrompts.some(p => typeof p !== 'string'))) {
         errors.push('Notes reflectionPrompts must be an array of strings.');
       }
@@ -1041,7 +1038,7 @@ export function deriveCompletedProgressForHabit(habit, existingProgress = {}, da
     next.completedItemIds = Array.from(new Set([...existingIds, ...applicableIds]));
   }
 
-  // Notes invariant: strictly preserve existing notes and diaryEntry text
+  // Notes invariant: strictly preserve existing notes text
   return next;
 }
 
@@ -1093,7 +1090,7 @@ export function deriveUncompletedProgressForHabit(habit, existingProgress = {}) 
     next.completedItemIds = [];
   }
 
-  // Notes invariant: strictly preserve existing notes and diaryEntry text
+  // Notes invariant: strictly preserve existing notes text
   return next;
 }
 

@@ -263,7 +263,7 @@ describe('Phase 2: Habit Architecture & UX Simplification', () => {
       // Verify clean section headers
       assert.ok(/Flexible \/ Anytime/.test(content), 'Must render Flexible header');
       assert.ok(/Morning/.test(content), 'Must render Morning section header');
-      assert.ok(/Afternoon \(Preferred\)/.test(content), 'Must render Afternoon header');
+      assert.ok(/Afternoon/.test(content), 'Must render Afternoon header');
       assert.ok(/Evening/.test(content), 'Must render Evening header');
       assert.ok(/Before Bed/.test(content), 'Must render Before Bed header');
 

@@ -67,7 +67,7 @@ export const SCHEDULE_TEMPLATES = [
     },
     features: {
       counter: { enabled: true, targetCount: 2, unit: 'glasses', step: 1, minCount: 0 },
-      timer: { enabled: true, targetDurationMinutes: 5, mode: 'countdown', soundOnComplete: true },
+      timer: { enabled: true, targetDurationMinutes: 5, mode: 'countdown' },
       checklist: {
         enabled: true,
         items: [
@@ -75,7 +75,7 @@ export const SCHEDULE_TEMPLATES = [
           { id: 'breathe', label: '5 minutes of quiet breathing or gentle stretch', isRequiredForCompletion: true, order: 1 },
         ],
       },
-      notes: { enabled: false, isPrivateDiary: false, placeholder: '', reflectionPrompts: [] },
+      notes: { enabled: false, placeholder: '', reflectionPrompts: [] },
       catalog: { enabled: false, catalogId: '', catalogTitle: '', totalItems: 0, items: [] },
       daySchedule: { enabled: false, planTitle: '', totalWeeks: 0, dayVariations: {} },
     },
@@ -108,7 +108,7 @@ export const SCHEDULE_TEMPLATES = [
     },
     features: {
       counter: { enabled: false, targetCount: 1, unit: 'sessions', step: 1, minCount: 0 },
-      timer: { enabled: true, targetDurationMinutes: 30, mode: 'countdown', soundOnComplete: true },
+      timer: { enabled: true, targetDurationMinutes: 30, mode: 'countdown' },
       checklist: {
         enabled: true,
         items: [
@@ -117,7 +117,7 @@ export const SCHEDULE_TEMPLATES = [
           { id: 'cooldown', label: 'Cool-down & gentle stretch', isRequiredForCompletion: true, order: 2 },
         ],
       },
-      notes: { enabled: false, isPrivateDiary: false, placeholder: '', reflectionPrompts: [] },
+      notes: { enabled: false, placeholder: '', reflectionPrompts: [] },
       catalog: { enabled: false, catalogId: '', catalogTitle: '', totalItems: 0, items: [] },
       daySchedule: { enabled: false, planTitle: '', totalWeeks: 0, dayVariations: {} },
     },
@@ -150,7 +150,7 @@ export const SCHEDULE_TEMPLATES = [
     },
     features: {
       counter: { enabled: false, targetCount: 1, unit: 'blocks', step: 1, minCount: 0 },
-      timer: { enabled: true, targetDurationMinutes: 60, mode: 'countdown', soundOnComplete: true },
+      timer: { enabled: true, targetDurationMinutes: 60, mode: 'countdown' },
       checklist: {
         enabled: true,
         items: [
@@ -158,7 +158,7 @@ export const SCHEDULE_TEMPLATES = [
           { id: 'sprint', label: 'Complete uninterrupted deep work sprint', isRequiredForCompletion: true, order: 1 },
         ],
       },
-      notes: { enabled: true, isPrivateDiary: false, placeholder: 'What was accomplished in this focus sprint?', reflectionPrompts: ['Main output completed:', 'Blockers encountered:'] },
+      notes: { enabled: true, placeholder: 'What was accomplished in this focus sprint?', reflectionPrompts: ['Main output completed:', 'Blockers encountered:'] },
       catalog: { enabled: false, catalogId: '', catalogTitle: '', totalItems: 0, items: [] },
       daySchedule: { enabled: false, planTitle: '', totalWeeks: 0, dayVariations: {} },
     },
@@ -191,7 +191,7 @@ export const SCHEDULE_TEMPLATES = [
     },
     features: {
       counter: { enabled: true, targetCount: 8, unit: 'glasses', step: 1, minCount: 0 },
-      timer: { enabled: false, targetDurationMinutes: 0, mode: 'countdown', soundOnComplete: false },
+      timer: { enabled: false, targetDurationMinutes: 0, mode: 'countdown' },
       checklist: {
         enabled: true,
         items: [
@@ -199,7 +199,7 @@ export const SCHEDULE_TEMPLATES = [
           { id: 'meals', label: 'Eat balanced, whole-food meals without rushed snacking', isRequiredForCompletion: true, order: 1 },
         ],
       },
-      notes: { enabled: false, isPrivateDiary: false, placeholder: '', reflectionPrompts: [] },
+      notes: { enabled: false, placeholder: '', reflectionPrompts: [] },
       catalog: { enabled: false, catalogId: '', catalogTitle: '', totalItems: 0, items: [] },
       daySchedule: { enabled: false, planTitle: '', totalWeeks: 0, dayVariations: {} },
     },
@@ -232,7 +232,7 @@ export const SCHEDULE_TEMPLATES = [
     },
     features: {
       counter: { enabled: false, targetCount: 1, unit: 'evenings', step: 1, minCount: 0 },
-      timer: { enabled: true, targetDurationMinutes: 45, mode: 'countdown', soundOnComplete: true },
+      timer: { enabled: true, targetDurationMinutes: 45, mode: 'countdown' },
       checklist: {
         enabled: true,
         items: [
@@ -240,7 +240,7 @@ export const SCHEDULE_TEMPLATES = [
           { id: 'relax', label: 'Engage in a quiet, screen-free evening transition', isRequiredForCompletion: true, order: 1 },
         ],
       },
-      notes: { enabled: false, isPrivateDiary: false, placeholder: '', reflectionPrompts: [] },
+      notes: { enabled: false, placeholder: '', reflectionPrompts: [] },
       catalog: { enabled: false, catalogId: '', catalogTitle: '', totalItems: 0, items: [] },
       daySchedule: { enabled: false, planTitle: '', totalWeeks: 0, dayVariations: {} },
     },
@@ -273,11 +273,10 @@ export const SCHEDULE_TEMPLATES = [
     },
     features: {
       counter: { enabled: false, targetCount: 1, unit: 'entries', step: 1, minCount: 0 },
-      timer: { enabled: false, targetDurationMinutes: 10, mode: 'countdown', soundOnComplete: false },
+      timer: { enabled: false, targetDurationMinutes: 10, mode: 'countdown' },
       checklist: { enabled: false, items: [] },
       notes: {
         enabled: true,
-        isPrivateDiary: true,
         placeholder: 'Write your evening reflections here...',
         reflectionPrompts: [
           'What went well today and why?',
@@ -326,7 +325,7 @@ export const SCHEDULE_TEMPLATES = [
         step: 1,
         minCount: 0,
       },
-      timer: { enabled: false, targetDurationMinutes: 30, mode: 'countdown', soundOnComplete: true },
+      timer: { enabled: false, targetDurationMinutes: 30, mode: 'countdown' },
       checklist: {
         enabled: true,
         items: [
@@ -336,7 +335,7 @@ export const SCHEDULE_TEMPLATES = [
           { id: 'step_4', label: 'At least one session completed uninterrupted', isRequiredForCompletion: true, order: 3 },
         ],
       },
-      notes: { enabled: false, isPrivateDiary: false, placeholder: '', reflectionPrompts: [] },
+      notes: { enabled: false, placeholder: '', reflectionPrompts: [] },
       catalog: { enabled: false, catalogId: '', catalogTitle: '', totalItems: 0, items: [] },
       daySchedule: { enabled: false, planTitle: '', totalWeeks: 0, dayVariations: {} },
     },
@@ -370,9 +369,9 @@ export const SCHEDULE_TEMPLATES = [
     },
     features: {
       counter: { enabled: false, targetCount: 1, unit: 'sessions', step: 1, minCount: 0 },
-      timer: { enabled: false, targetDurationMinutes: 30, mode: 'countdown', soundOnComplete: false },
+      timer: { enabled: false, targetDurationMinutes: 30, mode: 'countdown' },
       checklist: { enabled: false, items: [] },
-      notes: { enabled: false, isPrivateDiary: false, placeholder: '', reflectionPrompts: [] },
+      notes: { enabled: false, placeholder: '', reflectionPrompts: [] },
       catalog: { enabled: false, catalogId: '', catalogTitle: '', totalItems: 0, items: [] },
       daySchedule: {
         enabled: true,
@@ -416,9 +415,9 @@ export const SCHEDULE_TEMPLATES = [
     },
     features: {
       counter: { enabled: false, targetCount: 1, unit: 'sessions', step: 1, minCount: 0 },
-      timer: { enabled: true, targetDurationMinutes: 30, mode: 'countdown', soundOnComplete: true },
+      timer: { enabled: true, targetDurationMinutes: 30, mode: 'countdown' },
       checklist: { enabled: false, items: [] },
-      notes: { enabled: false, isPrivateDiary: false, placeholder: '', reflectionPrompts: [] },
+      notes: { enabled: false, placeholder: '', reflectionPrompts: [] },
       catalog: {
         enabled: true,
         catalogId: 'osho_discourses',
@@ -462,9 +461,9 @@ export const SCHEDULE_TEMPLATES = [
     },
     features: {
       counter: { enabled: false, targetCount: 1, unit: 'sessions', step: 1, minCount: 0 },
-      timer: { enabled: true, targetDurationMinutes: 30, mode: 'countdown', soundOnComplete: true },
+      timer: { enabled: true, targetDurationMinutes: 30, mode: 'countdown' },
       checklist: { enabled: false, items: [] },
-      notes: { enabled: true, isPrivateDiary: false, placeholder: 'Key quotes or reflections from tonight\'s reading...', reflectionPrompts: ['Memorable quote or idea:'] },
+      notes: { enabled: true, placeholder: 'Key quotes or reflections from tonight\'s reading...', reflectionPrompts: ['Memorable quote or idea:'] },
       catalog: { enabled: false, catalogId: '', catalogTitle: '', totalItems: 0, items: [] },
       daySchedule: { enabled: false, planTitle: '', totalWeeks: 0, dayVariations: {} },
     },
@@ -497,11 +496,10 @@ export const SCHEDULE_TEMPLATES = [
     },
     features: {
       counter: { enabled: false, targetCount: 1, unit: 'sessions', step: 1, minCount: 0 },
-      timer: { enabled: true, targetDurationMinutes: 15, mode: 'countdown', soundOnComplete: true },
+      timer: { enabled: true, targetDurationMinutes: 15, mode: 'countdown' },
       checklist: { enabled: false, items: [] },
       notes: {
         enabled: true,
-        isPrivateDiary: false,
         placeholder: 'New words or phrases used in speaking practice...',
         reflectionPrompts: ['Topic discussed:', 'Phrases or expressions practiced:'],
       },
@@ -523,8 +521,8 @@ export const SCHEDULE_TEMPLATES = [
     stableKey: 'canonical_maintain_diary',
     title: 'Maintain a Reflective Diary',
     category: 'Reflection & Journaling',
-    description: 'Private daily journaling with 5 cognitive reflection prompts for deep self-awareness.',
-    instructions: 'Write in your personal diary about what you learned and your personal thoughts. Private to your account. Reflection prompts are provided in the journal view.',
+    description: 'Daily journaling with 5 cognitive reflection prompts for deep self-awareness.',
+    instructions: 'Write in your personal diary about what you learned and your personal thoughts. Reflection prompts are provided in the journal view.',
     schedule: {
       frequency: [...ALL_WEEKDAYS],
       timingType: 'anytime',
@@ -536,12 +534,11 @@ export const SCHEDULE_TEMPLATES = [
     },
     features: {
       counter: { enabled: false, targetCount: 1, unit: 'entries', step: 1, minCount: 0 },
-      timer: { enabled: false, targetDurationMinutes: 15, mode: 'countdown', soundOnComplete: false },
+      timer: { enabled: false, targetDurationMinutes: 15, mode: 'countdown' },
       checklist: { enabled: false, items: [] },
       notes: {
         enabled: true,
-        isPrivateDiary: true,
-        placeholder: 'Write your private diary thoughts here...',
+        placeholder: 'Write your reflective thoughts here...',
         reflectionPrompts: [
           'What happened or what thought came to mind?',
           'What did I feel?',
@@ -554,11 +551,10 @@ export const SCHEDULE_TEMPLATES = [
       daySchedule: { enabled: false, planTitle: '', totalWeeks: 0, dayVariations: {} },
     },
     metadata: {
-      tags: ['journal', 'diary', 'reflection', 'introspection', 'private'],
+      tags: ['journal', 'diary', 'reflection', 'introspection'],
       iconName: 'PenTool',
       estimatedMinutes: 15,
       difficulty: 'Easy',
-      isPrivateJournal: true,
     },
     isPublic: true,
     version: '1.0.0',
@@ -638,18 +634,31 @@ export const MANISH_PERSONAL_ROUTINES = SCHEDULE_TEMPLATES
       ? 'osho_listening'
       : t.features.timer.enabled && t.metadata?.tags?.includes('reading')
       ? 'reading_duration'
-      : t.features.notes.enabled && t.metadata?.isPrivateJournal
-      ? 'diary_entry'
-      : 'simple_with_notes',
+      : t.features.notes.enabled
+      ? 'notes'
+      : 'simple',
     timingType: t.schedule.timingType,
     preferredPeriod: t.schedule.preferredPeriod,
     relativeTiming: t.schedule.relativeTiming,
     time: t.schedule.exactTime || (t.schedule.relativeTiming || t.schedule.preferredPeriod || 'Flexible'),
     frequency: [...t.schedule.frequency],
     order: t.schedule.order,
+    schedule: {
+      ...t.schedule,
+      frequency: [...t.schedule.frequency],
+      restDays: [...(t.schedule.restDays || [])],
+    },
     isSystemSeed: true,
     seedOrigin: 'personal_preset',
     targetMinutes: t.features.timer?.targetDurationMinutes || null,
+    features: {
+      counter: { ...t.features.counter },
+      timer: { ...t.features.timer },
+      checklist: { ...t.features.checklist, items: [...(t.features.checklist.items || [])] },
+      notes: { ...t.features.notes, reflectionPrompts: [...(t.features.notes.reflectionPrompts || [])] },
+      catalog: { ...t.features.catalog, items: [...(t.features.catalog.items || [])] },
+      daySchedule: { ...t.features.daySchedule },
+    },
     metadata: {
       ...t.metadata,
       restDays: [...(t.schedule.restDays || [])],
@@ -668,7 +677,7 @@ export const DEFAULT_ROUTINES = SCHEDULE_TEMPLATES
     stableKey: t.stableKey,
     title: t.title,
     category: t.category,
-    completionMethod: t.features.notes?.enabled ? 'diary_entry' : t.features.checklist?.enabled ? 'checklist' : 'simple',
+    completionMethod: t.features.checklist?.enabled ? 'checklist' : 'simple',
     timingType: t.schedule.timingType,
     preferredPeriod: t.schedule.preferredPeriod,
     time: t.schedule.preferredPeriod || 'Flexible',

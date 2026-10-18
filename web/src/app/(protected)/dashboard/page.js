@@ -203,7 +203,7 @@ export default function DashboardPage() {
               <section className="space-y-3">
                 <div className="flex items-center gap-2 px-1">
                   <span className="text-xs font-semibold text-teal-800 dark:text-teal-300 uppercase tracking-wider">
-                    Afternoon (Preferred)
+                    Afternoon
                   </span>
                   <div className="h-px bg-teal-200 dark:bg-teal-900/50 flex-1" />
                 </div>

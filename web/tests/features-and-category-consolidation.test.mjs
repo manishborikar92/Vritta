@@ -69,7 +69,7 @@ describe('Features Architecture & Life-Area Category Consolidation', () => {
       assert.ok(habitModalContent.includes('Duration Timer'), 'Must render Duration Timer slot header');
       assert.ok(habitModalContent.includes('formData.features.timer.enabled'), 'Must bind timer enabled state');
       assert.ok(habitModalContent.includes('targetDurationMinutes'), 'Must provide duration selection');
-      assert.ok(habitModalContent.includes('soundOnComplete'), 'Must provide sound chime toggle');
+      assert.ok(!habitModalContent.includes('soundOnComplete'), 'Must NOT provide obsolete per-habit sound chime toggle');
 
       // 3. Step Checklist
       assert.ok(habitModalContent.includes('Step-by-Step Checklist'), 'Must render Step-by-Step Checklist slot header');
@@ -79,7 +79,7 @@ describe('Features Architecture & Life-Area Category Consolidation', () => {
       // 4. Notes & Reflection
       assert.ok(habitModalContent.includes('Notes & Reflection'), 'Must render Notes & Reflection slot header');
       assert.ok(habitModalContent.includes('formData.features.notes.enabled'), 'Must bind notes enabled state');
-      assert.ok(habitModalContent.includes('isPrivateDiary'), 'Must provide private diary mode toggle');
+      assert.ok(!habitModalContent.includes('isPrivateDiary'), 'Must NOT provide obsolete private diary mode toggle');
       assert.ok(habitModalContent.includes('reflectionPrompts'), 'Must provide reflection prompt chips');
 
       // 5. Structured Catalog
@@ -284,7 +284,7 @@ describe('Features Architecture & Life-Area Category Consolidation', () => {
         },
         features: {
           counter: { enabled: true, targetCount: 3, unit: 'rounds', step: 1, minCount: 0 },
-          timer: { enabled: true, targetDurationMinutes: 25, mode: 'countdown', soundOnComplete: true },
+          timer: { enabled: true, targetDurationMinutes: 25, mode: 'countdown' },
           checklist: {
             enabled: true,
             items: [
@@ -294,7 +294,6 @@ describe('Features Architecture & Life-Area Category Consolidation', () => {
           },
           notes: {
             enabled: true,
-            isPrivateDiary: true,
             placeholder: 'Daily awareness insights...',
             reflectionPrompts: ['What arose today?', 'Where was tension felt?'],
           },
@@ -338,7 +337,9 @@ describe('Features Architecture & Life-Area Category Consolidation', () => {
       assert.equal(serialized.category, 'Mindfulness & Spirit');
       assert.equal(serialized.features.counter.enabled, true);
       assert.equal(serialized.features.timer.targetDurationMinutes, 25);
-      assert.equal(serialized.features.notes.isPrivateDiary, true);
+      assert.equal(serialized.features.notes.enabled, true);
+      assert.equal(serialized.features.notes.isPrivateDiary, undefined);
+      assert.equal(serialized.features.timer.soundOnComplete, undefined);
       assert.equal(serialized.features.checklist.items.length, 2);
 
       const rehydrated = normalizeHabitFromFirestore(serialized, 'doc_test_roundtrip');
@@ -346,9 +347,9 @@ describe('Features Architecture & Life-Area Category Consolidation', () => {
       assert.equal(rehydrated.category, 'Mindfulness & Spirit');
       assert.equal(rehydrated.features.counter.targetCount, 3);
       assert.equal(rehydrated.features.timer.targetDurationMinutes, 25);
-      assert.equal(rehydrated.features.timer.soundOnComplete, true);
+      assert.equal(rehydrated.features.timer.soundOnComplete, undefined);
       assert.equal(rehydrated.features.checklist.items.length, 2);
-      assert.equal(rehydrated.features.notes.isPrivateDiary, true);
+      assert.equal(rehydrated.features.notes.isPrivateDiary, undefined);
       assert.deepEqual(rehydrated.features.notes.reflectionPrompts, ['What arose today?', 'Where was tension felt?']);
       assert.equal(rehydrated.features.catalog.catalogTitle, 'Contemplative Discourses');
       assert.equal(rehydrated.features.daySchedule.planTitle, '12-Week Awareness Cycle');

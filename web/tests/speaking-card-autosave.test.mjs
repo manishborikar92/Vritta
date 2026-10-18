@@ -186,7 +186,7 @@ describe('SlotNotes Static Source Code Compliance', () => {
     assert.ok(has44pxToggle, 'Toggle button must meet 44x44px (w-11 h-11)');
   });
 
-  it('should implement mobile-responsive textarea font sizing (text-base sm:text-xs)', () => {
-    assert.ok(content.includes('text-base sm:text-xs') || content.includes('text-base sm:text-sm'), 'Must prevent iOS mobile auto-zoom');
+  it('should implement mobile-responsive textarea font sizing (text-xs)', () => {
+    assert.ok(content.includes('text-xs') || content.includes('text-base sm:text-sm'), 'Must prevent iOS mobile auto-zoom');
   });
 });

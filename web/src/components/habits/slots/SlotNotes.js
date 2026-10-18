@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { PenLine, Lock, Sparkles, Check } from 'lucide-react';
+import { PenLine, Sparkles, Check } from 'lucide-react';
 
 /**
- * SlotNotes — Universal reflection & private journal notes slot.
+ * SlotNotes — Universal reflection & journal notes slot.
  *
  * Configured via `habit.features.notes`:
- * - `isPrivateDiary`: Displays private reflection badge
  * - `reflectionPrompts`: Array of quick guidance chips
  * - `placeholder`: Customizable textarea placeholder
  *
@@ -24,7 +23,7 @@ function SlotNotes({
   onSave,
   disabled = false,
 }) {
-  const incoming = progress.notes || progress.diaryEntry || '';
+  const incoming = progress.notes || '';
   const [prevIncoming, setPrevIncoming] = useState(incoming);
   const [text, setText] = useState(incoming);
   const [isEditing, setIsEditing] = useState(false);
@@ -123,11 +122,7 @@ function SlotNotes({
     };
   }, [flushSave]);
 
-  const prompts = Array.isArray(feature.reflectionPrompts) && feature.reflectionPrompts.length > 0
-    ? feature.reflectionPrompts
-    : feature.isPrivateDiary
-    ? ['Wins', 'Gratitude', 'Learnings']
-    : [];
+  const prompts = Array.isArray(feature.reflectionPrompts) ? feature.reflectionPrompts : [];
 
   return (
     <div className="rounded-xl p-3 sm:p-3.5 bg-surface-subtle/80 dark:bg-stone-900/60 border border-subtle space-y-2.5">
@@ -136,12 +131,6 @@ function SlotNotes({
         <div className="flex items-center gap-1.5 font-semibold text-main text-2xs uppercase tracking-tight">
           <PenLine className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
           <span>Notes & Reflection</span>
-          {feature.isPrivateDiary && (
-            <span className="flex items-center gap-1 text-2xs px-1.5 py-0.5 rounded bg-surface border border-subtle text-muted">
-              <Lock className="w-2.5 h-2.5" />
-              <span>Private</span>
-            </span>
-          )}
         </div>
 
         <div className="text-2xs text-muted flex items-center gap-1">
@@ -185,9 +174,9 @@ function SlotNotes({
           onChange={handleChange}
           onBlur={handleBlur}
           disabled={disabled}
-          placeholder={feature.placeholder || (feature.isPrivateDiary ? 'Write your thoughts, daily learnings, and reflections here...' : 'Add private notes or reflections...')}
+          placeholder={feature.placeholder || 'Add notes or reflections...'}
           rows={3}
-          className="w-full px-3 py-2 text-base sm:text-xs rounded-xl border border-subtle bg-surface text-main placeholder-muted focus:ring-2 focus:ring-teal-600 focus:border-transparent outline-none resize-y transition-colors leading-relaxed"
+          className="w-full px-3 py-2 text-xs rounded-xl border border-subtle bg-surface text-main placeholder-muted focus:ring-2 focus:ring-teal-600 focus:border-transparent outline-none resize-y transition-colors leading-relaxed"
         />
       </div>
     </div>

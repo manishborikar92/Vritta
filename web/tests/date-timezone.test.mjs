@@ -40,7 +40,7 @@ describe('Date & Timezone Handling', () => {
 
   it('should format timing display correctly for guidance vs deadline', () => {
     assert.equal(getTimingDisplay({ timingType: 'anytime' }), 'Anytime');
-    assert.equal(getTimingDisplay({ timingType: 'preferred_period', preferredPeriod: 'Afternoon' }), 'Afternoon (Preferred)');
+    assert.equal(getTimingDisplay({ timingType: 'preferred_period', preferredPeriod: 'Afternoon' }), 'Afternoon');
     assert.equal(getTimingDisplay({ timingType: 'relative', relativeTiming: 'Before bed' }), 'Before bed');
     assert.equal(getTimingDisplay({ timingType: 'exact', time: '04:00 PM' }), '04:00 PM');
   });

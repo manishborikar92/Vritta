@@ -218,8 +218,8 @@ describe('Phase 3: Unified Habit Card Architecture & Behavioral Integrity', () =
       assert.ok(notesContent.includes('400'), 'SlotNotes must use 400ms debounce');
       assert.ok(notesContent.includes('handleBlur'), 'SlotNotes must implement blur handler');
       assert.ok(notesContent.includes('pagehide'), 'SlotNotes must flush on pagehide event');
-      assert.ok(notesContent.includes('visibilitychange'), 'SlotNotes must flush on visibilitychange');
-      assert.ok(notesContent.includes('isPrivateDiary'), 'SlotNotes must support private reflection diary mode');
+      assert.ok(!notesContent.includes('isPrivateDiary'), 'SlotNotes must not contain obsolete isPrivateDiary flag');
+      assert.ok(notesContent.includes('reflectionPrompts'), 'SlotNotes must support reflection prompts');
     });
   });
 

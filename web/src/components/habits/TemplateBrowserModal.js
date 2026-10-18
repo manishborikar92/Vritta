@@ -329,7 +329,9 @@ export default function TemplateBrowserModal({ isOpen, onClose, onSelectTemplate
                       <span>Notes & Reflection</span>
                     </div>
                     <p className="text-xs text-sub">
-                      {previewTemplate.features.notes.isPrivateDiary ? 'Private diary format with prompts' : 'Freeform reflection notes'}
+                      {Array.isArray(previewTemplate.features.notes.reflectionPrompts) && previewTemplate.features.notes.reflectionPrompts.length > 0
+                        ? 'Reflection notes with guided prompts'
+                        : 'Freeform reflection notes'}
                     </p>
                   </div>
                 )}
@@ -582,7 +584,7 @@ export default function TemplateBrowserModal({ isOpen, onClose, onSelectTemplate
 
         {/* Sticky Action Bar — Matching HabitModal footer convention */}
         <div className="bg-surface border-t border-subtle px-5 py-2.5 flex items-center justify-between flex-shrink-0 z-10">
-          {previewTemplate ? (
+          {previewTemplate && (
             <>
               <button
                 type="button"
@@ -599,19 +601,6 @@ export default function TemplateBrowserModal({ isOpen, onClose, onSelectTemplate
               >
                 <span>Use This Template</span>
                 <ArrowRight className="w-4 h-4" />
-              </button>
-            </>
-          ) : (
-            <>
-              <span className="text-2xs text-muted">
-                Blueprints create a customized personal routine in your daily rhythm.
-              </span>
-              <button
-                type="button"
-                onClick={() => onClose?.()}
-                className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-medium transition-colors min-h-[40px]"
-              >
-                Close
               </button>
             </>
           )}
