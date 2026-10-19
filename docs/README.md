@@ -12,6 +12,7 @@ This documentation is organized according to the **Diátaxis** framework, separa
 docs/
 ├── README.md           # Documentation index & navigation (You are here)
 ├── architecture.md     # System design, data flow, theme engine & security
+├── android.md          # Android APK packaging, TWA architecture & build runbook
 ├── development.md      # Local workstation setup, scripts & testing guide
 ├── firebase-setup.md   # Cloud Firestore rules, Admin SDK & credential runbook
 ├── deployment.md       # Vercel hosting, branch workflow & release verification
@@ -34,7 +35,15 @@ docs/
 - Resilient background timer subsystem (wall-clock synchronization, Web Worker dispatch, reload recovery).
 - Dynamic analytics engine (rolling 7-day/30-day views, rest-day streak preservation).
 
-### 2. [Local Development Guide](development.md)
+### 2. [Android Packaging & Distribution Guide](android.md)
+*How-To & Operations Guide*
+- Trusted Web Activity (TWA) architecture and Google Android Browser Helper.
+- Comparison against Capacitor and justification for TWA.
+- Android project structure, launcher icons, splash screen, and theme tokens.
+- Repeatable build commands (`npm run android:build` / `npm run android:release`).
+- Digital Asset Links (`assetlinks.json`) domain verification protocol.
+
+### 3. [Local Development Guide](development.md)
 *How-To & Developer Reference*
 - Prerequisites (Node.js 20+, npm, Git).
 - Step-by-step local setup from a fresh clone.
