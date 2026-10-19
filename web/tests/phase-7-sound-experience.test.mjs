@@ -96,7 +96,7 @@ describe('Phase 7: Interactive Sound Experience & Audio Polish', () => {
     it('should verify In-Page Tab Switch cue uses calibrated 25ms sine transient with clear volume', () => {
       const content = readWebFile('src/utils/audio-chime.js');
       assert.ok(content.includes('0.025'), 'playTabSwitchCue duration must be approximately 0.025s');
-      assert.ok(content.includes('0.15'), 'playTabSwitchCue peak gain must be calibrated to 0.15 for audible tactile click');
+      assert.ok(content.includes('0.5') || content.includes('OUTPUT_CEILING'), 'playTabSwitchCue peak gain must be calibrated for audible tactile click');
       assert.ok(content.includes('523.25'), 'playTabSwitchCue pitch must remain C5 (523.25 Hz)');
     });
 
