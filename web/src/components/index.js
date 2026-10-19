@@ -15,15 +15,18 @@ export {
   SignOutDialog,
   LoadingSpinner,
   Skeleton,
-  DashboardSkeleton,
+  TodaySkeleton,
   HabitsSkeleton,
-  AnalyticsSkeleton,
+  InsightsSkeleton,
   SignInButton,
   SoundControl,
   ThemeToggle,
   Avatar,
   Logo,
   TodayRhythmBanner,
+  TodayNavIcon,
+  HabitsNavIcon,
+  InsightsNavIcon,
 } from './ui';
 
 // Habit Cards, Slots, and Modals

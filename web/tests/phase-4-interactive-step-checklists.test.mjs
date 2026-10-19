@@ -401,7 +401,7 @@ describe('Phase 4: Interactive Step Checklists & Workout Routine Consolidation',
 
   describe('4. DashboardPage Card Dispatch & Wiring', () => {
     it('should verify DashboardPage passes progress and onUpdateProgress to habit card', () => {
-      const content = readWebFile('src/app/(protected)/dashboard/page.js');
+      const content = readWebFile('src/app/(protected)/today/page.js');
       assert.ok(
         (content.includes('<HabitTrackerCard') || content.includes('<GenericHabitCard')) &&
         content.includes('progress={progress}') &&

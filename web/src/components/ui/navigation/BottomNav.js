@@ -13,8 +13,9 @@ function NavTab({ href, label, Icon, active, onClick }) {
       <Link
         href={href}
         onClick={onClick}
+        aria-label={label}
         aria-current={active ? 'page' : undefined}
-        className="group flex min-h-14 min-w-[56px] py-1.5 w-full select-none flex-col items-center justify-center rounded-xl focus-visible:-outline-offset-2"
+        className="group flex min-h-12 min-w-[56px] w-full select-none items-center justify-center rounded-xl focus-visible:-outline-offset-2"
       >
         {/* Pill indicator behind the icon only (Material 3 / iOS style) */}
         <span className="relative flex h-8 w-16 items-center justify-center">
@@ -35,14 +36,7 @@ function NavTab({ href, label, Icon, active, onClick }) {
             )}
           />
         </span>
-        <span
-          className={cn(
-            'mt-0.5 max-w-full truncate text-2xs font-semibold tracking-tight transition-colors',
-            active ? 'text-accent' : 'text-muted group-hover:text-main'
-          )}
-        >
-          {label}
-        </span>
+        <span className="sr-only">{label}</span>
       </Link>
     </li>
   );
@@ -77,7 +71,7 @@ export default function BottomNav() {
         keyboardOpen ? 'pointer-events-none translate-y-full' : 'translate-y-0'
       )}
     >
-      <ul className="mx-auto flex max-w-2xl items-stretch gap-1 px-2 pt-1.5 pb-1">
+      <ul className="mx-auto flex max-w-2xl items-stretch gap-1 px-2 py-1">
         {NAV_ITEMS.map(({ href, label, Icon }) => {
           const active = isRouteActive(pathname, href);
           return (

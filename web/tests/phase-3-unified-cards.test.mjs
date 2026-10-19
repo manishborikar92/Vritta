@@ -61,40 +61,40 @@ describe('Phase 3: Unified Habit Card Architecture & Behavioral Integrity', () =
       );
     });
 
-    it('should verify dashboard/page.js renders HabitTrackerCard and eliminates specialized branches', () => {
-      const dashboardContent = readWebFile('src/app/(protected)/dashboard/page.js');
+    it('should verify today/page.js renders HabitTrackerCard and eliminates specialized branches', () => {
+      const todayContent = readWebFile('src/app/(protected)/today/page.js');
       assert.ok(
-        dashboardContent.includes('HabitTrackerCard'),
-        'dashboard/page.js must import HabitTrackerCard'
+        todayContent.includes('HabitTrackerCard'),
+        'today/page.js must import HabitTrackerCard'
       );
       assert.ok(
-        dashboardContent.includes('<HabitTrackerCard'),
-        'dashboard/page.js must render <HabitTrackerCard />'
+        todayContent.includes('<HabitTrackerCard'),
+        'today/page.js must render <HabitTrackerCard />'
       );
-      // Verify specialized cards are not directly rendered in dashboard/page.js
+      // Verify specialized cards are not directly rendered in today/page.js
       assert.ok(
-        !dashboardContent.includes('<WorkbookCard'),
-        'dashboard/page.js must NOT directly render <WorkbookCard'
-      );
-      assert.ok(
-        !dashboardContent.includes('<MovementCard'),
-        'dashboard/page.js must NOT directly render <MovementCard'
+        !todayContent.includes('<WorkbookCard'),
+        'today/page.js must NOT directly render <WorkbookCard'
       );
       assert.ok(
-        !dashboardContent.includes('<OshoCard'),
-        'dashboard/page.js must NOT directly render <OshoCard'
+        !todayContent.includes('<MovementCard'),
+        'today/page.js must NOT directly render <MovementCard'
       );
       assert.ok(
-        !dashboardContent.includes('<ReadingCard'),
-        'dashboard/page.js must NOT directly render <ReadingCard'
+        !todayContent.includes('<OshoCard'),
+        'today/page.js must NOT directly render <OshoCard'
       );
       assert.ok(
-        !dashboardContent.includes('<SpeakingCard'),
-        'dashboard/page.js must NOT directly render <SpeakingCard'
+        !todayContent.includes('<ReadingCard'),
+        'today/page.js must NOT directly render <ReadingCard'
       );
       assert.ok(
-        !dashboardContent.includes('<DiaryCard'),
-        'dashboard/page.js must NOT directly render <DiaryCard'
+        !todayContent.includes('<SpeakingCard'),
+        'today/page.js must NOT directly render <SpeakingCard'
+      );
+      assert.ok(
+        !todayContent.includes('<DiaryCard'),
+        'today/page.js must NOT directly render <DiaryCard'
       );
     });
 

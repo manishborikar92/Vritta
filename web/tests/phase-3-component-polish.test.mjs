@@ -156,9 +156,9 @@ describe('Phase 3: UI/UX Component Polish (Mobile-First)', () => {
 
     it('should verify all major views implement comprehensive dark mode surfaces and borders', () => {
       const views = [
-        'src/app/(protected)/dashboard/page.js',
+        'src/app/(protected)/today/page.js',
         'src/app/(protected)/habits/page.js',
-        'src/app/(protected)/analytics/page.js',
+        'src/app/(protected)/insights/page.js',
       ];
 
       for (const view of views) {

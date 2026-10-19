@@ -222,13 +222,13 @@ describe('Default / Foundation Routine Loading Architecture & UI Rules', () => {
     assert.equal(page.toasts[1].type, 'success');
   });
 
-  // 8. Dashboard and other pages
-  it('Requirement 8: Dashboard and other pages - Verify zero default-preset buttons appear on any other page', () => {
+  // 8. Today and other pages
+  it('Requirement 8: Today and other pages - Verify zero default-preset buttons appear on any other page', () => {
     const otherPages = [
       'app/page.js',
       'app/(auth)/login/page.js',
-      'app/(protected)/dashboard/page.js',
-      'app/(protected)/analytics/page.js',
+      'app/(protected)/today/page.js',
+      'app/(protected)/insights/page.js',
     ];
 
     for (const relPath of otherPages) {
@@ -243,11 +243,11 @@ describe('Default / Foundation Routine Loading Architecture & UI Rules', () => {
       assert.ok(!content.includes('Sync Routines'), `Forbidden Sync Routines button in ${relPath}`);
     }
 
-    // Check Dashboard page empty state specifically links to /habits
-    const dashboardContent = fs.readFileSync(path.join(srcDir, 'app/(protected)/dashboard/page.js'), 'utf-8');
-    assert.ok(dashboardContent.includes('href="/habits"'), 'Dashboard empty state must link to Routine Manager (/habits)');
-    assert.ok(dashboardContent.includes('Open Routine Manager'), 'Dashboard empty state must invite user to Open Routine Manager');
-    assert.ok(!dashboardContent.includes('seedHabits'), 'Dashboard must not destructure or reference seedHabits');
+    // Check Today page empty state specifically links to /habits
+    const todayContent = fs.readFileSync(path.join(srcDir, 'app/(protected)/today/page.js'), 'utf-8');
+    assert.ok(todayContent.includes('href="/habits"'), 'Today empty state must link to Routine Manager (/habits)');
+    assert.ok(todayContent.includes('Open Routine Manager'), 'Today empty state must invite user to Open Routine Manager');
+    assert.ok(!todayContent.includes('seedHabits'), 'Today must not destructure or reference seedHabits');
   });
 
   // 9. Repeated or concurrent actions

@@ -31,11 +31,11 @@ describe('Phase 1: TodayRhythmBanner Architecture & Invariants', () => {
     assert.ok(!uiIndexContent.includes("StreakCounter"), 'Must not export legacy StreakCounter');
   });
 
-  it('should verify DashboardPage renders unified TodayRhythmBanner and eliminates duplicate progress div', () => {
-    const dashContent = readWebFile('src/app/(protected)/dashboard/page.js');
-    assert.ok(dashContent.includes('<TodayRhythmBanner />'), 'Dashboard must render TodayRhythmBanner');
-    assert.ok(!dashContent.includes('<StreakCounter />'), 'Dashboard must not render legacy StreakCounter');
-    assert.ok(!dashContent.includes("Today&apos;s Rhythm"), 'Duplicate Today Rhythm banner markup must be removed from page.js');
+  it('should verify TodayPage renders unified TodayRhythmBanner and eliminates duplicate progress div', () => {
+    const todayContent = readWebFile('src/app/(protected)/today/page.js');
+    assert.ok(todayContent.includes('<TodayRhythmBanner />'), 'Today must render TodayRhythmBanner');
+    assert.ok(!todayContent.includes('<StreakCounter />'), 'Today must not render legacy StreakCounter');
+    assert.ok(!todayContent.includes("Today&apos;s Rhythm"), 'Duplicate Today Rhythm banner markup must be removed from page.js');
   });
 
   it('should verify WCAG accessibility semantics in TodayRhythmBanner markup', () => {

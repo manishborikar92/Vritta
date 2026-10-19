@@ -4,7 +4,7 @@
  * Explicitly exports categorized foundational UI primitives:
  * - navigation: TopNav, BottomNav, ProfileMenu
  * - dialogs: BottomSheet, ConfirmDialog, SignOutDialog
- * - feedback: LoadingSpinner, Skeleton, DashboardSkeleton, HabitsSkeleton, AnalyticsSkeleton
+ * - feedback: LoadingSpinner, Skeleton, TodaySkeleton, HabitsSkeleton, InsightsSkeleton
  * - controls: SignInButton, SoundControl, ThemeToggle
  * - display: Avatar, Logo
  * - banners: TodayRhythmBanner
@@ -14,6 +14,8 @@
 export { default as TopNav } from './navigation/TopNav';
 export { default as BottomNav } from './navigation/BottomNav';
 export { default as ProfileMenu } from './navigation/ProfileMenu';
+export { TodayNavIcon, HabitsNavIcon, InsightsNavIcon } from './navigation/NavIcons';
+
 
 // Dialogs & Overlays
 export { default as BottomSheet } from './dialogs/BottomSheet';
@@ -23,9 +25,9 @@ export { default as SignOutDialog } from './dialogs/SignOutDialog';
 // Feedback & Loading States
 export { default as LoadingSpinner } from './feedback/LoadingSpinner';
 export { default as Skeleton } from './feedback/Skeleton';
-export { default as DashboardSkeleton } from './feedback/DashboardSkeleton';
+export { default as TodaySkeleton } from './feedback/TodaySkeleton';
 export { default as HabitsSkeleton } from './feedback/HabitsSkeleton';
-export { default as AnalyticsSkeleton } from './feedback/AnalyticsSkeleton';
+export { default as InsightsSkeleton } from './feedback/InsightsSkeleton';
 
 // Controls & Preferences
 export { default as SignInButton } from './controls/SignInButton';

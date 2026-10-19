@@ -294,7 +294,7 @@ describe('Phase 4: Status Controls Semantics, Persistence & Analytics Engine', (
     });
 
     it('Analytics Page must implement month-based calendar-first experience without timeframe selectors', () => {
-      const pageSource = readWebFile('src/app/(protected)/analytics/page.js');
+      const pageSource = readWebFile('src/app/(protected)/insights/page.js');
 
       // Month navigation controls
       assert.ok(pageSource.includes('handlePrevMonth'), 'Must provide previous month navigation');

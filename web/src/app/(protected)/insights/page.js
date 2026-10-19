@@ -16,14 +16,14 @@ import {
 } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import { useSound } from '@/contexts';
-import { AnalyticsSkeleton } from '@/components/ui';
+import { InsightsSkeleton } from '@/components/ui';
 import { formatDate, parseDateString } from '@/utils/date-helpers';
 import {
   calculateMonthlyAnalytics,
   DAY_TO_COLUMN,
 } from '@/domain/analytics';
 
-export default function AnalyticsPage() {
+export default function InsightsPage() {
   const { habits, dailyLogs, fetchDailyLogs, loading, userProfile, userTimezone } = useData();
   const { playTabSwitchCue } = useSound();
 
@@ -121,7 +121,7 @@ export default function AnalyticsPage() {
   }, [selectedDate, monthlyData.calendarDays]);
 
   if (loading) {
-    return <AnalyticsSkeleton />;
+    return <InsightsSkeleton />;
   }
 
   const { summary } = monthlyData;
@@ -132,7 +132,7 @@ export default function AnalyticsPage() {
       {/* Page Heading */}
       <div className="space-y-0.5 px-0.5">
         <h1 className="text-base sm:text-lg font-bold text-main leading-snug">
-          Rhythm &amp; Consistency
+          Insights &amp; Consistency
         </h1>
         <p className="text-2xs sm:text-xs text-muted leading-tight">
           A calm, non-punitive monthly overview of your routines and natural momentum.
@@ -144,7 +144,7 @@ export default function AnalyticsPage() {
         <div className="flex items-center justify-between gap-2">
           <div className="space-y-0.5 min-w-0">
             <span className="text-2xs font-bold text-teal-700 dark:text-teal-400 uppercase tracking-wider truncate block">
-              {monthlyData.monthLabel} Overview {/* 30-Day Consistency */}
+              {monthlyData.monthLabel} Insights Overview {/* 30-Day Consistency */}
             </span>
             <div className="text-2xl sm:text-3xl font-extrabold text-main tracking-tight leading-none">
               {completionRate !== null ? `${completionRate}%` : '—'}

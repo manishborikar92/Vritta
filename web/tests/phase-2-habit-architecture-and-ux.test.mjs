@@ -18,7 +18,7 @@ function readWebFile(relativePath) {
 describe('Phase 2: Habit Architecture & UX Simplification', () => {
   const habitModalPath = 'src/components/habits/HabitModal.js';
   const routineCardPath = 'src/components/habits/HabitConfigCard.js';
-  const dashboardPath = 'src/app/(protected)/dashboard/page.js';
+  const dashboardPath = 'src/app/(protected)/today/page.js';
   const useHabitsPath = 'src/hooks/useHabits.js';
   const dateHelpersPath = 'src/utils/date-helpers.js';
 

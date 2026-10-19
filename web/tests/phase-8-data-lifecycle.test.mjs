@@ -15,18 +15,18 @@ function readWebFile(relPath) {
 describe('Phase 8: Data-Loading Lifecycle, Safeguards & Error Invariants', () => {
   describe('1. Dashboard Page Data-Loading Safeguards', () => {
     it('should verify DashboardPage suppresses zero-streak & zero-progress before initial data resolves', () => {
-      const content = readWebFile('src/app/(protected)/dashboard/page.js');
+      const content = readWebFile('src/app/(protected)/today/page.js');
       // Must have early return for loading state
       const loadingIdx = content.indexOf('if (loading)');
       const bannerIdx = content.indexOf('<TodayRhythmBanner');
       assert.ok(loadingIdx !== -1, 'Must have if (loading) guard');
       assert.ok(bannerIdx !== -1, 'Must render TodayRhythmBanner');
       assert.ok(loadingIdx < bannerIdx, 'if (loading) must precede TodayRhythmBanner to prevent 0-streak flash');
-      assert.ok(content.includes('return <DashboardSkeleton />;'), 'Must return DashboardSkeleton during loading');
+      assert.ok(content.includes('return <TodaySkeleton />;'), 'Must return TodaySkeleton during loading');
     });
 
     it('should verify DashboardPage renders error alert when Firestore subscription fails', () => {
-      const content = readWebFile('src/app/(protected)/dashboard/page.js');
+      const content = readWebFile('src/app/(protected)/today/page.js');
       assert.ok(content.includes('{error && ('), 'Must check for error state');
       assert.ok(content.includes('bg-rose-50'), 'Must display error banner with rose styling');
     });
@@ -53,13 +53,13 @@ describe('Phase 8: Data-Loading Lifecycle, Safeguards & Error Invariants', () =>
 
   describe('3. Analytics Page Computation Safeguards', () => {
     it('should verify AnalyticsPage suppresses 0% statistics computation while loading', () => {
-      const content = readWebFile('src/app/(protected)/analytics/page.js');
+      const content = readWebFile('src/app/(protected)/insights/page.js');
       const loadingIdx = content.indexOf('if (loading)');
       const metricsIdx = content.indexOf('30-Day Consistency');
       assert.ok(loadingIdx !== -1, 'Must have if (loading) guard');
       assert.ok(metricsIdx !== -1, 'Must render metrics');
       assert.ok(loadingIdx < metricsIdx, 'if (loading) must precede metrics display');
-      assert.ok(content.includes('return <AnalyticsSkeleton />;'), 'Must return AnalyticsSkeleton during loading');
+      assert.ok(content.includes('return <InsightsSkeleton />;'), 'Must return InsightsSkeleton during loading');
     });
   });
 
@@ -95,13 +95,13 @@ describe('Phase 8: Data-Loading Lifecycle, Safeguards & Error Invariants', () =>
       assert.ok(layoutContent.includes('<BottomNav />'), 'Layout must own BottomNav');
 
       // Verify pages do not render TopNav
-      const dashContent = readWebFile('src/app/(protected)/dashboard/page.js');
+      const dashContent = readWebFile('src/app/(protected)/today/page.js');
       const habitsContent = readWebFile('src/app/(protected)/habits/page.js');
-      const analyticsContent = readWebFile('src/app/(protected)/analytics/page.js');
+      const analyticsContent = readWebFile('src/app/(protected)/insights/page.js');
 
-      assert.ok(!dashContent.includes('<TopNav'), 'dashboard/page.js must not render TopNav');
+      assert.ok(!dashContent.includes('<TopNav'), 'today/page.js must not render TopNav');
       assert.ok(!habitsContent.includes('<TopNav'), 'habits/page.js must not render TopNav');
-      assert.ok(!analyticsContent.includes('<TopNav'), 'analytics/page.js must not render TopNav');
+      assert.ok(!analyticsContent.includes('<TopNav'), 'insights/page.js must not render TopNav');
     });
   });
 
@@ -122,13 +122,13 @@ describe('Phase 8: Data-Loading Lifecycle, Safeguards & Error Invariants', () =>
     });
 
     it('should verify all skeleton containers declare semantic role="status" and aria-busy="true"', () => {
-      const dashSkeleton = readWebFile('src/components/ui/feedback/DashboardSkeleton.js');
+      const todaySkeleton = readWebFile('src/components/ui/feedback/TodaySkeleton.js');
       const habitsSkeleton = readWebFile('src/components/ui/feedback/HabitsSkeleton.js');
-      const analyticsSkeleton = readWebFile('src/components/ui/feedback/AnalyticsSkeleton.js');
+      const insightsSkeleton = readWebFile('src/components/ui/feedback/InsightsSkeleton.js');
 
-      assert.ok(dashSkeleton.includes('role="status"') && dashSkeleton.includes('aria-busy="true"'));
+      assert.ok(todaySkeleton.includes('role="status"') && todaySkeleton.includes('aria-busy="true"'));
       assert.ok(habitsSkeleton.includes('role="status"') && habitsSkeleton.includes('aria-busy="true"'));
-      assert.ok(analyticsSkeleton.includes('role="status"') && analyticsSkeleton.includes('aria-busy="true"'));
+      assert.ok(insightsSkeleton.includes('role="status"') && insightsSkeleton.includes('aria-busy="true"'));
     });
   });
 });

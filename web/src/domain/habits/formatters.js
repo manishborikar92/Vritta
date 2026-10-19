@@ -55,7 +55,7 @@ export function getFrequencyDisplay(frequency) {
  * Uses deterministic tie-breakers on creation time and document ID for concurrency resilience.
  *
  * Invariants:
- * 1. Habits appear in their original creation order on both Dashboard and Habits page.
+ * 1. Habits appear in their original creation order on both Today and Habits page.
  * 2. Newly created habits appear strictly after previously created habits.
  * 3. Editing a habit (title, category, timing, description, completion) NEVER alters its position.
  * 4. Deterministic tie-breakers: Creation timestamp, then document ID.

@@ -3,7 +3,7 @@
 import Skeleton from './Skeleton';
 
 /**
- * DashboardSkeleton — Content-only loading skeleton for the Dashboard (/dashboard).
+ * TodaySkeleton — Content-only loading skeleton for the Today page (/today).
  *
  * Designed to render inside the shared ProtectedLayout shell:
  * - Exact TodayRhythmBanner height (110px mobile / 104px desktop) placeholder
@@ -11,14 +11,14 @@ import Skeleton from './Skeleton';
  * - Strict reduced-motion compliance via Skeleton primitive
  * - Clean semantic role="status" and aria-busy="true"
  */
-export default function DashboardSkeleton() {
+export default function TodaySkeleton() {
   return (
     <main
       className="max-w-2xl mx-auto px-4 py-5 sm:py-6 space-y-5"
       role="status"
       aria-live="polite"
       aria-busy="true"
-      aria-label="Loading dashboard routines"
+      aria-label="Loading today's routines"
     >
       {/* Unified Rhythm Banner Skeleton */}
       <div className="rounded-2xl border border-subtle bg-surface p-4 sm:p-5 shadow-2xs space-y-3">

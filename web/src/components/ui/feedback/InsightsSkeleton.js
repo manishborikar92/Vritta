@@ -3,7 +3,7 @@
 import Skeleton from './Skeleton';
 
 /**
- * AnalyticsSkeleton — Content-only loading skeleton for the Analytics page (/analytics).
+ * InsightsSkeleton — Content-only loading skeleton for the Insights page (/insights).
  *
  * Designed to render inside the shared ProtectedLayout shell:
  * - Tab selector skeleton
@@ -12,14 +12,14 @@ import Skeleton from './Skeleton';
  * - Strict reduced-motion compliance via Skeleton primitive
  * - Clean semantic role="status" and aria-busy="true"
  */
-export default function AnalyticsSkeleton() {
+export default function InsightsSkeleton() {
   return (
     <main
       className="max-w-2xl mx-auto px-4 py-5 sm:py-6 space-y-5"
       role="status"
       aria-live="polite"
       aria-busy="true"
-      aria-label="Loading analytics"
+      aria-label="Loading insights"
     >
       {/* Tab toggle buttons skeleton */}
       <div className="flex bg-surface-subtle p-1 rounded-2xl border border-subtle gap-1">

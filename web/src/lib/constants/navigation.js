@@ -1,10 +1,11 @@
-import { CalendarCheck2, Compass, LineChart } from 'lucide-react';
+import { TodayNavIcon, HabitsNavIcon, InsightsNavIcon } from '../../components/ui/navigation/NavIcons.js';
 
 export const NAV_ITEMS = Object.freeze([
-  { href: '/dashboard', label: 'Today', Icon: CalendarCheck2 },
-  { href: '/habits', label: 'Routine', Icon: Compass },
-  { href: '/analytics', label: 'Insights', Icon: LineChart },
+  { href: '/today', label: 'Today', Icon: TodayNavIcon },
+  { href: '/habits', label: 'Habits', Icon: HabitsNavIcon },
+  { href: '/insights', label: 'Insights', Icon: InsightsNavIcon },
 ]);
+
 
 /** A tab is active for its own route and any nested route (/habits/123). */
 export const isRouteActive = (pathname, href) =>

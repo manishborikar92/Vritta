@@ -29,7 +29,7 @@ import {
 } from './slots';
 
 /**
- * HabitTrackerCard — Composable Habit Tracking Card for the Vritta Dashboard.
+ * HabitTrackerCard — Composable Habit Tracking Card for Vritta Today view.
  * Phase 4 Revision: Simplified Completion Contract
  *
  * Implements:

@@ -43,6 +43,9 @@ export const metadata = {
     locale: 'en_US',
     type: 'website',
   },
+  alternates: {
+    canonical: '/',
+  },
   twitter: {
     card: 'summary',
     title: `${BRAND.name} — ${BRAND.tagline}`,

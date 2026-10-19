@@ -314,7 +314,7 @@ describe('Phase 7: Interactive Sound Experience & Audio Polish', () => {
 
   describe('5. In-Page Tab Switch & Route Navigation Invariants', () => {
     it('should verify AnalyticsPage view mode toggle triggers playTabSwitchCue only on genuine changes', () => {
-      const analyticsContent = readWebFile('src/app/(protected)/analytics/page.js');
+      const analyticsContent = readWebFile('src/app/(protected)/insights/page.js');
       assert.ok(
         analyticsContent.includes('const handleViewModeChange = (nextMode) => {') &&
         analyticsContent.includes('if (nextMode !== viewMode) {') &&

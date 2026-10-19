@@ -41,9 +41,9 @@ describe('Phase 7: Loading Experience & Reduced-Motion Architecture', () => {
       const content = readWebFile('src/components/ui/index.js');
       assert.ok(content.includes("export { default as LoadingSpinner } from './feedback/LoadingSpinner'"));
       assert.ok(content.includes("export { default as Skeleton } from './feedback/Skeleton'"));
-      assert.ok(content.includes("export { default as DashboardSkeleton } from './feedback/DashboardSkeleton'"));
+      assert.ok(content.includes("export { default as TodaySkeleton } from './feedback/TodaySkeleton'"));
       assert.ok(content.includes("export { default as HabitsSkeleton } from './feedback/HabitsSkeleton'"));
-      assert.ok(content.includes("export { default as AnalyticsSkeleton } from './feedback/AnalyticsSkeleton'"));
+      assert.ok(content.includes("export { default as InsightsSkeleton } from './feedback/InsightsSkeleton'"));
     });
 
     it('should verify elimination of obsolete z-[9999] high z-index overlay across web/src', () => {
@@ -65,8 +65,8 @@ describe('Phase 7: Loading Experience & Reduced-Motion Architecture', () => {
       assert.ok(content.includes('bg-slate-200/70') && content.includes('dark:bg-slate-800/70'), 'Must use semantic surface tokens');
     });
 
-    it('should verify DashboardSkeleton renders content-only main landmark and card anatomy', () => {
-      const content = readWebFile('src/components/ui/feedback/DashboardSkeleton.js');
+    it('should verify TodaySkeleton renders content-only main landmark and card anatomy', () => {
+      const content = readWebFile('src/components/ui/feedback/TodaySkeleton.js');
       assert.ok(!content.includes('<TopNav'), 'Must NOT include TopNav (owned by ProtectedLayout shell)');
       assert.ok(content.includes('<main'), 'Must render <main> landmark');
       assert.ok(content.includes('border-t-[3px]'), 'Must mirror card top border design token');
@@ -81,8 +81,8 @@ describe('Phase 7: Loading Experience & Reduced-Motion Architecture', () => {
       assert.ok(content.includes('border-t-[3px]'), 'Must mirror category border design token');
     });
 
-    it('should verify AnalyticsSkeleton renders content-only main landmark, tabs, and metrics grid', () => {
-      const content = readWebFile('src/components/ui/feedback/AnalyticsSkeleton.js');
+    it('should verify InsightsSkeleton renders content-only main landmark, tabs, and metrics grid', () => {
+      const content = readWebFile('src/components/ui/feedback/InsightsSkeleton.js');
       assert.ok(!content.includes('<TopNav'), 'Must NOT include TopNav (owned by ProtectedLayout shell)');
       assert.ok(content.includes('<main'), 'Must render <main> landmark');
       assert.ok(content.includes('grid grid-cols-2'), 'Must mirror 2-metric card grid');
@@ -91,16 +91,16 @@ describe('Phase 7: Loading Experience & Reduced-Motion Architecture', () => {
     it('should verify UI index exports all contextual skeleton components', () => {
       const content = readWebFile('src/components/ui/index.js');
       assert.ok(content.includes("export { default as Skeleton } from './feedback/Skeleton'"));
-      assert.ok(content.includes("export { default as DashboardSkeleton } from './feedback/DashboardSkeleton'"));
+      assert.ok(content.includes("export { default as TodaySkeleton } from './feedback/TodaySkeleton'"));
       assert.ok(content.includes("export { default as HabitsSkeleton } from './feedback/HabitsSkeleton'"));
-      assert.ok(content.includes("export { default as AnalyticsSkeleton } from './feedback/AnalyticsSkeleton'"));
+      assert.ok(content.includes("export { default as InsightsSkeleton } from './feedback/InsightsSkeleton'"));
     });
   });
 
   describe('3. Route Transition, Page-Level Loading & Auth Protection Integration', () => {
-    it('should verify dashboard loading.js renders DashboardSkeleton', () => {
-      const content = readWebFile('src/app/(protected)/dashboard/loading.js');
-      assert.ok(content.includes('<DashboardSkeleton />'), 'Dashboard loading must render DashboardSkeleton');
+    it('should verify today loading.js renders TodaySkeleton', () => {
+      const content = readWebFile('src/app/(protected)/today/loading.js');
+      assert.ok(content.includes('<TodaySkeleton />'), 'Today loading must render TodaySkeleton');
       assert.ok(!content.includes('LoadingSpinner'), 'Must not render LoadingSpinner');
     });
 
@@ -110,17 +110,17 @@ describe('Phase 7: Loading Experience & Reduced-Motion Architecture', () => {
       assert.ok(!content.includes('LoadingSpinner'), 'Must not render LoadingSpinner');
     });
 
-    it('should verify analytics loading.js renders AnalyticsSkeleton', () => {
-      const content = readWebFile('src/app/(protected)/analytics/loading.js');
-      assert.ok(content.includes('<AnalyticsSkeleton />'), 'Analytics loading must render AnalyticsSkeleton');
+    it('should verify insights loading.js renders InsightsSkeleton', () => {
+      const content = readWebFile('src/app/(protected)/insights/loading.js');
+      assert.ok(content.includes('<InsightsSkeleton />'), 'Insights loading must render InsightsSkeleton');
       assert.ok(!content.includes('LoadingSpinner'), 'Must not render LoadingSpinner');
     });
 
-    it('should verify DashboardPage uses DashboardSkeleton during data loading without duplicate TopNav', () => {
-      const content = readWebFile('src/app/(protected)/dashboard/page.js');
-      assert.ok(content.includes('<DashboardSkeleton />'), 'DashboardPage must render DashboardSkeleton when loading');
-      assert.ok(!content.includes('<TopNav'), 'DashboardPage must not render TopNav (owned by ProtectedLayout)');
-      assert.ok(!content.includes('LoadingSpinner'), 'DashboardPage must not contain LoadingSpinner');
+    it('should verify TodayPage uses TodaySkeleton during data loading without duplicate TopNav', () => {
+      const content = readWebFile('src/app/(protected)/today/page.js');
+      assert.ok(content.includes('<TodaySkeleton />'), 'TodayPage must render TodaySkeleton when loading');
+      assert.ok(!content.includes('<TopNav'), 'TodayPage must not render TopNav (owned by ProtectedLayout)');
+      assert.ok(!content.includes('LoadingSpinner'), 'TodayPage must not contain LoadingSpinner');
     });
 
     it('should verify HabitsPage uses HabitsSkeleton during data loading without duplicate TopNav', () => {
@@ -130,11 +130,11 @@ describe('Phase 7: Loading Experience & Reduced-Motion Architecture', () => {
       assert.ok(!content.includes('LoadingSpinner'), 'HabitsPage must not contain LoadingSpinner');
     });
 
-    it('should verify AnalyticsPage uses AnalyticsSkeleton during data loading without duplicate TopNav', () => {
-      const content = readWebFile('src/app/(protected)/analytics/page.js');
-      assert.ok(content.includes('<AnalyticsSkeleton />'), 'AnalyticsPage must render AnalyticsSkeleton when loading');
-      assert.ok(!content.includes('<TopNav'), 'AnalyticsPage must not render TopNav (owned by ProtectedLayout)');
-      assert.ok(!content.includes('LoadingSpinner'), 'AnalyticsPage must not contain LoadingSpinner');
+    it('should verify InsightsPage uses InsightsSkeleton during data loading without duplicate TopNav', () => {
+      const content = readWebFile('src/app/(protected)/insights/page.js');
+      assert.ok(content.includes('<InsightsSkeleton />'), 'InsightsPage must render InsightsSkeleton when loading');
+      assert.ok(!content.includes('<TopNav'), 'InsightsPage must not render TopNav (owned by ProtectedLayout)');
+      assert.ok(!content.includes('LoadingSpinner'), 'InsightsPage must not contain LoadingSpinner');
     });
 
     it('should verify ProtectedLayout owns shell with TopNav, BottomNav, and auth splash resolution', () => {
@@ -149,13 +149,13 @@ describe('Phase 7: Loading Experience & Reduced-Motion Architecture', () => {
     it('should verify LoginPage renders calm LoadingSpinner during auth resolution', () => {
       const content = readWebFile('src/app/(auth)/login/page.js');
       assert.ok(content.includes('<LoadingSpinner'), 'LoginPage must render LoadingSpinner during auth resolution');
-      assert.ok(content.includes("router.push('/dashboard')"), 'LoginPage must redirect authenticated user to dashboard');
+      assert.ok(content.includes("router.push('/today')"), 'LoginPage must redirect authenticated user to today');
     });
 
     it('should verify root Home page renders brand LoadingSpinner during initial auth redirect', () => {
       const content = readWebFile('src/app/page.js');
       assert.ok(content.includes('<LoadingSpinner'), 'Home page must render LoadingSpinner gateway');
-      assert.ok(!content.includes('<DashboardSkeleton'), 'Home page must not render protected DashboardSkeleton to unauthenticated users');
+      assert.ok(!content.includes('<TodaySkeleton'), 'Home page must not render protected TodaySkeleton to unauthenticated users');
     });
   });
 });

@@ -274,7 +274,7 @@ describe('Phase 5: Dynamic Insights & Non-Punitive Analytics Engine', () => {
   describe('6. Design System & Prohibited Color Audit', () => {
     it('should verify zero occurrences of prohibited colors in analytics files', () => {
       const filesToAudit = [
-        path.join(__dirname, '../src/app/(protected)/analytics/page.js'),
+        path.join(__dirname, '../src/app/(protected)/insights/page.js'),
         path.join(__dirname, '../src/utils/analytics-helpers.js'),
       ];
 

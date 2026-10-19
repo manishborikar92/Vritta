@@ -99,7 +99,7 @@ After deployment completes, verify live production behavior at `https://myvritta
    - On the live login page, verify the theme toggle button renders at `>= 44×44px`.
    - Click the toggle to confirm smooth alternation between Light mode (porcelain canvas) and Dark mode (Deep Obsidian canvas `#090D16`).
    - Reload the page in both themes to verify zero-flash pre-paint initialization.
-5. **Authentication Flow:** Verify Google Sign-In prompts correctly and redirects authenticated sessions to `/dashboard`.
+5. **Authentication Flow:** Verify Google Sign-In prompts correctly and redirects authenticated sessions to `/today`.
 6. **Console Hygiene:** Open browser developer tools and confirm zero runtime console errors, zero hydration mismatches, and zero failed network requests.
 
 ---

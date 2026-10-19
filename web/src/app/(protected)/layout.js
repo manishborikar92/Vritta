@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { TopNav, BottomNav, LoadingSpinner } from '@/components/ui';
 
 /**
- * Layout for all authenticated routes (/dashboard, /habits, /analytics).
+ * Layout for all authenticated routes (/today, /habits, /insights).
  *
  * Implements the shared application shell:
  * - Persistent TopNav header with route-aware title and subtitle

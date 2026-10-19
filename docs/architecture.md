@@ -67,7 +67,7 @@ root/
     └── src/
         ├── app/          # Next.js App Router routes and page layouts
         │   ├── (auth)/   # Unauthenticated route group (Login)
-        │   ├── (protected)/ # Authenticated route group (Dashboard, Habits, Analytics)
+        │   ├── (protected)/ # Authenticated route group (Today, Habits, Insights)
         │   ├── globals.css # Tailwind CSS v4 theme variables and global styles
         │   └── layout.js # Root layout with zero-flash theme blocking script
         ├── components/   # Modular React components
@@ -169,7 +169,7 @@ Vritta utilizes a unified, composable card architecture:
 
 | Component | Route | Core Behavior |
 | :--- | :--- | :--- |
-| **`HabitTrackerCard`** | `/dashboard` | Composable active tracking card rendering dynamic slots: `SlotStepper` (counters/sessions), `SlotDaySchedule` (weekday variations), `SlotCatalog` (discourse/item libraries), `SlotTimer` (countdown/stopwatch), `SlotNotes` (autosaved reflection notes), and `SlotChecklist` (sub-task completion). |
+| **`HabitTrackerCard`** | `/today` | Composable active tracking card rendering dynamic slots: `SlotStepper` (counters/sessions), `SlotDaySchedule` (weekday variations), `SlotCatalog` (discourse/item libraries), `SlotTimer` (countdown/stopwatch), `SlotNotes` (autosaved reflection notes), and `SlotChecklist` (sub-task completion). |
 | **`HabitConfigCard`** | `/habits` | Configuration and organization card rendering routine title, category badge, recurrence frequency, timing mode, collapsible instructions, edit/delete actions, and touch-accessible up/down reordering controls. |
 
 ### 5.3 Scheduling Philosophy

@@ -7,7 +7,7 @@ import { LoadingSpinner } from '@/components/ui';
 
 /**
  * Root page — redirect based on auth state:
- *   - Authenticated → /dashboard
+ *   - Authenticated → /today
  *   - Unauthenticated → /login
  */
 export default function Home() {
@@ -16,7 +16,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!loading) {
-      router.replace(user ? '/dashboard' : '/login');
+      router.replace(user ? '/today' : '/login');
     }
   }, [user, loading, router]);
 

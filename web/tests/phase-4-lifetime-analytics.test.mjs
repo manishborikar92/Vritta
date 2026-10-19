@@ -370,12 +370,12 @@ describe('Phase 4: Lifetime Analytics Engine & Truth Table', () => {
   });
 
   describe('6. Analytics Page Static & Accessibility Invariants', () => {
-    const pagePath = path.join(webRoot, 'src', 'app', '(protected)', 'analytics', 'page.js');
+    const pagePath = path.join(webRoot, 'src', 'app', '(protected)', 'insights', 'page.js');
 
     it('should verify analytics page exists and has valid source', () => {
-      assert.ok(fs.existsSync(pagePath), 'analytics/page.js must exist');
+      assert.ok(fs.existsSync(pagePath), 'insights/page.js must exist');
       const content = fs.readFileSync(pagePath, 'utf8');
-      assert.ok(content.includes('export default function AnalyticsPage'), 'Must export AnalyticsPage');
+      assert.ok(content.includes('export default function InsightsPage'), 'Must export InsightsPage');
     });
 
     it('should enforce WCAG AAA min 44x44px touch targets on calendar day buttons', () => {

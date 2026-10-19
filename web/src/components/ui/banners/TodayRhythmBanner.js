@@ -5,7 +5,7 @@ import { Sparkles, CheckCircle2 } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 
 /**
- * TodayRhythmBanner: Unified, responsive hero summary banner on the Dashboard.
+ * TodayRhythmBanner: Unified, responsive hero summary banner on the Today page.
  * 
  * Consolidates streak tracking, supportive coaching philosophy, daily completion
  * metrics, and progress visualization into a single, cohesive, mobile-first card.

@@ -223,7 +223,7 @@ describe('Phase 5 Architecture Simplification, Dead Code Removal & Quarantine', 
 
     const clientFiles = [
       path.join(srcDir, 'app/(protected)/habits/page.js'),
-      path.join(srcDir, 'app/(protected)/dashboard/page.js'),
+      path.join(srcDir, 'app/(protected)/today/page.js'),
       path.join(srcDir, 'hooks/useHabits.js'),
       path.join(srcDir, 'contexts/DataContext.js'),
       path.join(srcDir, 'components/habits/index.js'),
