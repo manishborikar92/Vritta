@@ -10,7 +10,7 @@ import {
   deriveUncompletedProgressForHabit,
   isFeatureSatisfied,
   evaluateHabitCompletion,
-} from '../src/lib/constants/habit-models.js';
+} from '../src/domain/index.js';
 import { OSHO_LIBRARY } from '../src/lib/fixtures/osho-library.js';
 
 const __filename = fileURLToPath(import.meta.url);

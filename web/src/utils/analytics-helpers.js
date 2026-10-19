@@ -18,44 +18,21 @@ import {
   resolveObservanceDate,
   evaluateHabitCompletion,
   isHabitRestDay,
+  isHabitScheduledOnDay,
+  isHabitRequiredOnDay,
   getEffectiveSchedule,
   getEffectiveScheduleForDate,
   getUserTimezone,
-} from '../lib/constants/habit-models.js';
+} from '../domain/index.js';
 
-/**
- * Checks whether a habit is scheduled to run on a specific day of the week.
- *
- * Rules:
- * - Empty or missing frequency array indicates everyday recurrence.
- * - Explicit frequency array requires matching day name (e.g. 'Mon', 'Wed').
- * - Supports composable habits (`schedule.frequency`) and legacy habits (`habit.frequency`).
- *
- * @param {Object} habit
- * @param {string} dayOfWeek - Short day name: 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
- * @returns {boolean}
- */
-export function isHabitScheduledOnDay(habit, dayOfWeek) {
-  if (!habit || !dayOfWeek) return false;
-  const frequency = habit.schedule?.frequency || habit.frequency;
-  if (!frequency || !Array.isArray(frequency) || frequency.length === 0) {
-    return true;
-  }
-  return frequency.includes(dayOfWeek);
-}
-
-export { isHabitRestDay, getEffectiveSchedule, getEffectiveScheduleForDate, getUserTimezone };
-
-/**
- * Checks whether a habit is required on a given day (scheduled AND not in planned rest).
- *
- * @param {Object} habit
- * @param {string} dayOfWeek
- * @returns {boolean}
- */
-export function isHabitRequiredOnDay(habit, dayOfWeek) {
-  return isHabitScheduledOnDay(habit, dayOfWeek) && !isHabitRestDay(habit, dayOfWeek);
-}
+export {
+  isHabitScheduledOnDay,
+  isHabitRequiredOnDay,
+  isHabitRestDay,
+  getEffectiveSchedule,
+  getEffectiveScheduleForDate,
+  getUserTimezone,
+};
 
 /**
  * Calculates completion metrics for a single date.

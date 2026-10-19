@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {
   evaluateHabitCompletion,
   isFeatureSatisfied,
-} from '../src/lib/constants/habit-models.js';
+} from '../src/domain/index.js';
 
 describe('Completion State Boundaries & Propagation Integrity', () => {
   const multiFeatureHabit = {

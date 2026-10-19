@@ -15,7 +15,7 @@ import {
   deriveCompletedProgressForHabit,
   deriveUncompletedProgressForHabit,
   getUserTimezone,
-} from '@/lib/constants/habit-models';
+} from '@/domain';
 import { getTimingDisplay, getDayOfWeek, getTodayString } from '@/utils/date-helpers';
 import { isHabitRestDay } from '@/utils/analytics-helpers';
 import { useSound } from '@/contexts';
@@ -29,7 +29,7 @@ import {
 } from './slots';
 
 /**
- * DashboardHabitCard — Simplified Composable Habit Card for the Vritta Dashboard.
+ * HabitTrackerCard — Composable Habit Tracking Card for the Vritta Dashboard.
  * Phase 4 Revision: Simplified Completion Contract
  *
  * Implements:
@@ -41,7 +41,7 @@ import {
  * - Planned rest days (e.g. Sunday movement) are gracefully recognized from the schedule.
  * - Seamless preservation of Osho listening, reading timers, workbook steppers, and conditioning plans.
  */
-function DashboardHabitCard({
+function HabitTrackerCard({
   habit,
   isCompleted = false,
   progress = {},
@@ -392,4 +392,4 @@ function DashboardHabitCard({
   );
 }
 
-export default memo(DashboardHabitCard);
+export default memo(HabitTrackerCard);

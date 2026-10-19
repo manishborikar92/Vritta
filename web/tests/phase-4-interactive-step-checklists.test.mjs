@@ -378,8 +378,8 @@ describe('Phase 4: Interactive Step Checklists & Workout Routine Consolidation',
       );
     });
 
-    it('should verify primary circular completion button satisfies min 44x44px touch target on DashboardHabitCard', () => {
-      const content = readWebFile('src/components/habits/DashboardHabitCard.js');
+    it('should verify primary circular completion button satisfies min 44x44px touch target on HabitTrackerCard', () => {
+      const content = readWebFile('src/components/habits/HabitTrackerCard.js');
       assert.ok(
         content.includes('w-11 h-11') || content.includes('min-h-[44px]'),
         'Primary toggle button must satisfy 44x44px WCAG touch target'
@@ -403,7 +403,7 @@ describe('Phase 4: Interactive Step Checklists & Workout Routine Consolidation',
     it('should verify DashboardPage passes progress and onUpdateProgress to habit card', () => {
       const content = readWebFile('src/app/(protected)/dashboard/page.js');
       assert.ok(
-        (content.includes('<DashboardHabitCard') || content.includes('<GenericHabitCard')) &&
+        (content.includes('<HabitTrackerCard') || content.includes('<GenericHabitCard')) &&
         content.includes('progress={progress}') &&
         content.includes('onUpdateProgress={updateProgress}'),
         'DashboardPage must pass progress and onUpdateProgress to habit card'

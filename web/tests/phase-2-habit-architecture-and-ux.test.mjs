@@ -17,9 +17,9 @@ function readWebFile(relativePath) {
 
 describe('Phase 2: Habit Architecture & UX Simplification', () => {
   const habitModalPath = 'src/components/habits/HabitModal.js';
-  const routineCardPath = 'src/components/habits/HabitManagerCard.js';
+  const routineCardPath = 'src/components/habits/HabitConfigCard.js';
   const dashboardPath = 'src/app/(protected)/dashboard/page.js';
-  const useHabitsPath = 'src/hooks/use-habits.js';
+  const useHabitsPath = 'src/hooks/useHabits.js';
   const dateHelpersPath = 'src/utils/date-helpers.js';
 
   describe('1. Elimination of Title-Based Card Sniffing', () => {
@@ -56,7 +56,7 @@ describe('Phase 2: Habit Architecture & UX Simplification', () => {
     });
 
     it('should verify card dispatch strictly uses canonical stableKey or personal preset origin', () => {
-      const content = readWebFile('src/components/habits/DashboardHabitCard.js') + readWebFile(dashboardPath);
+      const content = readWebFile('src/components/habits/HabitTrackerCard.js') + readWebFile(dashboardPath);
       assert.ok(
         content.includes("canonical_english_workbook"),
         'Must dispatch workbook card on canonical key'
@@ -216,15 +216,15 @@ describe('Phase 2: Habit Architecture & UX Simplification', () => {
       const content = readWebFile(useHabitsPath);
       assert.ok(
         content.includes('sortHabits'),
-        'use-habits.js must import and use sortHabits'
+        'useHabits.js must import and use sortHabits'
       );
       assert.ok(
         content.includes('habitsData.sort(sortHabits)'),
-        'use-habits.js must sort snapshot documents with sortHabits'
+        'useHabits.js must sort snapshot documents with sortHabits'
       );
       assert.ok(
         !content.includes('sortHabitsByTiming'),
-        'use-habits.js must eliminate obsolete sortHabitsByTiming'
+        'useHabits.js must eliminate obsolete sortHabitsByTiming'
       );
     });
 

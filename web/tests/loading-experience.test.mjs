@@ -30,7 +30,7 @@ function getSrcFiles(dir = path.join(webRoot, 'src')) {
 describe('Phase 7: Loading Experience & Reduced-Motion Architecture', () => {
   describe('1. Brand LoadingSpinner Architecture & Elimination of Obsolete Overlays', () => {
     it('should verify LoadingSpinner implements calm concentric orbit with reduced-motion fallback', () => {
-      const content = readWebFile('src/components/ui/LoadingSpinner.js');
+      const content = readWebFile('src/components/ui/feedback/LoadingSpinner.js');
       assert.ok(content.includes('motion-safe:animate-[spin_1.6s_linear_infinite]'), 'Must use motion-safe spinner animation');
       assert.ok(content.includes('motion-reduce:border-t-subtle'), 'Must use calm reduced-motion fallback');
       assert.ok(content.includes('role="status"'), 'Must declare role="status"');
@@ -39,11 +39,11 @@ describe('Phase 7: Loading Experience & Reduced-Motion Architecture', () => {
 
     it('should verify UI index exports LoadingSpinner and contextual skeletons', () => {
       const content = readWebFile('src/components/ui/index.js');
-      assert.ok(content.includes("export { default as LoadingSpinner } from './LoadingSpinner'"));
-      assert.ok(content.includes("export { default as Skeleton } from './Skeleton'"));
-      assert.ok(content.includes("export { default as DashboardSkeleton } from './DashboardSkeleton'"));
-      assert.ok(content.includes("export { default as HabitsSkeleton } from './HabitsSkeleton'"));
-      assert.ok(content.includes("export { default as AnalyticsSkeleton } from './AnalyticsSkeleton'"));
+      assert.ok(content.includes("export { default as LoadingSpinner } from './feedback/LoadingSpinner'"));
+      assert.ok(content.includes("export { default as Skeleton } from './feedback/Skeleton'"));
+      assert.ok(content.includes("export { default as DashboardSkeleton } from './feedback/DashboardSkeleton'"));
+      assert.ok(content.includes("export { default as HabitsSkeleton } from './feedback/HabitsSkeleton'"));
+      assert.ok(content.includes("export { default as AnalyticsSkeleton } from './feedback/AnalyticsSkeleton'"));
     });
 
     it('should verify elimination of obsolete z-[9999] high z-index overlay across web/src', () => {
@@ -58,7 +58,7 @@ describe('Phase 7: Loading Experience & Reduced-Motion Architecture', () => {
 
   describe('2. Skeleton Primitive & Contextual Skeleton Implementations', () => {
     it('should verify Skeleton.js primitive with semantic tokens and reduced-motion support', () => {
-      const content = readWebFile('src/components/ui/Skeleton.js');
+      const content = readWebFile('src/components/ui/feedback/Skeleton.js');
       assert.ok(content.includes('motion-safe:animate-pulse'), 'Must use motion-safe:animate-pulse');
       assert.ok(content.includes('motion-reduce:animate-none'), 'Must use motion-reduce:animate-none');
       assert.ok(content.includes('aria-hidden="true"'), 'Must declare aria-hidden="true" for decorative placeholders');
@@ -66,7 +66,7 @@ describe('Phase 7: Loading Experience & Reduced-Motion Architecture', () => {
     });
 
     it('should verify DashboardSkeleton renders content-only main landmark and card anatomy', () => {
-      const content = readWebFile('src/components/ui/DashboardSkeleton.js');
+      const content = readWebFile('src/components/ui/feedback/DashboardSkeleton.js');
       assert.ok(!content.includes('<TopNav'), 'Must NOT include TopNav (owned by ProtectedLayout shell)');
       assert.ok(content.includes('<main'), 'Must render <main> landmark');
       assert.ok(content.includes('border-t-[3px]'), 'Must mirror card top border design token');
@@ -74,7 +74,7 @@ describe('Phase 7: Loading Experience & Reduced-Motion Architecture', () => {
     });
 
     it('should verify HabitsSkeleton renders content-only main landmark and RoutineCard anatomy', () => {
-      const content = readWebFile('src/components/ui/HabitsSkeleton.js');
+      const content = readWebFile('src/components/ui/feedback/HabitsSkeleton.js');
       assert.ok(!content.includes('<TopNav'), 'Must NOT include TopNav (owned by ProtectedLayout shell)');
       assert.ok(content.includes('<main'), 'Must render <main> landmark');
       assert.ok(content.includes('pb-32 sm:pb-36'), 'Must preserve bottom clearance for FAB and BottomNav');
@@ -82,7 +82,7 @@ describe('Phase 7: Loading Experience & Reduced-Motion Architecture', () => {
     });
 
     it('should verify AnalyticsSkeleton renders content-only main landmark, tabs, and metrics grid', () => {
-      const content = readWebFile('src/components/ui/AnalyticsSkeleton.js');
+      const content = readWebFile('src/components/ui/feedback/AnalyticsSkeleton.js');
       assert.ok(!content.includes('<TopNav'), 'Must NOT include TopNav (owned by ProtectedLayout shell)');
       assert.ok(content.includes('<main'), 'Must render <main> landmark');
       assert.ok(content.includes('grid grid-cols-2'), 'Must mirror 2-metric card grid');
@@ -90,10 +90,10 @@ describe('Phase 7: Loading Experience & Reduced-Motion Architecture', () => {
 
     it('should verify UI index exports all contextual skeleton components', () => {
       const content = readWebFile('src/components/ui/index.js');
-      assert.ok(content.includes("export { default as Skeleton } from './Skeleton'"));
-      assert.ok(content.includes("export { default as DashboardSkeleton } from './DashboardSkeleton'"));
-      assert.ok(content.includes("export { default as HabitsSkeleton } from './HabitsSkeleton'"));
-      assert.ok(content.includes("export { default as AnalyticsSkeleton } from './AnalyticsSkeleton'"));
+      assert.ok(content.includes("export { default as Skeleton } from './feedback/Skeleton'"));
+      assert.ok(content.includes("export { default as DashboardSkeleton } from './feedback/DashboardSkeleton'"));
+      assert.ok(content.includes("export { default as HabitsSkeleton } from './feedback/HabitsSkeleton'"));
+      assert.ok(content.includes("export { default as AnalyticsSkeleton } from './feedback/AnalyticsSkeleton'"));
     });
   });
 

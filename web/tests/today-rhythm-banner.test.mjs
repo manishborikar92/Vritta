@@ -13,7 +13,7 @@ function readWebFile(relPath) {
 }
 
 describe('Phase 1: TodayRhythmBanner Architecture & Invariants', () => {
-  const bannerPath = 'src/components/habits/TodayRhythmBanner.js';
+  const bannerPath = 'src/components/ui/banners/TodayRhythmBanner.js';
 
   it('should verify TodayRhythmBanner file exists and exports a memoized component', () => {
     assert.ok(fs.existsSync(path.join(webRoot, bannerPath)), 'TodayRhythmBanner.js must exist');
@@ -21,10 +21,14 @@ describe('Phase 1: TodayRhythmBanner Architecture & Invariants', () => {
     assert.ok(content.includes('export default memo(TodayRhythmBanner)'), 'Component must be memoized');
   });
 
-  it('should verify habits/index.js exports TodayRhythmBanner and eliminates StreakCounter', () => {
-    const indexContent = readWebFile('src/components/habits/index.js');
-    assert.ok(indexContent.includes("export { default as TodayRhythmBanner } from './TodayRhythmBanner'"), 'Must export TodayRhythmBanner');
-    assert.ok(!indexContent.includes("from './StreakCounter'"), 'Must not export legacy StreakCounter');
+  it('should verify ui/index.js and banners/index.js export TodayRhythmBanner and habits/index.js does not', () => {
+    const uiIndexContent = readWebFile('src/components/ui/index.js');
+    assert.ok(uiIndexContent.includes("export { default as TodayRhythmBanner } from './banners/TodayRhythmBanner'"), 'ui/index.js must export TodayRhythmBanner');
+    const bannersIndexContent = readWebFile('src/components/ui/banners/index.js');
+    assert.ok(bannersIndexContent.includes("export { default as TodayRhythmBanner } from './TodayRhythmBanner'"), 'banners/index.js must export TodayRhythmBanner');
+    const habitsIndexContent = readWebFile('src/components/habits/index.js');
+    assert.ok(!habitsIndexContent.includes('TodayRhythmBanner'), 'habits/index.js must not export TodayRhythmBanner');
+    assert.ok(!uiIndexContent.includes("StreakCounter"), 'Must not export legacy StreakCounter');
   });
 
   it('should verify DashboardPage renders unified TodayRhythmBanner and eliminates duplicate progress div', () => {

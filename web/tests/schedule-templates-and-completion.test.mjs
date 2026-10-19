@@ -10,7 +10,7 @@ import {
   deriveUncompletedProgressForHabit,
   evaluateHabitCompletion,
   isFeatureSatisfied,
-} from '../src/lib/constants/habit-models.js';
+} from '../src/domain/index.js';
 import { CATEGORIES } from '../src/lib/constants/categories.js';
 
 describe('Schedule Templates & Reusable Blueprints', () => {
@@ -247,7 +247,7 @@ describe('Timer Selection Isolation & Source of Truth Regressions', () => {
       },
     };
 
-    // Card resolution source-of-truth helper matching DashboardHabitCard and HabitManagerCard
+    // Card resolution source-of-truth helper matching HabitTrackerCard and HabitConfigCard
     const isTimerActive = Boolean(
       habitWithoutTimer.features?.timer?.enabled ??
       (habitWithoutTimer.completionMethod === 'reading_duration' || habitWithoutTimer.stableKey === 'canonical_read_books')

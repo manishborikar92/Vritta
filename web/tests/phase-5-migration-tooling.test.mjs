@@ -9,7 +9,7 @@ import {
   validateComposableHabit,
   validateDailyLogDoc,
   deriveTrackingHorizon,
-} from '../src/lib/constants/habit-models.js';
+} from '../src/domain/index.js';
 
 import {
   buildNormalizedComposableHabit,

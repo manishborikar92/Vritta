@@ -33,20 +33,20 @@ describe('Daily Log Progress Isolation & Regression Tests', () => {
       );
     });
 
-    it('should verify use-daily-logs.js calls toggleHabitCompletion without currentLogLength', () => {
-      const filePath = path.join(webRoot, 'src', 'hooks', 'use-daily-logs.js');
+    it('should verify useDailyLogs.js calls toggleHabitCompletion without currentLogLength', () => {
+      const filePath = path.join(webRoot, 'src', 'hooks', 'useDailyLogs.js');
       const content = fs.readFileSync(filePath, 'utf8');
 
       // Verify toggleHabitCompletion call does not pass todayLog.length
       assert.ok(
         !content.includes('toggleHabitCompletion(user.uid, today, habitId, isCompleted, todayLog.length)'),
-        'use-daily-logs.js must not pass todayLog.length to toggleHabitCompletion'
+        'useDailyLogs.js must not pass todayLog.length to toggleHabitCompletion'
       );
 
       // Verify toggleHabit uses functional updater
       assert.ok(
         content.includes('setTodayLog(prev =>'),
-        'use-daily-logs.js toggleHabit must use functional state updates'
+        'useDailyLogs.js toggleHabit must use functional state updates'
       );
     });
   });

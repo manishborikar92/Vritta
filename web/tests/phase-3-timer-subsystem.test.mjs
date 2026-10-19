@@ -45,7 +45,7 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
     });
 
     it('should verify dashboard dispatches reading_duration and excludes generic timer', () => {
-      const content = readWebFile('src/components/habits/DashboardHabitCard.js') + readWebFile('src/app/(protected)/dashboard/page.js');
+      const content = readWebFile('src/components/habits/HabitTrackerCard.js') + readWebFile('src/app/(protected)/dashboard/page.js');
       assert.ok(
         content.includes("habit.completionMethod === 'reading_duration'"),
         'Dashboard must dispatch reading_duration to timer slot'
@@ -289,7 +289,7 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
 
     it('should register visibilitychange and window focus listeners in timer subsystem', () => {
       const contextContent = readWebFile('src/contexts/TimerContext.js');
-      const hookContent = readWebFile('src/hooks/use-timer.js');
+      const hookContent = readWebFile('src/hooks/useTimer.js');
 
       assert.ok(
         contextContent.includes('document.addEventListener(\'visibilitychange\', handleSync)') ||
@@ -427,7 +427,7 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
 
     it('should ensure TimerContext is the single authoritative writer to updateProgress', () => {
       const contextContent = readWebFile('src/contexts/TimerContext.js');
-      const hookContent = readWebFile('src/hooks/use-timer.js');
+      const hookContent = readWebFile('src/hooks/useTimer.js');
 
       assert.ok(
         contextContent.includes('updateProgress(habitId, { durationMinutes: targetMinutes }, true)'),
@@ -445,7 +445,7 @@ describe('Phase 3: Specialized Reading Duration Timer Subsystem', () => {
       const files = [
         'src/components/habits/slots/SlotTimer.js',
         'src/contexts/TimerContext.js',
-        'src/hooks/use-timer.js',
+        'src/hooks/useTimer.js',
         'src/utils/audio-chime.js',
         'src/utils/timer-notifications.js',
         'src/utils/reading-helpers.js',

@@ -252,8 +252,8 @@ describe('Phase 4: Status Controls Semantics, Persistence & Analytics Engine', (
   });
 
   describe('3. Component Architecture & UI Invariants', () => {
-    it('DashboardHabitCard simplifies completion contract: primary circular checkbox is the single toggle, removing manual Rest/Skip/Missed action menus', () => {
-      const cardSource = readWebFile('src/components/habits/DashboardHabitCard.js');
+    it('HabitTrackerCard simplifies completion contract: primary circular checkbox is the single toggle, removing manual Rest/Skip/Missed action menus', () => {
+      const cardSource = readWebFile('src/components/habits/HabitTrackerCard.js');
 
       // Elimination of manual outcome action menu
       assert.ok(!cardSource.includes("handleSetOutcome('rest'"), 'Must NOT have Rest Today action handler');

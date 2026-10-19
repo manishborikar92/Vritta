@@ -20,7 +20,7 @@ import { getCategoryConfig } from '@/lib/constants/categories';
 import { getTimingDisplay, getFrequencyDisplay } from '@/utils/date-helpers';
 
 /**
- * HabitManagerCard — Unified Routine Manager Card for the Routines & Observance page (/habits).
+ * HabitConfigCard — Unified Routine Configuration Card for the Routines & Observance page (/habits).
  * Phase 3: Universal Habit Card System
  *
  * Implements:
@@ -31,7 +31,7 @@ import { getTimingDisplay, getFrequencyDisplay } from '@/utils/date-helpers';
  * - Collapsible instructions accordion preventing visual clutter on mobile.
  * - Zero hardcoding of personal email accounts or legacy category aliases.
  */
-function HabitManagerCard({
+function HabitConfigCard({
   habit,
   isFirst = false,
   isLast = false,
@@ -268,4 +268,4 @@ function HabitManagerCard({
   );
 }
 
-export default memo(HabitManagerCard);
+export default memo(HabitConfigCard);

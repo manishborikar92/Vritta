@@ -14,7 +14,7 @@ import {
 import {
   APPROVED_FEATURE_SLOTS,
   validateComposableHabit,
-} from '../src/lib/constants/habit-models.js';
+} from '../src/domain/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,15 +26,15 @@ function readWebFile(relPath) {
 
 describe('Phase 3: Unified Habit Card Architecture & Behavioral Integrity', () => {
   describe('1. Component Architecture & Universal Exports', () => {
-    it('should export DashboardHabitCard and HabitManagerCard from habits barrel', () => {
+    it('should export HabitTrackerCard and HabitConfigCard from habits barrel', () => {
       const habitsIndexContent = readWebFile('src/components/habits/index.js');
       assert.ok(
-        habitsIndexContent.includes("export { default as DashboardHabitCard } from './DashboardHabitCard'"),
-        'habits/index.js must export DashboardHabitCard'
+        habitsIndexContent.includes("export { default as HabitTrackerCard } from './HabitTrackerCard'"),
+        'habits/index.js must export HabitTrackerCard'
       );
       assert.ok(
-        habitsIndexContent.includes("export { default as HabitManagerCard } from './HabitManagerCard'"),
-        'habits/index.js must export HabitManagerCard'
+        habitsIndexContent.includes("export { default as HabitConfigCard } from './HabitConfigCard'"),
+        'habits/index.js must export HabitConfigCard'
       );
     });
 
@@ -61,15 +61,15 @@ describe('Phase 3: Unified Habit Card Architecture & Behavioral Integrity', () =
       );
     });
 
-    it('should verify dashboard/page.js renders DashboardHabitCard and eliminates specialized branches', () => {
+    it('should verify dashboard/page.js renders HabitTrackerCard and eliminates specialized branches', () => {
       const dashboardContent = readWebFile('src/app/(protected)/dashboard/page.js');
       assert.ok(
-        dashboardContent.includes('DashboardHabitCard'),
-        'dashboard/page.js must import DashboardHabitCard'
+        dashboardContent.includes('HabitTrackerCard'),
+        'dashboard/page.js must import HabitTrackerCard'
       );
       assert.ok(
-        dashboardContent.includes('<DashboardHabitCard'),
-        'dashboard/page.js must render <DashboardHabitCard />'
+        dashboardContent.includes('<HabitTrackerCard'),
+        'dashboard/page.js must render <HabitTrackerCard />'
       );
       // Verify specialized cards are not directly rendered in dashboard/page.js
       assert.ok(
@@ -98,37 +98,37 @@ describe('Phase 3: Unified Habit Card Architecture & Behavioral Integrity', () =
       );
     });
 
-    it('should verify habits/page.js renders HabitManagerCard', () => {
+    it('should verify habits/page.js renders HabitConfigCard', () => {
       const habitsContent = readWebFile('src/app/(protected)/habits/page.js');
       assert.ok(
-        habitsContent.includes('HabitManagerCard'),
-        'habits/page.js must import HabitManagerCard'
+        habitsContent.includes('HabitConfigCard'),
+        'habits/page.js must import HabitConfigCard'
       );
       assert.ok(
-        habitsContent.includes('<HabitManagerCard'),
-        'habits/page.js must render <HabitManagerCard />'
+        habitsContent.includes('<HabitConfigCard'),
+        'habits/page.js must render <HabitConfigCard />'
       );
     });
   });
 
   describe('2. Canonical Category & Styling Token Conformance', () => {
-    it('should verify DashboardHabitCard and HabitManagerCard consume getCategoryConfig', () => {
-      const dashboardCardContent = readWebFile('src/components/habits/DashboardHabitCard.js');
-      const managerCardContent = readWebFile('src/components/habits/HabitManagerCard.js');
+    it('should verify HabitTrackerCard and HabitConfigCard consume getCategoryConfig', () => {
+      const dashboardCardContent = readWebFile('src/components/habits/HabitTrackerCard.js');
+      const managerCardContent = readWebFile('src/components/habits/HabitConfigCard.js');
 
       assert.ok(
         dashboardCardContent.includes('getCategoryConfig'),
-        'DashboardHabitCard must call getCategoryConfig'
+        'HabitTrackerCard must call getCategoryConfig'
       );
       assert.ok(
         managerCardContent.includes('getCategoryConfig'),
-        'HabitManagerCard must call getCategoryConfig'
+        'HabitConfigCard must call getCategoryConfig'
       );
     });
 
     it('should verify zero title sniffing or category substring matches in unified cards', () => {
-      const dashboardCardContent = readWebFile('src/components/habits/DashboardHabitCard.js');
-      const managerCardContent = readWebFile('src/components/habits/HabitManagerCard.js');
+      const dashboardCardContent = readWebFile('src/components/habits/HabitTrackerCard.js');
+      const managerCardContent = readWebFile('src/components/habits/HabitConfigCard.js');
 
       // Prohibited title sniffing
       assert.ok(!dashboardCardContent.includes("title.includes('workbook')"));
@@ -162,27 +162,27 @@ describe('Phase 3: Unified Habit Card Architecture & Behavioral Integrity', () =
   });
 
   describe('4. Gate 0 Mobile Density: Collapsible Instructions Accordion', () => {
-    it('should verify DashboardHabitCard and HabitManagerCard implement collapsible instructions', () => {
-      const dashboardCardContent = readWebFile('src/components/habits/DashboardHabitCard.js');
-      const managerCardContent = readWebFile('src/components/habits/HabitManagerCard.js');
+    it('should verify HabitTrackerCard and HabitConfigCard implement collapsible instructions', () => {
+      const dashboardCardContent = readWebFile('src/components/habits/HabitTrackerCard.js');
+      const managerCardContent = readWebFile('src/components/habits/HabitConfigCard.js');
 
       assert.ok(
         dashboardCardContent.includes('showInstructions') && dashboardCardContent.includes('setShowInstructions'),
-        'DashboardHabitCard must implement collapsible instructions accordion'
+        'HabitTrackerCard must implement collapsible instructions accordion'
       );
       assert.ok(
         managerCardContent.includes('showInstructions') && managerCardContent.includes('setShowInstructions'),
-        'HabitManagerCard must implement collapsible instructions accordion'
+        'HabitConfigCard must implement collapsible instructions accordion'
       );
     });
   });
 
   describe('5. WCAG 2.2 AAA Touch Targets & Action Controls', () => {
     it('should verify primary circular completion button satisfies min 44x44px touch target', () => {
-      const dashboardCardContent = readWebFile('src/components/habits/DashboardHabitCard.js');
+      const dashboardCardContent = readWebFile('src/components/habits/HabitTrackerCard.js');
       assert.ok(
         dashboardCardContent.includes('min-w-[44px]') && dashboardCardContent.includes('min-h-[44px]'),
-        'Primary circular completion button in DashboardHabitCard must meet min 44x44px'
+        'Primary circular completion button in HabitTrackerCard must meet min 44x44px'
       );
     });
 
@@ -202,11 +202,11 @@ describe('Phase 3: Unified Habit Card Architecture & Behavioral Integrity', () =
       );
     });
 
-    it('should verify HabitManagerCard Edit and Delete buttons satisfy min 44x44px touch targets', () => {
-      const managerCardContent = readWebFile('src/components/habits/HabitManagerCard.js');
+    it('should verify HabitConfigCard Edit and Delete buttons satisfy min 44x44px touch targets', () => {
+      const managerCardContent = readWebFile('src/components/habits/HabitConfigCard.js');
       assert.ok(
         managerCardContent.includes('min-w-[44px]') && managerCardContent.includes('min-h-[44px]'),
-        'Edit and delete buttons in HabitManagerCard must meet min 44x44px'
+        'Edit and delete buttons in HabitConfigCard must meet min 44x44px'
       );
     });
   });
@@ -224,20 +224,20 @@ describe('Phase 3: Unified Habit Card Architecture & Behavioral Integrity', () =
   });
 
   describe('7. Action Outcomes Menu Elimination & Simplified Contract', () => {
-    it('should verify DashboardHabitCard establishes primary circular checkbox as sole toggle without action menu', () => {
-      const dashboardCardContent = readWebFile('src/components/habits/DashboardHabitCard.js');
+    it('should verify HabitTrackerCard establishes primary circular checkbox as sole toggle without action menu', () => {
+      const dashboardCardContent = readWebFile('src/components/habits/HabitTrackerCard.js');
 
       assert.ok(
         !dashboardCardContent.includes('Skip Today') && !dashboardCardContent.includes('Skip / Rest Today'),
-        'DashboardHabitCard must eliminate manual Skip Today action'
+        'HabitTrackerCard must eliminate manual Skip Today action'
       );
       assert.ok(
         !dashboardCardContent.includes('Mark as Missed'),
-        'DashboardHabitCard must eliminate manual Mark as Missed action'
+        'HabitTrackerCard must eliminate manual Mark as Missed action'
       );
       assert.ok(
         dashboardCardContent.includes('handlePrimaryToggle'),
-        'DashboardHabitCard must use primary circular toggle as single mechanism'
+        'HabitTrackerCard must use primary circular toggle as single mechanism'
       );
     });
   });

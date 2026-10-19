@@ -245,13 +245,13 @@ describe('Phase 7: Interactive Sound Experience & Audio Polish', () => {
       assert.ok(contextContent.includes('diffMs <= 0 ? 0 : Math.ceil(diffMs / 1000)'), 'getTimerState must compute realtime remaining to prevent 00:01 stranding');
     });
 
-    it('should verify standalone use-timer.js fallback supports start, resume, pause, reset, and completion cues', () => {
-      const hookContent = readWebFile('src/hooks/use-timer.js');
-      assert.ok(hookContent.includes('playStartCue()'), 'use-timer.js must call playStartCue');
-      assert.ok(hookContent.includes('playResumeCue()'), 'use-timer.js must call playResumeCue');
-      assert.ok(hookContent.includes('playPauseCue()'), 'use-timer.js must call playPauseCue');
-      assert.ok(hookContent.includes('playResetCue()'), 'use-timer.js must call playResetCue');
-      assert.ok(hookContent.includes('playCompletionChime()'), 'use-timer.js must call playCompletionChime');
+    it('should verify standalone useTimer.js fallback supports start, resume, pause, reset, and completion cues', () => {
+      const hookContent = readWebFile('src/hooks/useTimer.js');
+      assert.ok(hookContent.includes('playStartCue()'), 'useTimer.js must call playStartCue');
+      assert.ok(hookContent.includes('playResumeCue()'), 'useTimer.js must call playResumeCue');
+      assert.ok(hookContent.includes('playPauseCue()'), 'useTimer.js must call playPauseCue');
+      assert.ok(hookContent.includes('playResetCue()'), 'useTimer.js must call playResetCue');
+      assert.ok(hookContent.includes('playCompletionChime()'), 'useTimer.js must call playCompletionChime');
     });
   });
 
@@ -267,12 +267,12 @@ describe('Phase 7: Interactive Sound Experience & Audio Polish', () => {
       );
     });
 
-    it('should verify DashboardHabitCard whole habit toggle plays completion or neutral uncheck cue', () => {
-      const cardContent = readWebFile('src/components/habits/DashboardHabitCard.js');
+    it('should verify HabitTrackerCard whole habit toggle plays completion or neutral uncheck cue', () => {
+      const cardContent = readWebFile('src/components/habits/HabitTrackerCard.js');
       assert.ok(
         cardContent.includes('playHabitCompleteCue?.();') &&
         cardContent.includes('playStepToggleCue?.(false);'),
-        'DashboardHabitCard must play completion cue on complete and uncheck tick on incomplete'
+        'HabitTrackerCard must play completion cue on complete and uncheck tick on incomplete'
       );
     });
 
@@ -298,12 +298,12 @@ describe('Phase 7: Interactive Sound Experience & Audio Polish', () => {
     });
 
     it('should verify composable components support sound completion cues', () => {
-      const dashboard = readWebFile('src/components/habits/DashboardHabitCard.js');
+      const dashboard = readWebFile('src/components/habits/HabitTrackerCard.js');
       const timer = readWebFile('src/components/habits/slots/SlotTimer.js');
       const checklist = readWebFile('src/components/habits/slots/SlotChecklist.js');
       const daySchedule = readWebFile('src/components/habits/slots/SlotDaySchedule.js');
 
-      assert.ok(dashboard.includes('playHabitCompleteCue'), 'DashboardHabitCard must support completion cue');
+      assert.ok(dashboard.includes('playHabitCompleteCue'), 'HabitTrackerCard must support completion cue');
       assert.ok(!timer.includes('soundOnComplete'), 'SlotTimer must not contain obsolete soundOnComplete');
       assert.ok(timer.includes('useTimer'), 'SlotTimer must support sound cues via useTimer');
       assert.ok(checklist.includes('playHabitCompleteCue'), 'SlotChecklist must support completion cues');
@@ -323,7 +323,7 @@ describe('Phase 7: Interactive Sound Experience & Audio Polish', () => {
     });
 
     it('should verify BottomNav route navigation triggers playTabSwitchCue only on genuine destination switches', () => {
-      const navContent = readWebFile('src/components/ui/BottomNav.js');
+      const navContent = readWebFile('src/components/ui/navigation/BottomNav.js');
       assert.ok(navContent.includes('useSound'), 'BottomNav must import useSound');
       assert.ok(navContent.includes('playTabSwitchCue'), 'BottomNav must call playTabSwitchCue');
       assert.ok(
@@ -383,7 +383,7 @@ describe('Phase 7: Interactive Sound Experience & Audio Polish', () => {
 
     it('should verify error handlers and cancel dialogs produce NO success sounds', () => {
       const habitsContent = readWebFile('src/app/(protected)/habits/page.js');
-      const dialogContent = readWebFile('src/components/ui/ConfirmDialog.js');
+      const dialogContent = readWebFile('src/components/ui/dialogs/ConfirmDialog.js');
 
       assert.ok(!habitsContent.includes('catch (err) {\n      playAction'), 'Catch block must not play success cues');
       assert.ok(!dialogContent.includes('useSound'), 'ConfirmDialog must NOT import useSound');
@@ -392,7 +392,7 @@ describe('Phase 7: Interactive Sound Experience & Audio Polish', () => {
 
   describe('7. Direct Sound Toggle UI & WCAG 2.2 Accessibility Invariants', () => {
     it('should verify SoundControl component exists and exports direct toggle button without popovers', () => {
-      const controlContent = readWebFile('src/components/ui/SoundControl.js');
+      const controlContent = readWebFile('src/components/ui/controls/SoundControl.js');
       assert.ok(controlContent.includes('export default function SoundControl('), 'SoundControl must export default function');
       assert.ok(!controlContent.includes('role="dialog"'), 'SoundControl must NOT render dialog popover');
       assert.ok(!controlContent.includes('type="range"'), 'SoundControl must NOT render volume slider');
@@ -400,7 +400,7 @@ describe('Phase 7: Interactive Sound Experience & Audio Polish', () => {
     });
 
     it('should verify SoundControl complies with WCAG 2.2 touch target and ARIA semantics', () => {
-      const controlContent = readWebFile('src/components/ui/SoundControl.js');
+      const controlContent = readWebFile('src/components/ui/controls/SoundControl.js');
       assert.ok(controlContent.includes('w-10 h-10'), 'Button must provide accessible 40x40px touch area');
       assert.ok(controlContent.includes('onClick={toggleSound}'), 'Button must toggle sound on single click');
       assert.ok(controlContent.includes('aria-label='), 'Button must define descriptive aria-label');
@@ -408,7 +408,7 @@ describe('Phase 7: Interactive Sound Experience & Audio Polish', () => {
     });
 
     it('should verify TopNav renders SoundControl adjacent to ThemeToggle in persistent header', () => {
-      const topNavContent = readWebFile('src/components/ui/TopNav.js');
+      const topNavContent = readWebFile('src/components/ui/navigation/TopNav.js');
       assert.ok(topNavContent.includes('import SoundControl'), 'TopNav must import SoundControl');
       assert.ok(topNavContent.includes('<SoundControl />'), 'TopNav must render SoundControl');
       assert.ok(topNavContent.includes('<ThemeToggle />'), 'TopNav must render ThemeToggle');

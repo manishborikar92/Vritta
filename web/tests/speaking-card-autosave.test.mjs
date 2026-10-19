@@ -159,7 +159,7 @@ describe('SpeakingCard Autosave & Debounce Behavior', () => {
 
 describe('SlotNotes Static Source Code Compliance', () => {
   const filePath = path.join(webRoot, 'src', 'components', 'habits', 'slots', 'SlotNotes.js');
-  const cardPath = path.join(webRoot, 'src', 'components', 'habits', 'DashboardHabitCard.js');
+  const cardPath = path.join(webRoot, 'src', 'components', 'habits', 'HabitTrackerCard.js');
   const content = fs.readFileSync(filePath, 'utf-8');
   const cardContent = fs.readFileSync(cardPath, 'utf-8');
 

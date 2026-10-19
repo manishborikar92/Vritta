@@ -667,7 +667,7 @@ async function main() {
 
   // Load modules
   const adminPath = path.join(projectRoot, 'web', 'src', 'lib', 'server', 'firebase-admin.js');
-  const habitModelsPath = path.join(projectRoot, 'web', 'src', 'lib', 'constants', 'habit-models.js');
+  const habitModelsPath = path.join(projectRoot, 'web', 'src', 'domain', 'index.js');
   const firestorePath = path.join(projectRoot, 'web', 'src', 'lib', 'firebase', 'firestore.js');
 
   const { adminDb, adminAuth, FieldValue } = await import(pathToFileURL(adminPath).href);

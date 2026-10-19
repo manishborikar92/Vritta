@@ -142,7 +142,7 @@ async function main() {
   }
 
   const { adminAuth, adminDb, Timestamp } = await import('../web/src/lib/server/firebase-admin.js');
-  const { validateComposableHabit, validateDailyLogDoc } = await import('../web/src/lib/constants/habit-models.js');
+  const { validateComposableHabit, validateDailyLogDoc } = await import('../web/src/domain/index.js');
   const { normalizeHabitFromFirestore, normalizeDailyLogFromFirestore } = await import('../web/src/lib/firebase/firestore.js');
 
   // 1. Read & Validate Backup File Integrity

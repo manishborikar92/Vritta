@@ -108,7 +108,7 @@ Key test domains include:
 - **`date-helpers.test.mjs` & `streak-calculation.test.mjs`:** Verifies local timezone handling, rest-day exclusions, and multi-period streak continuity.
 - **`theme-engine.test.mjs`:** Tests two-state theme toggle, pre-paint blocking script, and legacy `'system'` migration.
 - **`audio-chime.test.mjs` & `sound-context.test.mjs`:** Tests Web Audio API synthesis, frequency parameters, gain envelopes, volume scaling, and mute toggles.
-- **`timer-context.test.mjs` & `use-timer.test.mjs`:** Tests wall-clock deadline derivation, Web Worker ticks, focus/visibility wakeups, single-completion guards, and silent reload recovery.
+- **`timer-context.test.mjs` & `useTimer.test.mjs`:** Tests wall-clock deadline derivation, Web Worker ticks, focus/visibility wakeups, single-completion guards, and silent reload recovery.
 - **`habits-contracts.test.mjs` & `routine-seeding.test.mjs`:** Verifies foundation routine loading, personal schedule isolation, and Firestore model validation.
 
 > [!NOTE]

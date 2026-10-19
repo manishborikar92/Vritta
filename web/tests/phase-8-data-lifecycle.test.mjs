@@ -65,7 +65,7 @@ describe('Phase 8: Data-Loading Lifecycle, Safeguards & Error Invariants', () =>
 
   describe('4. Firestore Listener Lifecycle: Subsequent Live Updates', () => {
     it('should verify useHabits keeps loading=false during subsequent real-time updates', () => {
-      const content = readWebFile('src/hooks/use-habits.js');
+      const content = readWebFile('src/hooks/useHabits.js');
       assert.ok(content.includes('const unsubscribe = onSnapshot(habitsQuery'), 'Must attach onSnapshot listener');
       // Verify setLoading(false) is called inside onSnapshot, and not reset to true on updates
       assert.ok(content.includes('setLoading(false);'), 'Must set loading to false upon snapshot arrival');
@@ -73,7 +73,7 @@ describe('Phase 8: Data-Loading Lifecycle, Safeguards & Error Invariants', () =>
     });
 
     it('should verify useDailyLogs updates state reactively without resetting global page loading', () => {
-      const content = readWebFile('src/hooks/use-daily-logs.js');
+      const content = readWebFile('src/hooks/useDailyLogs.js');
       assert.ok(content.includes('onSnapshot(dailyLogRef'), 'Must listen to daily log updates in real-time');
       assert.ok(content.includes('setTodayLog('), 'Must reactively update todayLog state');
       assert.ok(content.includes('setTodayProgress('), 'Must reactively update todayProgress state');
@@ -107,7 +107,7 @@ describe('Phase 8: Data-Loading Lifecycle, Safeguards & Error Invariants', () =>
 
   describe('6. Reduced-Motion & Accessibility Invariants', () => {
     it('should verify LoadingSpinner supports reduced-motion fallback', () => {
-      const content = readWebFile('src/components/ui/LoadingSpinner.js');
+      const content = readWebFile('src/components/ui/feedback/LoadingSpinner.js');
       assert.ok(content.includes('motion-safe:animate-[spin_1.6s_linear_infinite]'), 'Must use motion-safe for spin');
       assert.ok(content.includes('motion-reduce:border-t-subtle'), 'Must use static subtle border on motion-reduce');
       assert.ok(content.includes('role="status"'), 'Must have role="status"');
@@ -115,16 +115,16 @@ describe('Phase 8: Data-Loading Lifecycle, Safeguards & Error Invariants', () =>
     });
 
     it('should verify Skeleton supports reduced-motion fallback and accessibility attributes', () => {
-      const content = readWebFile('src/components/ui/Skeleton.js');
+      const content = readWebFile('src/components/ui/feedback/Skeleton.js');
       assert.ok(content.includes('motion-safe:animate-pulse'), 'Must use motion-safe for pulse');
       assert.ok(content.includes('motion-reduce:animate-none'), 'Must disable pulse on motion-reduce');
       assert.ok(content.includes('aria-hidden="true"'), 'Must hide decorative skeleton elements from screen readers');
     });
 
     it('should verify all skeleton containers declare semantic role="status" and aria-busy="true"', () => {
-      const dashSkeleton = readWebFile('src/components/ui/DashboardSkeleton.js');
-      const habitsSkeleton = readWebFile('src/components/ui/HabitsSkeleton.js');
-      const analyticsSkeleton = readWebFile('src/components/ui/AnalyticsSkeleton.js');
+      const dashSkeleton = readWebFile('src/components/ui/feedback/DashboardSkeleton.js');
+      const habitsSkeleton = readWebFile('src/components/ui/feedback/HabitsSkeleton.js');
+      const analyticsSkeleton = readWebFile('src/components/ui/feedback/AnalyticsSkeleton.js');
 
       assert.ok(dashSkeleton.includes('role="status"') && dashSkeleton.includes('aria-busy="true"'));
       assert.ok(habitsSkeleton.includes('role="status"') && habitsSkeleton.includes('aria-busy="true"'));

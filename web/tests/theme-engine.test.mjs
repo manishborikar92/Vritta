@@ -285,7 +285,7 @@ describe('Phase 1: VRITTA Design Tokens & Theme Engine', () => {
       assert.equal(toggle('dark'), 'light');
 
       // ThemeToggle component source verification
-      const togglePath = path.join(projectRoot, 'src', 'components', 'ui', 'ThemeToggle.js');
+      const togglePath = path.join(projectRoot, 'src', 'components', 'ui', 'controls', 'ThemeToggle.js');
       assert.ok(fs.existsSync(togglePath), 'ThemeToggle.js component must exist');
       const toggleContent = fs.readFileSync(togglePath, 'utf8');
 
@@ -380,8 +380,8 @@ describe('Phase 1: VRITTA Design Tokens & Theme Engine', () => {
     });
 
     it('should verify TopNav.js and ThemeToggle provide accessible icon-only theme toggle', () => {
-      const navPath = path.join(projectRoot, 'src', 'components', 'ui', 'TopNav.js');
-      const togglePath = path.join(projectRoot, 'src', 'components', 'ui', 'ThemeToggle.js');
+      const navPath = path.join(projectRoot, 'src', 'components', 'ui', 'navigation', 'TopNav.js');
+      const togglePath = path.join(projectRoot, 'src', 'components', 'ui', 'controls', 'ThemeToggle.js');
       const navContent = fs.readFileSync(navPath, 'utf8');
       const toggleContent = fs.readFileSync(togglePath, 'utf8');
 

@@ -19,7 +19,7 @@ All development phases have been executed, verified, and audited across automate
 | **Phase 5: PWA, Responsive Design, Theme & Offline Resilience** | **COMPLETED** | Two-state Light/Dark theme toggle (WCAG 2.2 AAA >= 44×44px touch target), zero-flash `<head>` script, web manifest, and persistent offline Firestore cache. |
 | **Phase 6: Service Worker Audio Notification & Remote Sync** | **SKIPPED / REVERTED** | *Architectural Decision:* Skipped and reverted in favor of native Web Audio API procedural synthesis, Web Worker countdown dispatch, and local timestamp reconciliation. This avoids unreliable browser background service worker audio limitations. |
 | **Phase 7: Interactive Sound Experience & Timer Audio Polish** | **COMPLETED** | Native Web Audio API synthetic chime engine (`audio-chime.js`), `SoundContext` provider, volume and mute persistence, timer interaction cues, checklist ticks, navigation tactile clicks, and modal action cues. |
-| **Phase 8: End-to-End Verification, Documentation & Production Readiness** | **COMPLETED** | Final project phase. 350+ passing tests across 115+ test suites, 0 ESLint errors, clean Next.js 16 webpack production build, background timer resilience audit, responsive and accessibility verification, Diátaxis documentation synchronization, and production release runbook. |
+| **Phase 8: End-to-End Verification, Documentation & Production Readiness** | **COMPLETED** | Final project phase. 629 passing tests across 205 test suites, 0 ESLint errors, clean Next.js 16 webpack production build (12 static pages), pure domain layer extraction (`@/domain`), data access repository modularization, background timer resilience audit, zero-shims verified, responsive and accessibility verification, Diátaxis documentation synchronization, and production release runbook. |
 
 > [!NOTE]
 > Phase 8 is the **final project phase**. No subsequent phases exist or are planned. The codebase is fully verified and ready for production deployment.
@@ -32,7 +32,7 @@ All development phases have been executed, verified, and audited across automate
 
 ### 2.1 Release Prerequisites
 - All automated quality gates verified on `dev`:
-  - `npm --prefix web run test` $\rightarrow$ 350 passed, 0 failed, 4 skipped (live-Firestore only).
+  - `npm --prefix web run test` $\rightarrow$ 629 passed, 0 failed, 5 skipped (live-Firestore only).
   - `npm --prefix web run lint` $\rightarrow$ 0 errors, 0 warnings.
   - `npm --prefix web run build` $\rightarrow$ Next.js 16 production build succeeded (all 12 static routes compiled).
 - Zero uncommitted or unstaged changes in the working tree.

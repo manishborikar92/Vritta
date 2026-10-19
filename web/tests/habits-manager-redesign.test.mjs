@@ -15,37 +15,37 @@ function readWebFile(relativePath) {
 }
 
 describe('Phase 3: Habits Routine Manager Redesign & FAB Collision Fix', () => {
-  const routineCardPath = 'src/components/habits/HabitManagerCard.js';
+  const routineCardPath = 'src/components/habits/HabitConfigCard.js';
   const habitsIndexPath = 'src/components/habits/index.js';
   const habitsPagePath = 'src/app/(protected)/habits/page.js';
 
   describe('1. Component Architecture & Invariants', () => {
-    it('should verify HabitManagerCard exists and exports a memoized component', () => {
+    it('should verify HabitConfigCard exists and exports a memoized component', () => {
       const content = readWebFile(routineCardPath);
-      assert.ok(content.length > 0, 'HabitManagerCard.js must exist and not be empty');
+      assert.ok(content.length > 0, 'HabitConfigCard.js must exist and not be empty');
       assert.ok(
-        content.includes('export default memo(HabitManagerCard)'),
-        'HabitManagerCard must export a memoized component to avoid unnecessary re-render cascades'
+        content.includes('export default memo(HabitConfigCard)'),
+        'HabitConfigCard must export a memoized component to avoid unnecessary re-render cascades'
       );
     });
 
-    it('should verify habits/index.js exports HabitManagerCard', () => {
+    it('should verify habits/index.js exports HabitConfigCard', () => {
       const content = readWebFile(habitsIndexPath);
       assert.ok(
-        content.includes("export { default as HabitManagerCard } from './HabitManagerCard';"),
-        'habits/index.js must export HabitManagerCard'
+        content.includes("export { default as HabitConfigCard } from './HabitConfigCard';"),
+        'habits/index.js must export HabitConfigCard'
       );
     });
 
-    it('should verify habits/page.js imports and renders HabitManagerCard or RoutineCard', () => {
+    it('should verify habits/page.js imports and renders HabitConfigCard or RoutineCard', () => {
       const content = readWebFile(habitsPagePath);
       assert.ok(
-        content.includes('HabitManagerCard') || content.includes('RoutineCard'),
-        'habits/page.js must import and render HabitManagerCard or RoutineCard'
+        content.includes('HabitConfigCard') || content.includes('RoutineCard'),
+        'habits/page.js must import and render HabitConfigCard or RoutineCard'
       );
       assert.ok(
-        content.includes('<HabitManagerCard') || content.includes('<RoutineCard'),
-        'habits/page.js must render <HabitManagerCard /> or <RoutineCard /> for habits list'
+        content.includes('<HabitConfigCard') || content.includes('<RoutineCard'),
+        'habits/page.js must render <HabitConfigCard /> or <RoutineCard /> for habits list'
       );
     });
   });
@@ -81,7 +81,7 @@ describe('Phase 3: Habits Routine Manager Redesign & FAB Collision Fix', () => {
       const content = readWebFile(routineCardPath);
       assert.ok(
         (content.includes('w-11 h-11') || content.includes('p-2.5')) && content.includes('rounded-xl'),
-        'HabitManagerCard action buttons must provide comfortable target sizing and rounded-xl shape'
+        'HabitConfigCard action buttons must provide comfortable target sizing and rounded-xl shape'
       );
       assert.ok(
         content.includes('aria-label={`Edit ${habit.title}`}'),
@@ -168,7 +168,7 @@ describe('Phase 3: Habits Routine Manager Redesign & FAB Collision Fix', () => {
   });
 
   describe('7. Habit Reordering Controls & WCAG Accessibility Invariants', () => {
-    it('should verify HabitManagerCard renders Move Up and Move Down buttons in bottom-right corner', () => {
+    it('should verify HabitConfigCard renders Move Up and Move Down buttons in bottom-right corner', () => {
       const content = readWebFile(routineCardPath);
       assert.ok(content.includes('ArrowUp'), 'Must import or render ArrowUp icon');
       assert.ok(content.includes('ArrowDown'), 'Must import or render ArrowDown icon');

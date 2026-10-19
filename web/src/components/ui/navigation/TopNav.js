@@ -6,12 +6,12 @@ import { BRAND } from '@/lib/constants/brand';
 import { formatDate } from '@/utils/date-helpers';
 import { useScrolled } from '@/hooks/useScrolled';
 import { cn } from '@/utils/cn';
-import Logo from './Logo';
+import Logo from '../display/Logo';
 import ProfileMenu from './ProfileMenu';
-import SignInButton from './SignInButton';
-import SignOutDialog from './SignOutDialog';
-import SoundControl from './SoundControl';
-import ThemeToggle from './ThemeToggle';
+import SignInButton from '../controls/SignInButton';
+import SignOutDialog from '../dialogs/SignOutDialog';
+import SoundControl from '../controls/SoundControl';
+import ThemeToggle from '../controls/ThemeToggle';
 
 /**
  * TopNav header with route-aware title, subtitle, and responsive controls.

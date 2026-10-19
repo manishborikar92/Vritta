@@ -22,7 +22,7 @@ describe('Phase 2: Authoritative Logo & Favicon Asset Pipeline', () => {
 
   describe('Authoritative Source of Truth & Vector Integrity', () => {
     it('should verify Logo.js contains authoritative Guiding Sutra coordinates and theme variables', () => {
-      const logoJsPath = path.join(projectRoot, 'src', 'components', 'ui', 'Logo.js');
+      const logoJsPath = path.join(projectRoot, 'src', 'components', 'ui', 'display', 'Logo.js');
       const content = fs.readFileSync(logoJsPath, 'utf8');
 
       assert.ok(content.includes('viewBox="20 20 160 160"') || content.includes('viewBox="0 0 200 200"'), 'Logo.js must use valid viewBox matching authoritative framing');

@@ -1,7 +1,7 @@
 'use client';
 
 import { BRAND } from '@/lib/constants/brand';
-import Logo from './Logo';
+import Logo from '../display/Logo';
 
 const SIZES = {
   sm: 'w-9 h-9 p-2',

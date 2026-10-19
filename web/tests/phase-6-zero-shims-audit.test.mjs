@@ -47,9 +47,8 @@ describe('Phase 6: Complete Legacy Decommissioning & Zero-Shims Purity Audit', (
     const content = fs.readFileSync(habitsIndexPath, 'utf8');
 
     const expectedExports = [
-      'TodayRhythmBanner',
-      'DashboardHabitCard',
-      'HabitManagerCard',
+      'HabitTrackerCard',
+      'HabitConfigCard',
       'HabitModal',
       'OshoLibraryModal',
       'TemplateBrowserModal',
@@ -58,6 +57,10 @@ describe('Phase 6: Complete Legacy Decommissioning & Zero-Shims Purity Audit', (
     for (const exp of expectedExports) {
       assert.ok(content.includes(exp), `habits/index.js must export ${exp}`);
     }
+
+    const uiIndexPath = path.join(webSrcRoot, 'components', 'ui', 'index.js');
+    const uiContent = fs.readFileSync(uiIndexPath, 'utf8');
+    assert.ok(uiContent.includes('TodayRhythmBanner'), 'ui/index.js must export TodayRhythmBanner');
 
     const forbiddenIdentifiers = [
       'WorkbookCard',

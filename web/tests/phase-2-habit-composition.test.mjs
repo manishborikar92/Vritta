@@ -25,7 +25,7 @@ import {
   deriveTrackingHorizon,
   validateComposableHabit,
   validateDailyLogDoc,
-} from '../src/lib/constants/habit-models.js';
+} from '../src/domain/index.js';
 
 import {
   normalizeHabitFromFirestore,

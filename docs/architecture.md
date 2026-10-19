@@ -55,10 +55,12 @@ The codebase enforces strict separation of concerns across presentation, domain 
 ```
 root/
 ├── docs/                 # Authoritative project documentation
-├── scripts/              # Administrative Node.js maintenance scripts
+├── scripts/              # Administrative Node.js maintenance & audit scripts
 │   ├── seed-schedule-templates.mjs  # CLI schedule templates seed tool
 │   ├── backup-personal-plan.mjs     # Disaster-recovery backup tool
-│   └── restore-personal-plan.mjs    # Disaster-recovery restore tool
+│   ├── restore-personal-plan.mjs    # Disaster-recovery restore tool
+│   ├── audit-zero-shims.mjs         # Zero-shims & legacy wrapper audit tool
+│   └── verify-migration-integrity.mjs # Pre/post migration integrity verifier
 └── web/                  # Next.js web application package
     ├── public/           # Static PWA assets, icons, and web manifest
     ├── tests/            # Automated Node.js unit and integration test suites
@@ -69,15 +71,27 @@ root/
         │   ├── globals.css # Tailwind CSS v4 theme variables and global styles
         │   └── layout.js # Root layout with zero-flash theme blocking script
         ├── components/   # Modular React components
-        │   ├── habits/   # Interactive routine cards (Movement, Workbook, Osho, etc.)
-        │   └── ui/       # Presentation components (TopNav, BottomNav, ThemeToggle)
-        ├── contexts/     # Application React Context providers (Auth, Data, Theme, Toast, Sound, Timer)
-        ├── hooks/        # Reusable domain hooks (useHabits, useDailyLogs, useStreak)
-        └── lib/          # Utilities, configuration, and data fixtures
+        │   ├── habits/   # Interactive routine cards & decomposed modal
+        │   │   ├── modal/       # Sub-tab components (HabitDetailsTab, HabitScheduleTab, HabitFeaturesTab)
+        │   │   │   └── slots/   # Slot configuration editors (Counter, Timer, Checklist, Notes, Catalog, DaySchedule)
+        │   │   └── slots/       # Active card interactive slots (SlotTimer, SlotStepper, etc.)
+        │   └── ui/       # Categorized shared UI components (navigation, dialogs, feedback, controls, display, banners)
+        ├── contexts/     # Application React Context providers (Auth, Data, Sound, Timer, Toast)
+        ├── domain/       # Pure, framework-agnostic domain layer
+        │   ├── analytics/# Truth table evaluation, timeframe ranges, consistency, calendar grid
+        │   ├── errors.js # Domain ValidationError class
+        │   ├── habits/   # Habit validation, completion state derivation, formatters, schema
+        │   └── schedule/ # Observance grace windows (04:00 AM) and schedule resolution
+        ├── hooks/        # Reusable domain hooks (useHabits, useDailyLogs, useStreak, useTimer)
+        └── lib/          # Utilities, configuration, repositories, and fixtures
+            ├── analytics/# Coordinating analytics facade (consistency-engine.js)
             ├── constants/# Category configurations and brand definitions
-            ├── firebase/ # Client-side Firebase SDK initialization
+            ├── firebase/ # Firebase Web SDK client, repositories, and gateway
+            │   ├── repositories/ # Focused data-access modules (user-profile.js, templates.js)
+            │   ├── utils/        # Sanitizer (sanitizer.js)
+            │   └── firestore.js  # Canonical Firestore client gateway
             ├── fixtures/ # Exercise schedules and Osho discourse catalog
-            └── server/   # Server-only Firebase Admin SDK and sync services
+            └── server/   # Server-only Firebase Admin SDK and templates catalog
 ```
 
 ---
@@ -101,7 +115,7 @@ The visual identity of Vritta embodies intentional calm, clarity, and discipline
 ### 3.2 The Guiding Sutra Logo
 The logo represents an unbroken thread connecting daily practices, centered around a grounding anchor:
 - **Geometry:** A continuous monoline ribbon loop with Bezier curve precision (`viewBox="0 0 200 200"`).
-- **Implementation:** Centered in [`web/src/components/ui/Logo.js`](../web/src/components/ui/Logo.js).
+- **Implementation:** Centered in [`web/src/components/ui/display/Logo.js`](../web/src/components/ui/display/Logo.js).
 - **Accessibility:** Labeled with `role="img"` and descriptive `aria-label`.
 
 ---
@@ -124,7 +138,7 @@ The theme architecture is strictly binary: **Light** or **Dark**. The legacy "Sy
 │        └── Listens for cross-tab storage synchronization    │
 ├─────────────────────────────────────────────────────────────┤
 │ 3. User Interaction                                         │
-│    └── ThemeToggle Component                                │
+│    └── ThemeToggle (`web/src/components/ui/controls/`)      │
 │        └── Touch target >= 44×44px (WCAG 2.2 Level AAA)     │
 │        └── Alternates Sun/Moon icons in Warm Amber          │
 │        └── Zero visible text; dynamic accessible aria-label │
@@ -135,7 +149,7 @@ The theme architecture is strictly binary: **Light** or **Dark**. The legacy "Sy
   Executes synchronously in `<head>` before body parsing. If `localStorage.getItem('vritta-theme') === 'dark'`, it applies `.dark` to `document.documentElement`; otherwise, it removes `.dark`.
 - **State Store (`web/src/contexts/ThemeContext.js`):**
   Subscribes to external storage changes using `useSyncExternalStore`. Safely migrates null, invalid, or legacy `'system'` values to `'light'`.
-- **Component (`web/src/components/ui/ThemeToggle.js`):**
+- **Component (`web/src/components/ui/controls/ThemeToggle.js`):**
   Meets WCAG 2.2 SC 2.5.5 Level AAA touch target standards (`min-h-[44px]`).
 
 ---
@@ -152,16 +166,12 @@ All reusable schedule blueprints, foundation wellness routines, and discipline p
   Seeds shared templates into the `/scheduleTemplates` Firestore collection without touching user-owned documents or private logs. User routine documents are stored separately under `/habits`.
 
 ### 5.2 Routine Subsystems & Interactive Cards
-Each routine type maps 1:1 to an interactive card component on `/dashboard`:
+Vritta utilizes a unified, composable card architecture:
 
-| Card Component | Routine Type | Core Behavior |
+| Component | Route | Core Behavior |
 | :--- | :--- | :--- |
-| **`WorkbookCard`** | Word Power Made Easy | Stepper tracking Sessions 1 & 2; requires previous-work review before completion. |
-| **`MovementCard`** | 12-Week Conditioning | Weekday-adaptive (Mon/Wed/Fri workout, Tue/Thu/Sat walk, Sun rest). |
-| **`OshoCard`** | Contemplative Focus | 30-discourse library modal across 6 thematic categories with progress tracking. |
-| **`ReadingCard`** | Bedtime Reading | 30-minute bedtime countdown timer with pause/resume and completion logging. |
-| **`SpeakingCard`** | Language Mastery | ChatGPT voice practice prompt with binary completion toggle. |
-| **`DiaryCard`** | Private Reflection | Daily reflection modal with 5 rotating prompts; private per user. |
+| **`HabitTrackerCard`** | `/dashboard` | Composable active tracking card rendering dynamic slots: `SlotStepper` (counters/sessions), `SlotDaySchedule` (weekday variations), `SlotCatalog` (discourse/item libraries), `SlotTimer` (countdown/stopwatch), `SlotNotes` (autosaved reflection notes), and `SlotChecklist` (sub-task completion). |
+| **`HabitConfigCard`** | `/habits` | Configuration and organization card rendering routine title, category badge, recurrence frequency, timing mode, collapsible instructions, edit/delete actions, and touch-accessible up/down reordering controls. |
 
 ### 5.3 Scheduling Philosophy
 - **Soft Timing Over Hard Deadlines:** Timing indicates preferred periods (Afternoon, Before Bed, Anytime), not punitive deadlines. Activities completed later in the day count fully.
@@ -236,7 +246,7 @@ Vritta features a native, zero-dependency interactive audio system powered direc
 
 ### 7.3 State, Provider Hierarchy & Autoplay Governance
 - **Provider Ordering (`web/src/app/layout.js`):**
-  `SoundProvider` is mounted at the root provider layer, above `TimerProvider` and `DataProvider`. This ensures timer callbacks, habit toggles, and modal dialogues can consume sound dispatches without circular dependencies.
+  Providers are composed in strict dependency order: `ThemeProvider` $\rightarrow$ `AuthProvider` $\rightarrow$ `DataProvider` $\rightarrow$ `SoundProvider` $\rightarrow$ `TimerProvider` $\rightarrow$ `ToastProvider`. `SoundProvider` is mounted above `TimerProvider` so that timer ticks and completion callbacks can authoritatively consume sound dispatches (`useSound`) without circular dependencies.
 - **Autoplay Policy Handling:** The browser's native `AudioContext` is lazily instantiated and automatically resumed on the first user interaction (touch or click), avoiding browser console autoplay warnings.
 - **Persistence & User Control:**
   - Volume (default 0.7) and mute state are persisted in `localStorage('vritta-sound-volume')` and `localStorage('vritta-sound-muted')`.
@@ -246,7 +256,7 @@ Vritta features a native, zero-dependency interactive audio system powered direc
 
 ## 8. Resilient Background Timer Subsystem
 
-The timer engine (`web/src/contexts/TimerContext.js` and `web/src/hooks/use-timer.js`) is architected for strict wall-clock accuracy, resilient background tab operation, and seamless recovery across page reloads.
+The timer engine (`web/src/contexts/TimerContext.js` and `web/src/hooks/useTimer.js`) is architected for strict wall-clock accuracy, resilient background tab operation, and seamless recovery across page reloads.
 
 ### 8.1 Wall-Clock Timestamp Synchronization
 Unlike naive timer implementations that decrement an interval counter every 1000ms, Vritta strictly derives remaining time from wall-clock timestamps:
