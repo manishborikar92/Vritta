@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { Plus, Compass, BookOpen } from 'lucide-react';
 import { useData, useToast, useSound } from '@/contexts';
 import { ConfirmDialog, HabitsSkeleton } from '@/components/ui';
-import { HabitModal, HabitManagerCard, TemplateBrowserModal } from '@/components/habits';
+import { HabitModal, HabitConfigCard, TemplateBrowserModal } from '@/components/habits';
 import { getSafeSaveErrorMessage, logDiagnosticError } from '@/utils/error-helpers';
 
 export default function HabitsPage() {
@@ -177,7 +177,7 @@ export default function HabitsPage() {
 
             <div className="space-y-3">
               {habits.map((habit, index) => (
-                <HabitManagerCard
+                <HabitConfigCard
                   key={habit.id}
                   habit={habit}
                   isFirst={index === 0}

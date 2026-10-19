@@ -55,6 +55,7 @@ for (const relPath of DELETED_COMPONENT_FILES) {
 // 2. Deleted Scripts and Quarantined Modules
 const DELETED_SCRIPTS = [
   'web/src/lib/server/personal-schedule.js',
+  'web/src/lib/analytics/consistency-engine.js',
   'scripts/fetch-personal-schedule.mjs',
   'scripts/migrate-reading-target-minutes.mjs',
 ];
@@ -144,9 +145,8 @@ const habitsIndexPath = path.join(webSrcRoot, 'components', 'habits', 'index.js'
 const habitsIndexContent = fs.readFileSync(habitsIndexPath, 'utf8');
 
 const expectedExports = [
-  'TodayRhythmBanner',
-  'DashboardHabitCard',
-  'HabitManagerCard',
+  'HabitTrackerCard',
+  'HabitConfigCard',
   'HabitModal',
   'OshoLibraryModal',
   'TemplateBrowserModal',
@@ -160,6 +160,11 @@ for (const exp of expectedExports) {
     violationsCount++;
   }
 }
+if (habitsIndexContent.includes('TodayRhythmBanner')) {
+  console.error('  FAIL: TodayRhythmBanner should be in ui barrel, not habits barrel');
+  barrelClean = false;
+  violationsCount++;
+}
 for (const id of FORBIDDEN_COMPONENT_IDENTIFIERS) {
   const wordBoundaryRegex = new RegExp(`\\b${id}\\b`);
   if (wordBoundaryRegex.test(habitsIndexContent)) {
@@ -170,6 +175,17 @@ for (const id of FORBIDDEN_COMPONENT_IDENTIFIERS) {
 }
 if (barrelClean) {
   console.log('  PASS: habits/index.js contains only authoritative modern exports and zero legacy shims');
+}
+
+// 6. Audit UI barrel exports for TodayRhythmBanner
+console.log('\n[Check 6] Auditing web/src/components/ui/index.js exports...');
+const uiIndexPath = path.join(webSrcRoot, 'components', 'ui', 'index.js');
+const uiIndexContent = fs.readFileSync(uiIndexPath, 'utf8');
+if (uiIndexContent.includes('TodayRhythmBanner')) {
+  console.log('  PASS: ui/index.js properly exports TodayRhythmBanner');
+} else {
+  console.error('  FAIL: ui/index.js missing TodayRhythmBanner export');
+  violationsCount++;
 }
 
 console.log('\n' + '='.repeat(70));

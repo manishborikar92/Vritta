@@ -11,7 +11,7 @@ import {
   getUserTimezone,
   resolveObservanceDate,
   isHabitRestDay,
-} from '../src/lib/constants/habit-models.js';
+} from '../src/domain/index.js';
 import { getDayOfWeek } from '../src/utils/date-helpers.js';
 
 describe('12-Week Movement Plan & Weekday Schedule', () => {
@@ -170,7 +170,7 @@ describe('12-Week Movement Plan & Weekday Schedule', () => {
       assert.equal(currentItems.length, 11, 'Monday workout must contain 11 exercises');
     });
 
-    it('should NOT treat Monday as a scheduled rest day in DashboardHabitCard rest evaluation', () => {
+    it('should NOT treat Monday as a scheduled rest day in HabitTrackerCard rest evaluation', () => {
       const localToday = '2026-10-19'; // Monday
       const timezone = 'Asia/Kolkata';
 
@@ -178,7 +178,7 @@ describe('12-Week Movement Plan & Weekday Schedule', () => {
       // Because currentObservanceDate was '2026-10-18' (Sunday), it erroneously returned true!
       // New decoupled code does: isHabitRestDay(habit, localToday, timezone)
       const isScheduledRest = isHabitRestDay(movementHabit, localToday, timezone);
-      assert.equal(isScheduledRest, false, 'Monday must not be evaluated as scheduled rest on DashboardHabitCard');
+      assert.equal(isScheduledRest, false, 'Monday must not be evaluated as scheduled rest on HabitTrackerCard');
     });
 
     it('should correctly treat Sunday as a planned rest day across the entire day', () => {
@@ -235,7 +235,7 @@ describe('12-Week Movement Plan & Weekday Schedule', () => {
     });
 
     it('should operate safely and resolve routines with null or undefined user profile', () => {
-      // Simulate SlotDaySchedule and DashboardHabitCard resolving timezone when profile is completely empty
+      // Simulate SlotDaySchedule and HabitTrackerCard resolving timezone when profile is completely empty
       const tzNull = getUserTimezone(null);
       const tzUndef = getUserTimezone(undefined);
       const tzEmpty = getUserTimezone({});

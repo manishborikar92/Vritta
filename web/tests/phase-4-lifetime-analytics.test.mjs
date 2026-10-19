@@ -11,7 +11,7 @@ import {
   getTimeframeDateRange,
   getContiguousDateRange,
   SUPPORTED_TIMEFRAMES,
-} from '../src/lib/analytics/consistency-engine.js';
+} from '../src/domain/analytics/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

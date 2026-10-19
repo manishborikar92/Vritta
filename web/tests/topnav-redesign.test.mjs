@@ -14,7 +14,7 @@ function readWebFile(relativePath) {
 }
 
 describe('Phase 5: TopNav Responsive Sizing and Layout Refinement', () => {
-  const topNavPath = 'src/components/ui/TopNav.js';
+  const topNavPath = 'src/components/ui/navigation/TopNav.js';
 
   describe('1. Component Architecture & Invariants', () => {
     it('should verify TopNav.js exists and exports default function', () => {

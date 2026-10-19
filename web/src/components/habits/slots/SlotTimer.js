@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { Play, Pause, RotateCcw, Timer } from 'lucide-react';
-import { useTimer } from '@/hooks/use-timer';
+import { useTimer } from '@/hooks/useTimer';
 import { getReadingTargetMinutes } from '@/utils/reading-helpers';
 
 /**

@@ -5,10 +5,10 @@ import { ChevronDown, LogOut } from 'lucide-react';
 import { useDismissable } from '@/hooks/useDismissable';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { cn } from '@/utils/cn';
-import Avatar from './Avatar';
-import BottomSheet from './BottomSheet';
-import SoundControl from './SoundControl';
-import ThemeToggle from './ThemeToggle';
+import Avatar from '../display/Avatar';
+import BottomSheet from '../dialogs/BottomSheet';
+import SoundControl from '../controls/SoundControl';
+import ThemeToggle from '../controls/ThemeToggle';
 
 const MOBILE_QUERY = '(max-width: 639px)';
 

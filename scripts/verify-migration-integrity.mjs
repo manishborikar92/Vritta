@@ -156,7 +156,10 @@ export async function verifyAccountIntegrity(adminDb, uid, email, habitModels, o
   }
 
   for (const habit of composableHabits) {
-    const validation = validateComposableHabit(habit);
+    const habitToValidate = options.normalizeHabitFromFirestore
+      ? options.normalizeHabitFromFirestore(habit, habit.id)
+      : habit;
+    const validation = validateComposableHabit(habitToValidate);
     recordCheck(
       `Composable Schema Valid: ${habit.title}`,
       validation.valid,
@@ -280,10 +283,13 @@ async function main() {
   console.log('================================================================\n');
 
   const adminPath = path.join(projectRoot, 'web', 'src', 'lib', 'server', 'firebase-admin.js');
-  const habitModelsPath = path.join(projectRoot, 'web', 'src', 'lib', 'constants', 'habit-models.js');
+  const habitModelsPath = path.join(projectRoot, 'web', 'src', 'domain', 'index.js');
+  const firestorePath = path.join(projectRoot, 'web', 'src', 'lib', 'firebase', 'firestore.js');
 
   const { adminDb, adminAuth } = await import(pathToFileURL(adminPath).href);
   const habitModels = await import(pathToFileURL(habitModelsPath).href);
+  const { normalizeHabitFromFirestore } = await import(pathToFileURL(firestorePath).href);
+  options.normalizeHabitFromFirestore = normalizeHabitFromFirestore;
 
   if (!adminDb) {
     console.error('[Error] Firebase Admin SDK could not be initialized.');

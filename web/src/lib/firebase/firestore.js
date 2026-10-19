@@ -26,7 +26,7 @@ import {
     PERSISTED_OUTCOME_STATUSES,
     clampCounterProgress,
     isHabitRestDay,
-} from '../constants/habit-models.js';
+} from '../../domain/index.js';
 
 /**
  * Build a Firestore query for a user's habits.
@@ -49,45 +49,28 @@ export function getDailyLogRef(userId, dateStr) {
     return doc(db, 'dailyLogs', `${userId}_${dateStr}`);
 }
 
-/**
- * Get reference to user profile / long-term progress document.
- * @param {string} userId
- */
-export function getUserRef(userId) {
-    return doc(db, 'users', userId);
-}
+import {
+    getUserRef,
+    getHabitStateRef,
+    fetchHabitState,
+    saveHabitState,
+    fetchAllHabitStates,
+    fetchUserProfile,
+    saveUserProfile,
+} from './repositories/user-profile.js';
 
-/**
- * Recursively sanitizes data before writing to Firestore, stripping `undefined` fields
- * which cause Firestore SDK write operations to reject with Unsupported field value errors.
- * Preserves Date, FieldValue, and Firestore sentinel instances.
- * 
- * @param {*} val
- * @returns {*}
- */
-export function sanitizeForFirestore(val) {
-    if (val === undefined) {
-        return null;
-    }
-    if (val === null || typeof val !== 'object') {
-        return val;
-    }
-    if (Array.isArray(val)) {
-        return val
-            .filter(item => item !== undefined)
-            .map(item => sanitizeForFirestore(item));
-    }
-    if (val instanceof Date || (val.constructor && val.constructor.name !== 'Object')) {
-        return val;
-    }
-    const clean = {};
-    for (const [k, v] of Object.entries(val)) {
-        if (v !== undefined) {
-            clean[k] = sanitizeForFirestore(v);
-        }
-    }
-    return clean;
-}
+export {
+    getUserRef,
+    getHabitStateRef,
+    fetchHabitState,
+    saveHabitState,
+    fetchAllHabitStates,
+    fetchUserProfile,
+    saveUserProfile,
+};
+
+import { sanitizeForFirestore } from './utils/sanitizer.js';
+export { sanitizeForFirestore };
 
 /**
  * Construct a canonical schedule sub-document.
@@ -593,181 +576,7 @@ export async function fetchHistoricalLogs(userId) {
     return logsMap;
 }
 
-/**
- * Get reference to a decoupled habitState document.
- * Format: users/{userId}/habitState/{habitId}
- * @param {string} userId
- * @param {string} habitId
- */
-export function getHabitStateRef(userId, habitId) {
-    return doc(db, 'users', userId, 'habitState', habitId);
-}
-
-/**
- * Fetch a single decoupled habitState document.
- * @param {string} userId
- * @param {string} habitId
- * @returns {Promise<Object|null>}
- */
-export async function fetchHabitState(userId, habitId) {
-    if (!userId || !habitId) return null;
-    try {
-        const stateRef = getHabitStateRef(userId, habitId);
-        const docSnap = await getDoc(stateRef);
-        return docSnap.exists() ? docSnap.data() : null;
-    } catch (err) {
-        console.error('Error fetching habit state:', err);
-        return null;
-    }
-}
-
-/**
- * Save decoupled habitState document.
- * @param {string} userId
- * @param {string} habitId
- * @param {Object} data
- */
-export async function saveHabitState(userId, habitId, data) {
-    if (!userId || !habitId) return;
-    const cleanData = sanitizeForFirestore(data);
-    const stateRef = getHabitStateRef(userId, habitId);
-    return setDoc(stateRef, {
-        ...cleanData,
-        habitId,
-        userId,
-        updatedAt: serverTimestamp(),
-    }, { merge: true });
-}
-
-/**
- * Fetch all decoupled habitState documents for a user.
- * @param {string} userId
- * @returns {Promise<Record<string, Object>>}
- */
-export async function fetchAllHabitStates(userId) {
-    if (!userId) return {};
-    try {
-        const stateCol = collection(db, 'users', userId, 'habitState');
-        const snap = await getDocs(stateCol);
-        const states = {};
-        snap.forEach(d => {
-            states[d.id] = d.data();
-        });
-        return states;
-    } catch (err) {
-        console.error('Error fetching all habit states:', err);
-        return {};
-    }
-}
-
-/**
- * Fetch user preferences and long-term progress (e.g. 12-week exercise plan, Osho progress).
- * In Phase 5 decoupled state architecture, seamlessly aggregates root user preferences with
- * isolated habitState subcollection documents.
- * 
- * @param {string} userId
- * @returns {Promise<Object>}
- */
-export async function fetchUserProfile(userId) {
-    if (!userId) return null;
-    try {
-        const userRef = getUserRef(userId);
-        const docSnap = await getDoc(userRef);
-        const rootData = docSnap.exists() ? docSnap.data() : {};
-
-        // In Phase 5 decoupled architecture, progression states live in /users/{userId}/habitState
-        const habitStates = await fetchAllHabitStates(userId);
-
-        // Merge decoupled progression into profile for seamless consumer backward-compatibility
-        let exercisePlan = rootData.exercisePlan || null;
-        let oshoSeriesProgress = rootData.oshoSeriesProgress || null;
-        let activeOshoSeriesId = rootData.activeOshoSeriesId || null;
-
-        for (const [docId, state] of Object.entries(habitStates)) {
-            // Exercise plan identification (by currentWeek / startDate or ID)
-            if (state.currentWeek !== undefined || state.startDate !== undefined || docId.includes('exercise_plan')) {
-                exercisePlan = {
-                    ...(exercisePlan || {}),
-                    ...state,
-                };
-            }
-            // Osho series identification (by seriesProgress or ID)
-            if (state.seriesProgress !== undefined || state.oshoSeriesProgress !== undefined || docId.includes('listen_osho')) {
-                const incomingSeries = state.seriesProgress || state.oshoSeriesProgress || {};
-                oshoSeriesProgress = {
-                    ...(oshoSeriesProgress || {}),
-                    ...incomingSeries,
-                };
-                const activeId = state.activeSeriesId || state.activeOshoSeriesId;
-                if (activeId) {
-                    activeOshoSeriesId = activeId;
-                }
-            }
-        }
-
-        return {
-            ...rootData,
-            exercisePlan,
-            oshoSeriesProgress,
-            activeOshoSeriesId,
-            habitState: habitStates,
-        };
-    } catch (err) {
-        console.error('Error fetching user profile:', err);
-        return null;
-    }
-}
-
-/**
- * Save user preferences or long-term progress (e.g. activate 12-week plan, save Osho progress).
- * Synchronizes progression state directly into decoupled habitState subcollections.
- * 
- * @param {string} userId
- * @param {Object} data
- */
-export async function saveUserProfile(userId, data) {
-    if (!userId) return;
-    const cleanData = sanitizeForFirestore(data);
-    const userRef = getUserRef(userId);
-
-    const promises = [];
-    if (cleanData.exercisePlan) {
-        const exerciseHabitId = `${userId}_canonical_exercise_plan`;
-        promises.push(saveHabitState(userId, exerciseHabitId, cleanData.exercisePlan));
-    }
-    if (cleanData.oshoSeriesProgress || cleanData.seriesProgress || cleanData.activeOshoSeriesId || cleanData.activeSeriesId) {
-        const oshoHabitId = `${userId}_canonical_listen_osho`;
-        const oshoState = {};
-        const incomingProgress = cleanData.oshoSeriesProgress || cleanData.seriesProgress;
-        if (incomingProgress) {
-            oshoState.seriesProgress = incomingProgress;
-        }
-        const incomingActiveId = cleanData.activeOshoSeriesId || cleanData.activeSeriesId;
-        if (incomingActiveId) {
-            oshoState.activeSeriesId = incomingActiveId;
-        }
-        promises.push(saveHabitState(userId, oshoHabitId, oshoState));
-    }
-
-    // Strip decoupled state fields so they are never written back to root /users/{userId}
-    const rootProfileData = { ...cleanData };
-    delete rootProfileData.exercisePlan;
-    delete rootProfileData.oshoSeriesProgress;
-    delete rootProfileData.seriesProgress;
-    delete rootProfileData.activeOshoSeriesId;
-    delete rootProfileData.activeSeriesId;
-    delete rootProfileData.habitState;
-
-    // Only update root user doc if non-progression preference fields remain
-    if (Object.keys(rootProfileData).length > 0) {
-        promises.push(setDoc(userRef, {
-            ...rootProfileData,
-            updatedAt: serverTimestamp(),
-        }, { merge: true }));
-    }
-
-    await Promise.all(promises);
-}
+// User profile & decoupled habitState functions are imported and re-exported above from ./repositories/user-profile.js
 
 // ============================================================================
 // Phase 1: Canonical Normalizers & Serializers
@@ -1143,55 +952,13 @@ export function serializeDailyLogForFirestore(logData) {
     };
 }
 
-/**
- * Fetch all shared schedule templates from Cloud Firestore.
- * Templates are read-only for authenticated users and contain reusable routine blueprints.
- * 
- * @returns {Promise<Array<Object>>}
- */
-export async function fetchScheduleTemplates() {
-    try {
-        const templatesRef = collection(db, 'scheduleTemplates');
-        const snap = await getDocs(templatesRef);
-        if (snap.empty) {
-            return [];
-        }
-        const templates = snap.docs.map(docSnap => ({
-            id: docSnap.id,
-            ...docSnap.data(),
-        }));
-        // Sort by schedule.order then title
-        return templates.sort((a, b) => {
-            const orderA = a.schedule?.order ?? 999;
-            const orderB = b.schedule?.order ?? 999;
-            if (orderA !== orderB) return orderA - orderB;
-            return (a.title || '').localeCompare(b.title || '');
-        });
-    } catch (err) {
-        console.error('Error fetching schedule templates:', err);
-        return [];
-    }
-}
+import {
+    fetchScheduleTemplates,
+    fetchScheduleTemplateById,
+} from './repositories/templates.js';
 
-/**
- * Fetch a single schedule template by its stable ID.
- * 
- * @param {string} templateId
- * @returns {Promise<Object|null>}
- */
-export async function fetchScheduleTemplateById(templateId) {
-    if (!templateId) return null;
-    try {
-        const docRef = doc(db, 'scheduleTemplates', templateId);
-        const snap = await getDoc(docRef);
-        if (!snap.exists()) return null;
-        return {
-            id: snap.id,
-            ...snap.data(),
-        };
-    } catch (err) {
-        console.error(`Error fetching schedule template "${templateId}":`, err);
-        return null;
-    }
-}
+export {
+    fetchScheduleTemplates,
+    fetchScheduleTemplateById,
+};
 

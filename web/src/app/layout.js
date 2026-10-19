@@ -11,6 +11,7 @@ import { BRAND } from "@/lib/constants/brand";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
 });
 
 /**
@@ -21,10 +22,32 @@ const inter = Inter({
  * - apple-icon.png (180x180 PNG touch icon for iOS)
  * - manifest.json (web application manifest)
  */
+
+const metadataBaseOrigin = 'https://myvritta.vercel.app';
+
 export const metadata = {
-  title: `${BRAND.name} — ${BRAND.tagline}`,
+  metadataBase: new URL(metadataBaseOrigin),
+  title: {
+    default: `${BRAND.name} — ${BRAND.tagline}`,
+    template: `%s | ${BRAND.name}`,
+  },
   description: BRAND.shortDescription,
   applicationName: BRAND.name,
+  authors: [{ name: BRAND.author }],
+  creator: BRAND.author,
+  openGraph: {
+    title: `${BRAND.name} — ${BRAND.tagline}`,
+    description: BRAND.shortDescription,
+    url: '/',
+    siteName: BRAND.name,
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: `${BRAND.name} — ${BRAND.tagline}`,
+    description: BRAND.shortDescription,
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -37,6 +60,7 @@ export const viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: BRAND.themeColor,
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({ children }) {

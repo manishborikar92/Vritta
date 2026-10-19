@@ -19,7 +19,7 @@ import {
   GENERAL_HEALTH_NOTES,
 } from '@/lib/fixtures/exercise-plan';
 import { getDayOfWeek, getTodayString } from '@/utils/date-helpers';
-import { resolveObservanceDate, getUserTimezone } from '@/lib/constants/habit-models';
+import { resolveObservanceDate, getUserTimezone } from '@/domain';
 import { useSound } from '@/contexts';
 
 /**

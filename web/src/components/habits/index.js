@@ -1,9 +1,8 @@
 /**
- * Habit Cards & Rhythm Widgets
+ * Habit Cards
  */
-export { default as TodayRhythmBanner } from './TodayRhythmBanner';
-export { default as DashboardHabitCard } from './DashboardHabitCard';
-export { default as HabitManagerCard } from './HabitManagerCard';
+export { default as HabitTrackerCard } from './HabitTrackerCard';
+export { default as HabitConfigCard } from './HabitConfigCard';
 export * from './slots';
 
 /**

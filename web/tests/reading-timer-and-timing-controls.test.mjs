@@ -29,7 +29,7 @@ describe('Phase 6: Reading Timer & Routine Timing-Mode Controls', () => {
 
     it('should verify timer cleanup and interval management', () => {
       const cardContent = readWebFile('src/components/habits/slots/SlotTimer.js');
-      const hookContent = readWebFile('src/hooks/use-timer.js');
+      const hookContent = readWebFile('src/hooks/useTimer.js');
       assert.ok(
         cardContent.includes('useTimer') && hookContent.includes('clearInterval(timerRef.current)'),
         'Must clear interval on unmount via timer subsystem'
@@ -96,13 +96,13 @@ describe('Phase 6: Reading Timer & Routine Timing-Mode Controls', () => {
     });
 
     it('should verify compact 2x2 responsive grid architecture for timing selection', () => {
-      const content = readWebFile('src/components/habits/HabitModal.js');
+      const content = readWebFile('src/components/habits/modal/HabitScheduleTab.js');
       assert.ok(content.includes('grid grid-cols-2 gap-1.5 sm:gap-2'), 'Must use 2-column grid for compact vertical height');
       assert.ok(content.includes('min-h-[46px]'), 'Timing buttons must meet touch target min-h-[46px]');
     });
 
     it('should verify quick preset suggestion chips for relative and exact timing', () => {
-      const content = readWebFile('src/components/habits/HabitModal.js');
+      const content = readWebFile('src/components/habits/modal/HabitScheduleTab.js');
       assert.ok(content.includes('Before bed'), 'Must provide Before bed preset chip');
       assert.ok(content.includes('After waking'), 'Must provide After waking preset chip');
       assert.ok(content.includes('07:00 AM'), 'Must provide morning preset chip');
@@ -110,14 +110,14 @@ describe('Phase 6: Reading Timer & Routine Timing-Mode Controls', () => {
     });
 
     it('should verify preferred period supports Morning, Afternoon, and Evening options', () => {
-      const content = readWebFile('src/components/habits/HabitModal.js');
+      const content = readWebFile('src/components/habits/modal/HabitScheduleTab.js');
       assert.ok(content.includes("'Morning'"), "Must include 'Morning'");
       assert.ok(content.includes("'Afternoon'"), "Must include 'Afternoon'");
       assert.ok(content.includes("'Evening'"), "Must include 'Evening'");
     });
 
     it('should verify non-punitive guidance text is rendered in modal', () => {
-      const content = readWebFile('src/components/habits/HabitModal.js');
+      const content = readWebFile('src/components/habits/modal/HabitScheduleTab.js');
       assert.ok(
         content.includes('Preferred times guide your day without penalty') ||
         content.includes('Soft guidance for your day'),
@@ -126,9 +126,10 @@ describe('Phase 6: Reading Timer & Routine Timing-Mode Controls', () => {
     });
 
     it('should verify validation rules preserve routine integrity', () => {
-      const content = readWebFile('src/components/habits/HabitModal.js');
-      assert.ok(content.includes('maxLength={120}'), 'Must enforce max title length');
-      assert.ok(content.includes('formData.frequency.length === 0'), 'Must validate active frequency');
+      const modalContent = readWebFile('src/components/habits/HabitModal.js');
+      const detailsContent = readWebFile('src/components/habits/modal/HabitDetailsTab.js');
+      assert.ok(detailsContent.includes('maxLength={120}'), 'Must enforce max title length');
+      assert.ok(modalContent.includes('formData.frequency.length === 0'), 'Must validate active frequency');
     });
   });
 

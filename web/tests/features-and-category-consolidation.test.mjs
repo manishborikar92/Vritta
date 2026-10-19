@@ -13,7 +13,7 @@ import {
 import {
   APPROVED_FEATURE_SLOTS,
   validateComposableHabit,
-} from '../src/lib/constants/habit-models.js';
+} from '../src/domain/index.js';
 import {
   normalizeHabitFromFirestore,
   serializeHabitForFirestore,

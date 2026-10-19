@@ -13,8 +13,142 @@
  * - playActionSuccessCue: Warm ascending major third (C5 -> E5) for routine creation/save (0.20s)
  * - playActionDeleteCue: Low soft descending release (G3 -> E3) for routine removal (0.18s)
  *
+ * Loudness: every cue is described as data (see CUES) and is measured once, then
+ * scaled by a single constant gain so its loudest instant sits exactly at
+ * OUTPUT_CEILING. Scaling is purely linear, so pitch, timing, envelope and tone
+ * are unchanged; only the level is raised. No compressor or limiter is used.
+ *
  * Handles audio context suspension, user interaction unlock, and SSR environments safely.
  */
+
+// ---------------------------------------------------------------------------
+// Configuration
+// ---------------------------------------------------------------------------
+
+/**
+ * Peak level (0-1) that every cue is scaled to. Raise for louder cues;
+ * stay below 1.0 to avoid digital clipping.
+ */
+const OUTPUT_CEILING = 0.9;
+
+/** Floor for exponential ramps, which cannot reach exactly zero. */
+const SILENCE = 0.0001;
+
+/** Sample rate used when measuring a cue's peak level (Hz). */
+const MEASURE_SAMPLE_RATE = 48000;
+
+const TWO_PI = 2 * Math.PI;
+
+// ---------------------------------------------------------------------------
+// Cue definitions
+//
+// A cue is { master?, tones[] }. All times are in seconds from cue start.
+//
+// master: optional shared envelope applied to the whole cue
+//   level   - starting gain (default 1)
+//   fadeEnd - exponential fade to silence by this time (omit for constant gain)
+//
+// tone: one sine oscillator with its own envelope
+//   freq      - start frequency (Hz)
+//   freqEnd   - optional exponential glide target, reached at fadeEnd
+//   start     - when the oscillator begins
+//   attackEnd - end of linear attack from silence (omit to begin at full peak)
+//   peak      - envelope peak amplitude
+//   fadeEnd   - exponential decay reaches `floor` at this time
+//   floor     - decay target (default SILENCE)
+//   stop      - when the oscillator stops (default fadeEnd)
+// ---------------------------------------------------------------------------
+
+const CUES = {
+  // G4 -> C5, two notes with a 100ms offset for a smooth legato rise
+  start: {
+    tones: [
+      { freq: 392.0, start: 0, attackEnd: 0.015, peak: 0.096, fadeEnd: 0.18 },
+      { freq: 523.25, start: 0.1, attackEnd: 0.115, peak: 0.12, fadeEnd: 0.35 },
+    ],
+  },
+
+  // E4 -> C4 glide
+  pause: {
+    tones: [
+      { freq: 329.63, freqEnd: 261.63, start: 0, attackEnd: 0.01, peak: 0.08, fadeEnd: 0.12 },
+    ],
+  },
+
+  // C4 -> E4 glide
+  resume: {
+    tones: [
+      { freq: 261.63, freqEnd: 329.63, start: 0, attackEnd: 0.01, peak: 0.08, fadeEnd: 0.12 },
+    ],
+  },
+
+  // 580Hz -> 440Hz tap
+  reset: {
+    tones: [
+      { freq: 580.0, freqEnd: 440.0, start: 0, attackEnd: 0.005, peak: 0.06, fadeEnd: 0.08 },
+    ],
+  },
+
+  // C4 root, G4 fifth, 528Hz and 660Hz harmonics with a 2.0s decay
+  completion: {
+    master: { level: 0.2, fadeEnd: 2.0 },
+    tones: [
+      { freq: 261.63, start: 0, peak: 0.35, fadeEnd: 1.9, floor: 0.001, stop: 2.0 },
+      { freq: 392.0, start: 0.02, peak: 0.3, fadeEnd: 1.8, floor: 0.001, stop: 2.0 },
+      { freq: 528.0, start: 0, peak: 0.7, fadeEnd: 1.7, floor: 0.001, stop: 2.0 },
+      { freq: 660.0, start: 0.04, peak: 0.35, fadeEnd: 1.8, floor: 0.001, stop: 2.0 },
+    ],
+  },
+
+  // Step checked: crisp upward chirplet (G5 -> C6, 35ms)
+  stepChecked: {
+    tones: [
+      { freq: 784.0, freqEnd: 1046.5, start: 0, attackEnd: 0.003, peak: 0.09, fadeEnd: 0.035 },
+    ],
+  },
+
+  // Step unchecked: softer downward tick (C5 -> G4, 40ms)
+  stepUnchecked: {
+    tones: [
+      { freq: 523.25, freqEnd: 392.0, start: 0, attackEnd: 0.004, peak: 0.06, fadeEnd: 0.04 },
+    ],
+  },
+
+  // E5 + B5 + C6 consonant chord over 0.65s
+  habitComplete: {
+    master: { level: 0.14, fadeEnd: 0.65 },
+    tones: [
+      { freq: 659.25, start: 0, attackEnd: 0.012, peak: 0.6, fadeEnd: 0.6, floor: 0.001, stop: 0.65 },
+      { freq: 987.77, start: 0.01, attackEnd: 0.022, peak: 0.4, fadeEnd: 0.6, floor: 0.001, stop: 0.65 },
+      { freq: 1046.5, start: 0.04, attackEnd: 0.055, peak: 0.5, fadeEnd: 0.65, floor: 0.001, stop: 0.65 },
+    ],
+  },
+
+  // C5 featherlight tap (25ms)
+  tabSwitch: {
+    tones: [{ freq: 523.25, start: 0, attackEnd: 0.002, peak: 0.5, fadeEnd: 0.025 }],
+  },
+
+  // C5 -> E5 major third glide (0.20s)
+  actionSuccess: {
+    tones: [
+      { freq: 523.25, freqEnd: 659.25, start: 0, attackEnd: 0.01, peak: 0.1, fadeEnd: 0.2 },
+    ],
+  },
+
+  // G3 -> E3 soft descending release (0.18s)
+  actionDelete: {
+    tones: [
+      { freq: 196.0, freqEnd: 164.81, start: 0, attackEnd: 0.012, peak: 0.07, fadeEnd: 0.18 },
+    ],
+  },
+};
+
+const DEFAULT_MASTER = { level: 1 };
+
+// ---------------------------------------------------------------------------
+// Audio context management
+// ---------------------------------------------------------------------------
 
 let audioCtx = null;
 
@@ -58,61 +192,187 @@ export function unlockAudio() {
 }
 
 /**
+ * Returns the shared AudioContext, resuming it first if the browser suspended it.
+ * @returns {AudioContext | null}
+ */
+function getReadyContext() {
+  const ctx = getAudioContext();
+  if (!ctx) return null;
+
+  if (ctx.state === 'suspended') {
+    ctx.resume().catch(() => {});
+  }
+
+  return ctx;
+}
+
+// ---------------------------------------------------------------------------
+// Loudness normalization
+//
+// Mirrors the envelopes scheduled in scheduleTone/playCue, sample by sample,
+// to find a cue's true peak. The result is cached per cue.
+// ---------------------------------------------------------------------------
+
+const normalizationCache = new Map();
+
+/** @returns {number} Time at which a tone's oscillator stops. */
+function toneStop(tone) {
+  return tone.stop ?? tone.fadeEnd;
+}
+
+/** @returns {number} Tone frequency (Hz) at time t. */
+function toneFrequencyAt(tone, t) {
+  if (tone.freqEnd === undefined) return tone.freq;
+
+  const progress = Math.min((t - tone.start) / (tone.fadeEnd - tone.start), 1);
+  return tone.freq * (tone.freqEnd / tone.freq) ** progress;
+}
+
+/** @returns {number} Tone envelope amplitude at time t. */
+function toneGainAt(tone, t) {
+  const { start, attackEnd, peak, fadeEnd, floor = SILENCE } = tone;
+
+  if (attackEnd !== undefined && t < attackEnd) {
+    return SILENCE + ((peak - SILENCE) * (t - start)) / (attackEnd - start);
+  }
+  if (t >= fadeEnd) return floor;
+
+  const decayStart = attackEnd ?? start;
+  return peak * (floor / peak) ** ((t - decayStart) / (fadeEnd - decayStart));
+}
+
+/** @returns {number} Master envelope gain at time t. */
+function masterGainAt({ level, fadeEnd }, t) {
+  if (fadeEnd === undefined) return level;
+  return level * (SILENCE / level) ** Math.min(t / fadeEnd, 1);
+}
+
+/**
+ * Measures the highest absolute sample value a cue produces.
+ * @param {{ master?: object, tones: object[] }} cue
+ * @returns {number}
+ */
+function measureCuePeak(cue) {
+  const master = cue.master ?? DEFAULT_MASTER;
+  const duration = Math.max(...cue.tones.map(toneStop));
+  const totalSamples = Math.ceil(duration * MEASURE_SAMPLE_RATE);
+  const phases = new Array(cue.tones.length).fill(0);
+  let peak = 0;
+
+  for (let i = 0; i <= totalSamples; i++) {
+    const t = i / MEASURE_SAMPLE_RATE;
+    let sample = 0;
+
+    for (let n = 0; n < cue.tones.length; n++) {
+      const tone = cue.tones[n];
+      if (t < tone.start || t > toneStop(tone)) continue;
+
+      sample += toneGainAt(tone, t) * Math.sin(phases[n]);
+      phases[n] += (TWO_PI * toneFrequencyAt(tone, t)) / MEASURE_SAMPLE_RATE;
+    }
+
+    peak = Math.max(peak, Math.abs(sample) * masterGainAt(master, t));
+  }
+
+  return peak;
+}
+
+/**
+ * Linear gain that lifts a cue's peak to OUTPUT_CEILING.
+ * @returns {number}
+ */
+function getNormalizationGain(cue) {
+  if (!normalizationCache.has(cue)) {
+    const peak = measureCuePeak(cue);
+    normalizationCache.set(cue, peak > 0 ? OUTPUT_CEILING / peak : 1);
+  }
+  return normalizationCache.get(cue);
+}
+
+// ---------------------------------------------------------------------------
+// Playback engine
+// ---------------------------------------------------------------------------
+
+/**
+ * Schedules one oscillator with its envelope.
+ * @param {AudioContext} ctx
+ * @param {AudioNode} destination
+ * @param {object} tone  Tone definition (see CUES).
+ * @param {number} t0    Cue start time on the context clock.
+ */
+function scheduleTone(ctx, destination, tone, t0) {
+  const { freq, freqEnd, start, attackEnd, peak, fadeEnd, floor = SILENCE } = tone;
+  const begin = t0 + start;
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'sine';
+
+  osc.frequency.setValueAtTime(freq, begin);
+  if (freqEnd !== undefined) {
+    osc.frequency.exponentialRampToValueAtTime(freqEnd, t0 + fadeEnd);
+  }
+
+  if (attackEnd !== undefined) {
+    gain.gain.setValueAtTime(SILENCE, begin);
+    gain.gain.linearRampToValueAtTime(peak, t0 + attackEnd);
+  } else {
+    gain.gain.setValueAtTime(peak, begin);
+  }
+  gain.gain.exponentialRampToValueAtTime(floor, t0 + fadeEnd);
+
+  osc.connect(gain);
+  gain.connect(destination);
+  osc.start(begin);
+  osc.stop(t0 + toneStop(tone));
+}
+
+/**
+ * Plays a cue: tones -> master envelope -> normalization gain -> speakers.
+ * @param {{ master?: object, tones: object[] }} cue
+ * @returns {boolean} True if audio synthesis was successfully triggered, false otherwise.
+ */
+function playCue(cue) {
+  try {
+    const ctx = getReadyContext();
+    if (!ctx) return false;
+
+    const t0 = ctx.currentTime;
+    const { level, fadeEnd } = cue.master ?? DEFAULT_MASTER;
+
+    const normalizer = ctx.createGain();
+    normalizer.gain.setValueAtTime(getNormalizationGain(cue), t0);
+    normalizer.connect(ctx.destination);
+
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(level, t0);
+    if (fadeEnd !== undefined) {
+      master.gain.exponentialRampToValueAtTime(SILENCE, t0 + fadeEnd);
+    }
+    master.connect(normalizer);
+
+    for (const tone of cue.tones) {
+      scheduleTone(ctx, master, tone, t0);
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Public cues
+// ---------------------------------------------------------------------------
+
+/**
  * Synthesizes a subtle, ascending two-tone start cue (G4 -> C5).
  * Audible confirmation that a new focus session has begun.
  *
  * @returns {boolean} True if audio synthesis was successfully triggered, false otherwise.
  */
 export function playStartCue() {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return false;
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
-    }
-
-    const now = ctx.currentTime;
-    const peakGain = 0.12;
-
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(1.0, now);
-    masterGain.connect(ctx.destination);
-
-    // Note 1: G4 (392.0 Hz)
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(392.0, now);
-
-    gain1.gain.setValueAtTime(0.0001, now);
-    gain1.gain.linearRampToValueAtTime(peakGain * 0.8, now + 0.015);
-    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
-
-    osc1.connect(gain1);
-    gain1.connect(masterGain);
-    osc1.start(now);
-    osc1.stop(now + 0.18);
-
-    // Note 2: C5 (523.25 Hz) with 100ms offset for smooth legato rise
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(523.25, now + 0.10);
-
-    gain2.gain.setValueAtTime(0.0001, now + 0.10);
-    gain2.gain.linearRampToValueAtTime(peakGain, now + 0.115);
-    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
-
-    osc2.connect(gain2);
-    gain2.connect(masterGain);
-    osc2.start(now + 0.10);
-    osc2.stop(now + 0.35);
-
-    return true;
-  } catch {
-    return false;
-  }
+  return playCue(CUES.start);
 }
 
 /**
@@ -122,42 +382,7 @@ export function playStartCue() {
  * @returns {boolean} True if audio synthesis was successfully triggered, false otherwise.
  */
 export function playPauseCue() {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return false;
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
-    }
-
-    const now = ctx.currentTime;
-    const peakGain = 0.08;
-
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(1.0, now);
-    masterGain.connect(ctx.destination);
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-
-    // Descend from E4 (329.63 Hz) to C4 (261.63 Hz)
-    osc.frequency.setValueAtTime(329.63, now);
-    osc.frequency.exponentialRampToValueAtTime(261.63, now + 0.12);
-
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(peakGain, now + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
-
-    osc.connect(gain);
-    gain.connect(masterGain);
-    osc.start(now);
-    osc.stop(now + 0.12);
-
-    return true;
-  } catch {
-    return false;
-  }
+  return playCue(CUES.pause);
 }
 
 /**
@@ -167,42 +392,7 @@ export function playPauseCue() {
  * @returns {boolean} True if audio synthesis was successfully triggered, false otherwise.
  */
 export function playResumeCue() {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return false;
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
-    }
-
-    const now = ctx.currentTime;
-    const peakGain = 0.08;
-
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(1.0, now);
-    masterGain.connect(ctx.destination);
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-
-    // Ascend from C4 (261.63 Hz) to E4 (329.63 Hz)
-    osc.frequency.setValueAtTime(261.63, now);
-    osc.frequency.exponentialRampToValueAtTime(329.63, now + 0.12);
-
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(peakGain, now + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
-
-    osc.connect(gain);
-    gain.connect(masterGain);
-    osc.start(now);
-    osc.stop(now + 0.12);
-
-    return true;
-  } catch {
-    return false;
-  }
+  return playCue(CUES.resume);
 }
 
 /**
@@ -211,41 +401,7 @@ export function playResumeCue() {
  * @returns {boolean} True if audio synthesis was successfully triggered, false otherwise.
  */
 export function playResetCue() {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return false;
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
-    }
-
-    const now = ctx.currentTime;
-    const peakGain = 0.06;
-
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(1.0, now);
-    masterGain.connect(ctx.destination);
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-
-    osc.frequency.setValueAtTime(580.0, now);
-    osc.frequency.exponentialRampToValueAtTime(440.0, now + 0.08);
-
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(peakGain, now + 0.005);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
-
-    osc.connect(gain);
-    gain.connect(masterGain);
-    osc.start(now);
-    osc.stop(now + 0.08);
-
-    return true;
-  } catch {
-    return false;
-  }
+  return playCue(CUES.reset);
 }
 
 /**
@@ -255,82 +411,7 @@ export function playResetCue() {
  * @returns {boolean} True if audio synthesis was successfully triggered, false otherwise.
  */
 export function playCompletionChime() {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return false;
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
-    }
-
-    const now = ctx.currentTime;
-    const baseGain = 0.20;
-
-    // Master gain with smooth exponential decay over 2.0 seconds
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(baseGain, now);
-    masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.0);
-
-    // Root depth: C4 (261.63 Hz)
-    const oscRoot = ctx.createOscillator();
-    const gainRoot = ctx.createGain();
-    oscRoot.type = 'sine';
-    oscRoot.frequency.setValueAtTime(261.63, now);
-    gainRoot.gain.setValueAtTime(0.35, now);
-    gainRoot.gain.exponentialRampToValueAtTime(0.001, now + 1.9);
-
-    // Harmonic fifth: G4 (392.0 Hz)
-    const oscFifth = ctx.createOscillator();
-    const gainFifth = ctx.createGain();
-    oscFifth.type = 'sine';
-    oscFifth.frequency.setValueAtTime(392.0, now + 0.02);
-    gainFifth.gain.setValueAtTime(0.30, now + 0.02);
-    gainFifth.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
-
-    // Harmonic tone: 528 Hz
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(528, now);
-    gain1.gain.setValueAtTime(0.70, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 1.7);
-
-    // Harmonic companion: 660 Hz (harmonic major third)
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(660, now + 0.04);
-    gain2.gain.setValueAtTime(0.35, now + 0.04);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
-
-    // Connect audio graph
-    oscRoot.connect(gainRoot);
-    oscFifth.connect(gainFifth);
-    osc1.connect(gain1);
-    osc2.connect(gain2);
-
-    gainRoot.connect(masterGain);
-    gainFifth.connect(masterGain);
-    gain1.connect(masterGain);
-    gain2.connect(masterGain);
-
-    masterGain.connect(ctx.destination);
-
-    // Start and auto-stop
-    oscRoot.start(now);
-    oscFifth.start(now + 0.02);
-    osc1.start(now);
-    osc2.start(now + 0.04);
-
-    oscRoot.stop(now + 2.0);
-    oscFifth.stop(now + 2.0);
-    osc1.stop(now + 2.0);
-    osc2.stop(now + 2.0);
-
-    return true;
-  } catch {
-    return false;
-  }
+  return playCue(CUES.completion);
 }
 
 /**
@@ -342,57 +423,7 @@ export function playCompletionChime() {
  * @returns {boolean} True if audio synthesis was successfully triggered, false otherwise.
  */
 export function playStepToggleCue(isChecked = true) {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return false;
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
-    }
-
-    const now = ctx.currentTime;
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(1.0, now);
-    masterGain.connect(ctx.destination);
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-
-    if (isChecked) {
-      // Crisp upward tick (35ms)
-      const peakGain = 0.09;
-      osc.frequency.setValueAtTime(784.0, now);
-      osc.frequency.exponentialRampToValueAtTime(1046.5, now + 0.035);
-
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.linearRampToValueAtTime(peakGain, now + 0.003);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
-
-      osc.connect(gain);
-      gain.connect(masterGain);
-      osc.start(now);
-      osc.stop(now + 0.035);
-    } else {
-      // Softer, neutral downward tick (40ms)
-      const peakGain = 0.06;
-      osc.frequency.setValueAtTime(523.25, now);
-      osc.frequency.exponentialRampToValueAtTime(392.0, now + 0.040);
-
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.linearRampToValueAtTime(peakGain, now + 0.004);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.040);
-
-      osc.connect(gain);
-      gain.connect(masterGain);
-      osc.start(now);
-      osc.stop(now + 0.040);
-    }
-
-    return true;
-  } catch {
-    return false;
-  }
+  return playCue(isChecked ? CUES.stepChecked : CUES.stepUnchecked);
 }
 
 /**
@@ -402,68 +433,7 @@ export function playStepToggleCue(isChecked = true) {
  * @returns {boolean} True if audio synthesis was successfully triggered, false otherwise.
  */
 export function playHabitCompleteCue() {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return false;
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
-    }
-
-    const now = ctx.currentTime;
-    const baseGain = 0.14;
-
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(baseGain, now);
-    masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.65);
-    masterGain.connect(ctx.destination);
-
-    // Tone 1: E5 (659.25 Hz)
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(659.25, now);
-    gain1.gain.setValueAtTime(0.0001, now);
-    gain1.gain.linearRampToValueAtTime(0.6, now + 0.012);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.60);
-
-    // Tone 2: B5 (987.77 Hz)
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(987.77, now + 0.01);
-    gain2.gain.setValueAtTime(0.0001, now + 0.01);
-    gain2.gain.linearRampToValueAtTime(0.4, now + 0.022);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.60);
-
-    // Tone 3: C6 (1046.5 Hz) resolving note
-    const osc3 = ctx.createOscillator();
-    const gain3 = ctx.createGain();
-    osc3.type = 'sine';
-    osc3.frequency.setValueAtTime(1046.5, now + 0.04);
-    gain3.gain.setValueAtTime(0.0001, now + 0.04);
-    gain3.gain.linearRampToValueAtTime(0.5, now + 0.055);
-    gain3.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
-
-    osc1.connect(gain1);
-    gain1.connect(masterGain);
-    osc2.connect(gain2);
-    gain2.connect(masterGain);
-    osc3.connect(gain3);
-    gain3.connect(masterGain);
-
-    osc1.start(now);
-    osc2.start(now + 0.01);
-    osc3.start(now + 0.04);
-
-    osc1.stop(now + 0.65);
-    osc2.stop(now + 0.65);
-    osc3.stop(now + 0.65);
-
-    return true;
-  } catch {
-    return false;
-  }
+  return playCue(CUES.habitComplete);
 }
 
 /**
@@ -472,40 +442,7 @@ export function playHabitCompleteCue() {
  * @returns {boolean} True if audio synthesis was successfully triggered, false otherwise.
  */
 export function playTabSwitchCue() {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return false;
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
-    }
-
-    const now = ctx.currentTime;
-    const peakGain = 0.05;
-
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(1.0, now);
-    masterGain.connect(ctx.destination);
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-
-    osc.frequency.setValueAtTime(523.25, now);
-
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(peakGain, now + 0.002);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.025);
-
-    osc.connect(gain);
-    gain.connect(masterGain);
-    osc.start(now);
-    osc.stop(now + 0.025);
-
-    return true;
-  } catch {
-    return false;
-  }
+  return playCue(CUES.tabSwitch);
 }
 
 /**
@@ -515,41 +452,7 @@ export function playTabSwitchCue() {
  * @returns {boolean} True if audio synthesis was successfully triggered, false otherwise.
  */
 export function playActionSuccessCue() {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return false;
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
-    }
-
-    const now = ctx.currentTime;
-    const peakGain = 0.10;
-
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(1.0, now);
-    masterGain.connect(ctx.destination);
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-
-    osc.frequency.setValueAtTime(523.25, now);
-    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.20);
-
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(peakGain, now + 0.010);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.20);
-
-    osc.connect(gain);
-    gain.connect(masterGain);
-    osc.start(now);
-    osc.stop(now + 0.20);
-
-    return true;
-  } catch {
-    return false;
-  }
+  return playCue(CUES.actionSuccess);
 }
 
 /**
@@ -559,40 +462,5 @@ export function playActionSuccessCue() {
  * @returns {boolean} True if audio synthesis was successfully triggered, false otherwise.
  */
 export function playActionDeleteCue() {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return false;
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
-    }
-
-    const now = ctx.currentTime;
-    const peakGain = 0.07;
-
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(1.0, now);
-    masterGain.connect(ctx.destination);
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-
-    osc.frequency.setValueAtTime(196.0, now);
-    osc.frequency.exponentialRampToValueAtTime(164.81, now + 0.18);
-
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(peakGain, now + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
-
-    osc.connect(gain);
-    gain.connect(masterGain);
-    osc.start(now);
-    osc.stop(now + 0.18);
-
-    return true;
-  } catch {
-    return false;
-  }
+  return playCue(CUES.actionDelete);
 }
-

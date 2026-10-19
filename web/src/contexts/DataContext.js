@@ -2,11 +2,11 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useHabits } from '@/hooks/use-habits';
-import { useDailyLogs } from '@/hooks/use-daily-logs';
-import { useStreak } from '@/hooks/use-streak';
+import { useHabits } from '@/hooks/useHabits';
+import { useDailyLogs } from '@/hooks/useDailyLogs';
+import { useStreak } from '@/hooks/useStreak';
 import { fetchUserProfile, saveUserProfile } from '@/lib/firebase/firestore';
-import { getUserTimezone } from '@/lib/constants/habit-models';
+import { getUserTimezone } from '@/domain';
 
 const DataContext = createContext({});
 

@@ -1,31 +1,40 @@
 /**
- * UI Primitives & Design System Tokens
+ * Central UI Component Barrel for Vritta
+ *
+ * Explicitly exports categorized foundational UI primitives:
+ * - navigation: TopNav, BottomNav, ProfileMenu
+ * - dialogs: BottomSheet, ConfirmDialog, SignOutDialog
+ * - feedback: LoadingSpinner, Skeleton, DashboardSkeleton, HabitsSkeleton, AnalyticsSkeleton
+ * - controls: SignInButton, SoundControl, ThemeToggle
+ * - display: Avatar, Logo
+ * - banners: TodayRhythmBanner
  */
-export { default as Avatar } from './Avatar';
-export { default as BottomSheet } from './BottomSheet';
-export { default as ConfirmDialog } from './ConfirmDialog';
-export { default as LoadingSpinner } from './LoadingSpinner';
-export { default as Logo } from './Logo';
-export { default as Skeleton } from './Skeleton';
 
-/**
- * App Shell & Navigation
- */
-export { default as TopNav } from './TopNav';
-export { default as BottomNav } from './BottomNav';
-export { default as ProfileMenu } from './ProfileMenu';
-export { default as SignInButton } from './SignInButton';
-export { default as SignOutDialog } from './SignOutDialog';
+// Navigation
+export { default as TopNav } from './navigation/TopNav';
+export { default as BottomNav } from './navigation/BottomNav';
+export { default as ProfileMenu } from './navigation/ProfileMenu';
 
-/**
- * User Controls & Preferences
- */
-export { default as ThemeToggle } from './ThemeToggle';
-export { default as SoundControl } from './SoundControl';
+// Dialogs & Overlays
+export { default as BottomSheet } from './dialogs/BottomSheet';
+export { default as ConfirmDialog } from './dialogs/ConfirmDialog';
+export { default as SignOutDialog } from './dialogs/SignOutDialog';
 
-/**
- * Page & Route Skeletons
- */
-export { default as DashboardSkeleton } from './DashboardSkeleton';
-export { default as HabitsSkeleton } from './HabitsSkeleton';
-export { default as AnalyticsSkeleton } from './AnalyticsSkeleton';
+// Feedback & Loading States
+export { default as LoadingSpinner } from './feedback/LoadingSpinner';
+export { default as Skeleton } from './feedback/Skeleton';
+export { default as DashboardSkeleton } from './feedback/DashboardSkeleton';
+export { default as HabitsSkeleton } from './feedback/HabitsSkeleton';
+export { default as AnalyticsSkeleton } from './feedback/AnalyticsSkeleton';
+
+// Controls & Preferences
+export { default as SignInButton } from './controls/SignInButton';
+export { default as SoundControl } from './controls/SoundControl';
+export { default as ThemeToggle } from './controls/ThemeToggle';
+
+// Display & Identity
+export { default as Avatar } from './display/Avatar';
+export { default as Logo } from './display/Logo';
+
+// Banners & Summary Cards
+export { default as TodayRhythmBanner } from './banners/TodayRhythmBanner';

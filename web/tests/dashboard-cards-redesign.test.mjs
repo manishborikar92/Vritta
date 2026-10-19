@@ -15,8 +15,8 @@ function readWebFile(relativePath) {
 
 describe('Phase 2: Mobile-First Unified Habit Cards & Atomic Slots Architecture', () => {
   const components = [
-    'src/components/habits/DashboardHabitCard.js',
-    'src/components/habits/HabitManagerCard.js',
+    'src/components/habits/HabitTrackerCard.js',
+    'src/components/habits/HabitConfigCard.js',
     'src/components/habits/slots/SlotStepper.js',
     'src/components/habits/slots/SlotDaySchedule.js',
     'src/components/habits/slots/SlotCatalog.js',
@@ -39,14 +39,14 @@ describe('Phase 2: Mobile-First Unified Habit Cards & Atomic Slots Architecture'
   });
 
   describe('2. WCAG 2.2 Touch Target Compliance (min 44x44px for Interactive Controls)', () => {
-    it('should verify primary circular completion button on DashboardHabitCard meets min 44x44px touch target', () => {
-      const content = readWebFile('src/components/habits/DashboardHabitCard.js');
+    it('should verify primary circular completion button on HabitTrackerCard meets min 44x44px touch target', () => {
+      const content = readWebFile('src/components/habits/HabitTrackerCard.js');
       const has44pxButton = content.includes('w-11 h-11') ||
         (content.includes('w-11') && content.includes('h-11')) ||
         (content.includes('min-w-[44px]') && content.includes('min-h-[44px]'));
       assert.ok(
         has44pxButton,
-        'DashboardHabitCard must declare 44x44px (w-11 h-11) on primary toggle button'
+        'HabitTrackerCard must declare 44x44px (w-11 h-11) on primary toggle button'
       );
     });
 
@@ -90,8 +90,8 @@ describe('Phase 2: Mobile-First Unified Habit Cards & Atomic Slots Architecture'
 
     it('should verify category top-border accents are preserved across unified cards', () => {
       const cards = [
-        'src/components/habits/DashboardHabitCard.js',
-        'src/components/habits/HabitManagerCard.js',
+        'src/components/habits/HabitTrackerCard.js',
+        'src/components/habits/HabitConfigCard.js',
       ];
       for (const cardPath of cards) {
         const content = readWebFile(cardPath);

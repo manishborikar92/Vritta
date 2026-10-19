@@ -10,14 +10,14 @@ import {
   getEffectiveSchedule,
   getEffectiveScheduleForDate,
   ValidationError,
-} from '../src/lib/constants/habit-models.js';
+} from '../src/domain/index.js';
 import {
   toggleHabitCompletion,
   updateDailyHabitProgress,
 } from '../src/lib/firebase/firestore.js';
 import {
   evaluateHabitDayScenario,
-} from '../src/lib/analytics/consistency-engine.js';
+} from '../src/domain/analytics/index.js';
 import {
   calculateStreak,
 } from '../src/utils/analytics-helpers.js';
@@ -540,7 +540,7 @@ describe('Rest Day Completion Prevention & Status Neutrality Regression Suite', 
     });
 
     it('should execute the exact dashboard rendering path without crashing', () => {
-      // Simulates DashboardHabitCard resolution path:
+      // Simulates HabitTrackerCard resolution path:
       // const timezone = userProfile?.preferences?.timezone || userProfile?.timezone || 'UTC';
       // const currentObservanceDate = resolveObservanceDate(new Date(), timezone);
       // const isPlannedRest = isHabitRestDay(habit, currentObservanceDate, timezone);
@@ -551,7 +551,7 @@ describe('Rest Day Completion Prevention & Status Neutrality Regression Suite', 
       assert.doesNotThrow(() => {
         const isPlannedRest = isHabitRestDay(habitWithHistory, currentObservanceDate, timezone);
         assert.strictEqual(typeof isPlannedRest, 'boolean');
-      }, 'DashboardHabitCard rest day resolution path must execute cleanly');
+      }, 'HabitTrackerCard rest day resolution path must execute cleanly');
     });
 
     it('should verify backward-compatible export getEffectiveScheduleForDate identity', () => {
@@ -638,7 +638,7 @@ describe('Rest Day Completion Prevention & Status Neutrality Regression Suite', 
       assert.deepStrictEqual(nextStepsResult, ['step_1']);
     });
 
-    it('should determine isPlannedRest=true in DashboardHabitCard from schedule or explicit outcome', () => {
+    it('should determine isPlannedRest=true in HabitTrackerCard from schedule or explicit outcome', () => {
       const timezone = 'Asia/Kolkata';
       // Oct 18, 2026 is Sunday
       const sundayDate = '2026-10-18';
@@ -651,7 +651,7 @@ describe('Rest Day Completion Prevention & Status Neutrality Regression Suite', 
       const isPlannedRest = Boolean(isScheduledRest || isExplicitRest);
       assert.strictEqual(isPlannedRest, true);
 
-      // handleChecklistChange in DashboardHabitCard aborts when isPlannedRest=true
+      // handleChecklistChange in HabitTrackerCard aborts when isPlannedRest=true
       let onUpdateProgressCalls = 0;
       const onUpdateProgress = () => { onUpdateProgressCalls++; };
 

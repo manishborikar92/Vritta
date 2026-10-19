@@ -3,11 +3,11 @@
 import { useCallback } from 'react';
 import Link from 'next/link';
 import { useData } from '@/contexts/DataContext';
+import { HabitTrackerCard } from '@/components/habits';
 import {
-  DashboardHabitCard,
+  DashboardSkeleton,
   TodayRhythmBanner,
-} from '@/components/habits';
-import { DashboardSkeleton } from '@/components/ui';
+} from '@/components/ui';
 import { BRAND } from '@/lib/constants/brand';
 import { Compass } from 'lucide-react';
 import { getTodayString } from '@/utils/date-helpers';
@@ -30,13 +30,13 @@ export default function DashboardPage() {
   } = useData();
 
   // Universal Habit Card Renderer (Phase 3 Unified Habit Card Architecture)
-  // Replaces disparate specialized branches with universal feature-driven DashboardHabitCard.
+  // Replaces disparate specialized branches with universal feature-driven HabitTrackerCard.
   const renderHabitCard = useCallback((habit) => {
     const isCompleted = todayLog.includes(habit.id);
     const progress = todayProgress[habit.id] || EMPTY_PROGRESS;
 
     return (
-      <DashboardHabitCard
+      <HabitTrackerCard
         key={habit.id}
         habit={habit}
         isCompleted={isCompleted}
