@@ -180,11 +180,25 @@ describe('Features Architecture & Life-Area Category Consolidation', () => {
           `firestore.rules must include canonical category '${cat}'`
         );
       }
-      // Legacy 'Movement' must NOT be in firestore.rules
-      assert.ok(
-        !firestoreRulesContent.includes("'Movement',"),
-        "firestore.rules must NOT permit legacy standalone 'Movement'"
-      );
+      // Legacy categories must NOT be in firestore.rules
+      const legacyCats = [
+        'Movement',
+        'English Learning',
+        'Movement & Strength',
+        'Listening & Awareness',
+        'Reading',
+        'Communication',
+        'Reflection',
+        'Nutrition',
+        'Recovery',
+        'Schedule',
+      ];
+      for (const leg of legacyCats) {
+        assert.ok(
+          !firestoreRulesContent.includes(`'${leg}'`),
+          `firestore.rules must NOT permit legacy category '${leg}'`
+        );
+      }
     });
 
     it('should validate composable habits against canonical categories and strictly reject non-canonical categories', () => {
@@ -246,12 +260,11 @@ describe('Features Architecture & Life-Area Category Consolidation', () => {
   });
 
   describe('3. Persistence & Normalization Integrity (Firestore)', () => {
-    it('should preserve canonical category "Movement & Strength" when reading from Firestore', () => {
+    it('should preserve canonical category "Health & Fitness" when reading from Firestore', () => {
       const rawDoc = {
         userId: 'user_123',
         title: 'Bodyweight Exercises',
-        category: 'Movement & Strength',
-        completionMethod: 'exercise_plan',
+        category: 'Health & Fitness',
         frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
         time: 'Afternoon',
       };
@@ -259,8 +272,8 @@ describe('Features Architecture & Life-Area Category Consolidation', () => {
       const normalized = normalizeHabitFromFirestore(rawDoc, 'habit_bw_1');
       assert.equal(
         normalized.category,
-        'Movement & Strength',
-        'Normalizer must preserve canonical category "Movement & Strength"'
+        'Health & Fitness',
+        'Normalizer must preserve canonical category "Health & Fitness"'
       );
       assert.equal(normalized.id, 'habit_bw_1');
     });

@@ -63,8 +63,7 @@ describe('Phase 5: Dynamic Insights & Non-Punitive Analytics Engine', () => {
       const canonicalPlan = {
         id: 'canon_ex',
         stableKey: 'canonical_exercise_plan',
-        category: 'Movement & Strength',
-        completionMethod: 'exercise_plan',
+        category: 'Health & Fitness',
         frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
       };
 
@@ -74,12 +73,11 @@ describe('Phase 5: Dynamic Insights & Non-Punitive Analytics Engine', () => {
       assert.equal(isHabitRequiredOnDay(canonicalPlan, 'Mon'), true, 'Canonical plan must be required on Mon');
     });
 
-    it('should NOT treat custom Movement & Strength habits as Sunday rest unless configured', () => {
+    it('should NOT treat custom Health & Fitness habits as Sunday rest unless configured', () => {
       const customDailyPushups = {
         id: 'custom_pushups',
         title: 'Daily Pushups',
-        category: 'Movement & Strength',
-        completionMethod: 'simple_checkbox', // not exercise_plan, no canonical key
+        category: 'Health & Fitness',
         frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
       };
 
@@ -99,8 +97,7 @@ describe('Phase 5: Dynamic Insights & Non-Punitive Analytics Engine', () => {
       const readingWithMidweekRest = {
         id: 'h_read',
         title: 'Deep Reading',
-        category: 'Reading',
-        completionMethod: 'reading_duration',
+        category: 'Learning & Growth',
         frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         metadata: {
           restDays: ['Wed', 'Sun'],
@@ -123,8 +120,7 @@ describe('Phase 5: Dynamic Insights & Non-Punitive Analytics Engine', () => {
         {
           id: 'h3',
           title: 'Movement',
-          category: 'Movement & Strength',
-          completionMethod: 'exercise_plan',
+          category: 'Health & Fitness',
           stableKey: 'canonical_exercise_plan',
           frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         },
@@ -218,14 +214,12 @@ describe('Phase 5: Dynamic Insights & Non-Punitive Analytics Engine', () => {
           id: 'hab_water',
           title: 'Drink 2L Water',
           category: 'Health & Fitness',
-          completionMethod: 'simple_checkbox',
           frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         },
         {
           id: 'hab_journal',
           title: 'Evening Reflection',
           category: 'Reflection & Journaling',
-          completionMethod: 'simple_checkbox',
           frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         },
       ];

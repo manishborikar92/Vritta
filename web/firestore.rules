@@ -17,10 +17,9 @@ service cloud.firestore {
     // =============================================
     match /habits/{habitId} {
 
-      // Allowed categories: canonical life areas + legacy categories (preserved pending review)
+      // Allowed categories: canonical 9 life areas
       function isValidCategory(cat) {
         return cat in [
-          // Canonical General-Purpose Life Areas
           'Health & Fitness',
           'Learning & Growth',
           'Mindfulness & Spirit',
@@ -29,17 +28,7 @@ service cloud.firestore {
           'Creativity & Hobbies',
           'Relationships & Family',
           'Rest & Recovery',
-          'Other',
-          // Legacy Categories (Preserved until explicit user review of migration)
-          'English Learning',
-          'Movement & Strength',
-          'Listening & Awareness',
-          'Reading',
-          'Communication',
-          'Reflection',
-          'Nutrition',
-          'Recovery',
-          'Schedule'
+          'Other'
         ];
       }
 
@@ -125,14 +114,6 @@ service cloud.firestore {
       }
     }
 
-    // =============================================
-    // PersonalRoutines: Isolated storage for personalized schedules
-    // Client write is disabled (managed exclusively via Admin SDK CLI)
-    // =============================================
-    match /personalRoutines/{routineId} {
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow write: if false;
-    }
 
     // =============================================
     // ScheduleTemplates: Shared reusable routine blueprints

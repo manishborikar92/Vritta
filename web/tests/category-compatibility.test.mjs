@@ -93,12 +93,25 @@ describe('Authoritative Canonical Category Taxonomy & Rule Conformance', () => {
       );
     }
 
-    // Legacy 'Movement' duplicate must NOT be permitted in firestore.rules
-    // We check for exact 'Movement' entry in array
-    assert.ok(
-      !firestoreRulesContent.includes("'Movement',"),
-      "firestore.rules must NOT contain legacy standalone 'Movement'"
-    );
+    // Legacy categories must NOT be permitted in firestore.rules
+    const forbiddenLegacyCategories = [
+      'Movement',
+      'English Learning',
+      'Movement & Strength',
+      'Listening & Awareness',
+      'Reading',
+      'Communication',
+      'Reflection',
+      'Nutrition',
+      'Recovery',
+      'Schedule'
+    ];
+    for (const legacy of forbiddenLegacyCategories) {
+      assert.ok(
+        !firestoreRulesContent.includes(`'${legacy}'`),
+        `firestore.rules must NOT contain legacy category '${legacy}'`
+      );
+    }
   });
 
   it('should provide complete, valid styling tokens for every canonical category', () => {

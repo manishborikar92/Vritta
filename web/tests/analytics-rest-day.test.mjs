@@ -12,7 +12,7 @@ describe('Analytics Rest-Day Denominator & Streak Logic', () => {
   it('should exclude Sunday exercise from completion denominator', () => {
     const habitsWithIds = CANONICAL_ROUTINES.map((r, idx) => ({ ...r, id: `habit_${idx}` }));
 
-    const exerciseHabit = habitsWithIds.find(h => h.completionMethod === 'exercise_plan');
+    const exerciseHabit = habitsWithIds.find(h => h.features?.daySchedule?.enabled || h.stableKey === 'canonical_exercise_plan');
     const otherHabits = habitsWithIds.filter(h => h.id !== exerciseHabit.id);
     const otherHabitIds = otherHabits.map(h => h.id);
 
@@ -31,7 +31,7 @@ describe('Analytics Rest-Day Denominator & Streak Logic', () => {
 
   it('should include exercise in denominator on Monday workout day', () => {
     const habitsWithIds = CANONICAL_ROUTINES.map((r, idx) => ({ ...r, id: `habit_${idx}` }));
-    const exerciseHabit = habitsWithIds.find(h => h.completionMethod === 'exercise_plan');
+    const exerciseHabit = habitsWithIds.find(h => h.features?.daySchedule?.enabled || h.stableKey === 'canonical_exercise_plan');
     const otherHabits = habitsWithIds.filter(h => h.id !== exerciseHabit.id);
     const otherHabitIds = otherHabits.map(h => h.id);
 

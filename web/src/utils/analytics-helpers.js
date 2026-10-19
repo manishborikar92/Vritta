@@ -215,7 +215,6 @@ export function calculateDynamicAnalytics(habits = [], dailyLogs = {}, daysWindo
       id: h.id,
       title: h.title,
       category: h.category || 'General',
-      completionMethod: h.completionMethod,
       scheduledDays: 0,
       completedDays: 0,
       totalUnits: 0, // e.g. workbook sessions
@@ -261,11 +260,11 @@ export function calculateDynamicAnalytics(habits = [], dailyLogs = {}, daysWindo
         statsObj.completedDays++;
       }
 
-      // Domain-specific unit handling
-      if (h.completionMethod === 'workbook_sessions' || h.category === 'English Learning' || h.category === 'Learning & Growth') {
-        const sessions = prog.sessionsCompleted || (isDone ? 2 : 0);
+      // Domain-specific unit handling using canonical features and categories
+      if (h.features?.counter?.enabled || h.category === 'Learning & Growth') {
+        const sessions = prog.sessionsCompleted || (isDone ? (h.features?.counter?.targetCount || 2) : 0);
         statsObj.totalUnits += sessions;
-      } else if (h.completionMethod === 'exercise_plan' || h.category === 'Movement & Strength' || h.category === 'Health & Fitness') {
+      } else if (h.features?.daySchedule?.enabled || h.category === 'Health & Fitness') {
         if (isDone) {
           if (['Mon', 'Wed', 'Fri'].includes(item.dayOfWeek)) {
             statsObj.workoutDays++;
@@ -333,11 +332,11 @@ export function calculateDynamicAnalytics(habits = [], dailyLogs = {}, daysWindo
     const firstHabit = cat.habits[0];
     const isSingleHabit = cat.habits.length === 1;
 
-    if (cat.category === 'English Learning' || cat.category === 'Learning & Growth' || firstHabit?.completionMethod === 'workbook_sessions') {
+    if (cat.category === 'Learning & Growth' || firstHabit?.features?.counter?.enabled) {
       metricValue = cat.workbookSessionsTotal || cat.totalCompletions;
       metricUnit = 'sessions logged';
       detailText = isSingleHabit ? firstHabit.title : `${cat.habits.length} study routines`;
-    } else if (cat.category === 'Movement & Strength' || cat.category === 'Health & Fitness' || firstHabit?.completionMethod === 'exercise_plan') {
+    } else if (cat.category === 'Health & Fitness' || firstHabit?.features?.daySchedule?.enabled) {
       metricValue = cat.totalCompletions;
       metricUnit = 'sessions completed';
       if (cat.workoutDaysTotal > 0 || cat.walkDaysTotal > 0) {
@@ -345,14 +344,14 @@ export function calculateDynamicAnalytics(habits = [], dailyLogs = {}, daysWindo
       } else {
         detailText = isSingleHabit ? firstHabit.title : `${cat.habits.length} movement routines`;
       }
-    } else if (cat.category === 'Listening & Awareness' || cat.category === 'Mindfulness & Spirit' || firstHabit?.completionMethod === 'osho_listening') {
+    } else if (cat.category === 'Mindfulness & Spirit' || firstHabit?.features?.catalog?.enabled) {
       metricValue = cat.totalCompletions;
       metricUnit = 'days listened';
       detailText = isSingleHabit ? firstHabit.title : `${cat.habits.length} listening routines`;
-    } else if (cat.category === 'Reading' || firstHabit?.completionMethod === 'reading_duration') {
+    } else if (cat.category === 'Reflection & Journaling' || firstHabit?.features?.notes?.enabled) {
       metricValue = cat.totalCompletions;
-      metricUnit = 'evenings read';
-      detailText = isSingleHabit ? firstHabit.title : `${cat.habits.length} reading routines`;
+      metricUnit = 'reflections logged';
+      detailText = isSingleHabit ? firstHabit.title : `${cat.habits.length} reflection routines`;
     } else {
       detailText = isSingleHabit
         ? firstHabit.title

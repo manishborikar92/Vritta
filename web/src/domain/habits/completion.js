@@ -166,7 +166,6 @@ export function deriveCompletedProgressForHabit(habit, existingProgress = {}, da
     next.talkCompleted = true;
     const isOsho = f.catalog.catalogId === 'osho_discourses' ||
       habit.stableKey === 'canonical_listen_osho' ||
-      habit.completionMethod === 'osho_listening' ||
       (!f.catalog.catalogId && habit.title?.toLowerCase().includes('osho'));
     if (!isOsho && Array.isArray(f.catalog.items)) {
       const allItemIds = f.catalog.items.map((item, idx) => item.id || item.title || `item_${idx}`);
@@ -229,7 +228,6 @@ export function deriveUncompletedProgressForHabit(habit, existingProgress = {}) 
     next.talkCompleted = false;
     const isOsho = f.catalog.catalogId === 'osho_discourses' ||
       habit.stableKey === 'canonical_listen_osho' ||
-      habit.completionMethod === 'osho_listening' ||
       (!f.catalog.catalogId && habit.title?.toLowerCase().includes('osho'));
     if (!isOsho) {
       next.completedCatalogItemIds = [];

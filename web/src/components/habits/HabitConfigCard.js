@@ -56,7 +56,7 @@ function HabitConfigCard({
   const features = habit.features || {};
   const activeFeatures = [];
 
-  if (features.counter?.enabled || habit.completionMethod === 'workbook_sessions') {
+  if (features.counter?.enabled) {
     activeFeatures.push({
       key: 'counter',
       label: `Counter: ${features.counter?.targetCount || 2} ${features.counter?.unit || 'sessions'}`,
@@ -64,25 +64,16 @@ function HabitConfigCard({
     });
   }
 
-  const hasTimer = Boolean(
-    features.timer?.enabled ?? (
-      habit.completionMethod === 'reading_duration' ||
-      habit.stableKey === 'canonical_read_books'
-    )
-  );
+  const hasTimer = Boolean(features.timer?.enabled);
   if (hasTimer) {
     activeFeatures.push({
       key: 'timer',
-      label: `Timer: ${features.timer?.targetDurationMinutes || habit.targetMinutes || 30}m`,
+      label: `Timer: ${features.timer?.targetDurationMinutes || 30}m`,
       icon: Timer,
     });
   }
 
-  const checklistCount = Array.isArray(features.checklist?.items) && features.checklist.items.length > 0
-    ? features.checklist.items.length
-    : Array.isArray(habit.checklistItems)
-    ? habit.checklistItems.length
-    : 0;
+  const checklistCount = Array.isArray(features.checklist?.items) ? features.checklist.items.length : 0;
 
   if (checklistCount > 0) {
     activeFeatures.push({
@@ -100,7 +91,7 @@ function HabitConfigCard({
     });
   }
 
-  if (features.catalog?.enabled || habit.completionMethod === 'osho_listening') {
+  if (features.catalog?.enabled) {
     activeFeatures.push({
       key: 'catalog',
       label: features.catalog?.catalogTitle || 'Discourse Library',
@@ -108,7 +99,7 @@ function HabitConfigCard({
     });
   }
 
-  if (features.daySchedule?.enabled || habit.completionMethod === 'exercise_plan') {
+  if (features.daySchedule?.enabled) {
     activeFeatures.push({
       key: 'daySchedule',
       label: 'Day Schedule Plan',

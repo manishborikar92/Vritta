@@ -260,7 +260,7 @@ export function isHabitRestDay(habit, dayOfWeekOrDate, timezone = 'UTC') {
 
   // 2. Progressive Day Schedule rest variant (features.daySchedule)
   const daySchedule = habit.features?.daySchedule;
-  if (daySchedule && (daySchedule.enabled || habit.completionMethod === 'exercise_plan')) {
+  if (daySchedule && daySchedule.enabled) {
     const dayVar = daySchedule.dayVariations?.[dow];
     if (dayVar && (dayVar.type === 'rest' || dayVar.dayType === 'rest' || dayVar.isRestDay === true)) {
       return true;
@@ -274,8 +274,7 @@ export function isHabitRestDay(habit, dayOfWeekOrDate, timezone = 'UTC') {
   // 3. Canonical movement plan fallback: Sunday is an intentional planned rest day
   const isCanonicalMovement =
     habit.stableKey === 'canonical_exercise_plan' ||
-    habit.stableKey === 'routine_physical_movement' ||
-    habit.completionMethod === 'exercise_plan';
+    habit.stableKey === 'routine_physical_movement';
 
   if (dow === 'Sun' && isCanonicalMovement) {
     return true;

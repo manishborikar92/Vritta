@@ -122,8 +122,7 @@ describe('12-Week Movement Plan & Weekday Schedule', () => {
       id: 'test_movement_habit',
       userId: 'test_user_456',
       title: '12-Week Progressive Movement Routine',
-      category: 'Movement & Strength',
-      completionMethod: 'exercise_plan',
+      category: 'Health & Fitness',
       stableKey: 'canonical_exercise_plan',
       schedule: {
         frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],

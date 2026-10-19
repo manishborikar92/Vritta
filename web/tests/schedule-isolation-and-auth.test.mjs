@@ -242,7 +242,7 @@ describe('Phase 5 Architecture Simplification, Dead Code Removal & Quarantine', 
     }
   });
 
-  it('should verify firestore.rules disables client writes to personalRoutines', async () => {
+  it('should verify firestore.rules disables client writes to scheduleTemplates', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
     const { fileURLToPath } = await import('node:url');
@@ -254,8 +254,8 @@ describe('Phase 5 Architecture Simplification, Dead Code Removal & Quarantine', 
     assert.ok(fs.existsSync(rulesPath), `firestore.rules must exist at ${rulesPath}`);
     const rulesContent = fs.readFileSync(rulesPath, 'utf-8');
 
-    assert.ok(rulesContent.includes('match /personalRoutines/{routineId}'), 'Must declare personalRoutines match rule');
-    assert.ok(rulesContent.includes('allow write: if false;'), 'Must forbid all client writes to personalRoutines');
-    assert.ok(rulesContent.includes('resource.data.userId == request.auth.uid'), 'Must restrict reads to owner');
+    assert.ok(rulesContent.includes('match /scheduleTemplates/{templateId}'), 'Must declare scheduleTemplates match rule');
+    assert.ok(rulesContent.includes('allow write: if false;'), 'Must forbid all client writes to scheduleTemplates');
+    assert.ok(rulesContent.includes('allow read: if isAuthenticated();'), 'Must allow authenticated reads to scheduleTemplates');
   });
 });

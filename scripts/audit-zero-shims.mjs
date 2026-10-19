@@ -58,6 +58,10 @@ const DELETED_SCRIPTS = [
   'web/src/lib/analytics/consistency-engine.js',
   'scripts/fetch-personal-schedule.mjs',
   'scripts/migrate-reading-target-minutes.mjs',
+  'scripts/cleanup-obsolete-slot-flags.mjs',
+  'scripts/migrate-composable-habits.mjs',
+  'scripts/rollback-composable-habits.mjs',
+  'scripts/verify-migration-integrity.mjs',
 ];
 
 console.log('\n[Check 2] Verifying absence of quarantined modules and one-off scripts...');

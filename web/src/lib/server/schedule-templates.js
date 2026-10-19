@@ -642,7 +642,6 @@ export const MANISH_PERSONAL_ROUTINES = SCHEDULE_TEMPLATES
     relativeTiming: t.schedule.relativeTiming,
     time: t.schedule.exactTime || (t.schedule.relativeTiming || t.schedule.preferredPeriod || 'Flexible'),
     frequency: [...t.schedule.frequency],
-    order: t.schedule.order,
     schedule: {
       ...t.schedule,
       frequency: [...t.schedule.frequency],
@@ -682,7 +681,6 @@ export const DEFAULT_ROUTINES = SCHEDULE_TEMPLATES
     preferredPeriod: t.schedule.preferredPeriod,
     time: t.schedule.preferredPeriod || 'Flexible',
     frequency: [...t.schedule.frequency],
-    order: t.schedule.order,
     isSystemSeed: true,
     seedOrigin: 'foundation_preset',
     metadata: { ...t.metadata },

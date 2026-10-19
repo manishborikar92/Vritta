@@ -35,6 +35,10 @@ describe('Phase 6: Complete Legacy Decommissioning & Zero-Shims Purity Audit', (
       'web/src/lib/analytics/consistency-engine.js',
       'scripts/fetch-personal-schedule.mjs',
       'scripts/migrate-reading-target-minutes.mjs',
+      'scripts/cleanup-obsolete-slot-flags.mjs',
+      'scripts/migrate-composable-habits.mjs',
+      'scripts/rollback-composable-habits.mjs',
+      'scripts/verify-migration-integrity.mjs',
     ];
 
     for (const relPath of deletedScripts) {
