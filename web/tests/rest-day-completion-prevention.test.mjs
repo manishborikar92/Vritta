@@ -17,7 +17,7 @@ import {
 } from '../src/lib/firebase/firestore.js';
 import {
   evaluateHabitDayScenario,
-} from '../src/lib/analytics/consistency-engine.js';
+} from '../src/domain/analytics/index.js';
 import {
   calculateStreak,
 } from '../src/utils/analytics-helpers.js';

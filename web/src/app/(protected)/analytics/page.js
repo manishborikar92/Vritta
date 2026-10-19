@@ -21,7 +21,7 @@ import { formatDate, parseDateString } from '@/utils/date-helpers';
 import {
   calculateMonthlyAnalytics,
   DAY_TO_COLUMN,
-} from '@/lib/analytics/consistency-engine';
+} from '@/domain/analytics';
 
 export default function AnalyticsPage() {
   const { habits, dailyLogs, fetchDailyLogs, loading, userProfile, userTimezone } = useData();

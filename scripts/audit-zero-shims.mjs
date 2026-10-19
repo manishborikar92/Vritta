@@ -55,6 +55,7 @@ for (const relPath of DELETED_COMPONENT_FILES) {
 // 2. Deleted Scripts and Quarantined Modules
 const DELETED_SCRIPTS = [
   'web/src/lib/server/personal-schedule.js',
+  'web/src/lib/analytics/consistency-engine.js',
   'scripts/fetch-personal-schedule.mjs',
   'scripts/migrate-reading-target-minutes.mjs',
 ];

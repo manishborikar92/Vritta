@@ -93,10 +93,11 @@ describe('Phase 7: Interactive Sound Experience & Audio Polish', () => {
       assert.ok(content.includes('1046.5'), 'playHabitCompleteCue must resolve on C6 (1046.5 Hz)');
     });
 
-    it('should verify In-Page Tab Switch cue uses featherlight 25ms sine transient', () => {
+    it('should verify In-Page Tab Switch cue uses calibrated 25ms sine transient with clear volume', () => {
       const content = readWebFile('src/utils/audio-chime.js');
       assert.ok(content.includes('0.025'), 'playTabSwitchCue duration must be approximately 0.025s');
-      assert.ok(content.includes('0.05'), 'playTabSwitchCue peak gain must be featherlight (~0.05)');
+      assert.ok(content.includes('0.15'), 'playTabSwitchCue peak gain must be calibrated to 0.15 for audible tactile click');
+      assert.ok(content.includes('523.25'), 'playTabSwitchCue pitch must remain C5 (523.25 Hz)');
     });
 
     it('should verify Routine Save and Delete cues use distinct harmonic inflections', () => {

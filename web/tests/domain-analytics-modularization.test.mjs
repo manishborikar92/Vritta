@@ -18,14 +18,17 @@ import {
 } from '../src/domain/analytics/index.js';
 
 import * as domainIndex from '../src/domain/index.js';
-import * as consistencyEngine from '../src/lib/analytics/consistency-engine.js';
+import * as timeframeMod from '../src/domain/analytics/timeframe.js';
+import * as truthTableMod from '../src/domain/analytics/truth-table.js';
+import * as consistencyMod from '../src/domain/analytics/consistency.js';
+import * as calendarGridMod from '../src/domain/analytics/calendar-grid.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const webRoot = path.resolve(__dirname, '..');
 
 describe('Domain Analytics Subsystem Modularization & Calculation Invariants', () => {
-  describe('1. Architectural Export Parity & Facade Integrity', () => {
+  describe('1. Architectural Export Parity & Facade Deletion', () => {
     it('should export all 10 analytics functions & constants from domain/analytics/index.js', () => {
       assert.ok(Array.isArray(SUPPORTED_TIMEFRAMES), 'SUPPORTED_TIMEFRAMES must be array');
       assert.deepEqual(SUPPORTED_TIMEFRAMES, ['7D', '30D', '90D', 'YTD', 'Lifetime', 'Custom']);
@@ -48,13 +51,19 @@ describe('Domain Analytics Subsystem Modularization & Calculation Invariants', (
       assert.equal(domainIndex.getTimeframeDateRange, getTimeframeDateRange);
     });
 
-    it('should ensure consistency-engine.js facade has 100% identical references', () => {
-      assert.equal(consistencyEngine.evaluateHabitDayScenario, evaluateHabitDayScenario);
-      assert.equal(consistencyEngine.calculateLifetimeAnalytics, calculateLifetimeAnalytics);
-      assert.equal(consistencyEngine.calculateMonthlyAnalytics, calculateMonthlyAnalytics);
-      assert.equal(consistencyEngine.calculateHabitConsistency, calculateHabitConsistency);
-      assert.equal(consistencyEngine.getTimeframeDateRange, getTimeframeDateRange);
-      assert.equal(consistencyEngine.SUPPORTED_TIMEFRAMES, SUPPORTED_TIMEFRAMES);
+    it('should verify submodules export their dedicated domain functions', () => {
+      assert.equal(typeof timeframeMod.getTimeframeDateRange, 'function');
+      assert.equal(typeof timeframeMod.getContiguousDateRange, 'function');
+      assert.equal(typeof truthTableMod.evaluateHabitDayScenario, 'function');
+      assert.equal(typeof truthTableMod.isHabitCompletedInLog, 'function');
+      assert.equal(typeof consistencyMod.calculateHabitConsistency, 'function');
+      assert.equal(typeof consistencyMod.calculateLifetimeAnalytics, 'function');
+      assert.equal(typeof calendarGridMod.calculateMonthlyAnalytics, 'function');
+    });
+
+    it('should verify consistency-engine.js is completely deleted and does not exist', () => {
+      const deletedEnginePath = path.join(webRoot, 'src', 'lib', 'analytics', 'consistency-engine.js');
+      assert.ok(!fs.existsSync(deletedEnginePath), 'consistency-engine.js must be completely removed');
     });
 
     it('should verify physical files exist in web/src/domain/analytics/', () => {

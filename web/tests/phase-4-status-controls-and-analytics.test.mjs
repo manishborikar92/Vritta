@@ -6,7 +6,7 @@ import {
   evaluateHabitDayScenario,
   calculateHabitConsistency,
   calculateLifetimeAnalytics,
-} from '../src/lib/analytics/consistency-engine.js';
+} from '../src/domain/analytics/index.js';
 
 const ROOT_DIR = path.resolve(process.cwd());
 

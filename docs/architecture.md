@@ -84,7 +84,6 @@ root/
         │   └── schedule/ # Observance grace windows (04:00 AM) and schedule resolution
         ├── hooks/        # Reusable domain hooks (useHabits, useDailyLogs, useStreak, useTimer)
         └── lib/          # Utilities, configuration, repositories, and fixtures
-            ├── analytics/# Coordinating analytics facade (consistency-engine.js)
             ├── constants/# Category configurations and brand definitions
             ├── firebase/ # Firebase Web SDK client, repositories, and gateway
             │   ├── repositories/ # Focused data-access modules (user-profile.js, templates.js)

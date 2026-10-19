@@ -32,6 +32,7 @@ describe('Phase 6: Complete Legacy Decommissioning & Zero-Shims Purity Audit', (
   it('should verify quarantined legacy scripts are deleted', () => {
     const deletedScripts = [
       'web/src/lib/server/personal-schedule.js',
+      'web/src/lib/analytics/consistency-engine.js',
       'scripts/fetch-personal-schedule.mjs',
       'scripts/migrate-reading-target-minutes.mjs',
     ];
