@@ -1,0 +1,33 @@
+{
+  "name": "vritta",
+  "version": "0.1.0",
+  "description": "A calm, flexible personal routine companion for mindful consistency.",
+  "private": true,
+  "type": "module",
+  "homepage": "https://myvritta.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/manishborikar92/Vritta.git"
+  },
+  "author": "Manish Borikar",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "npm --prefix web run dev",
+    "build": "npm --prefix web run build",
+    "start": "npm --prefix web run start",
+    "lint": "npm --prefix web run lint",
+    "test": "npm --prefix web run test",
+    "check": "npm run test && npm run lint && npm run build && git diff --check",
+    "audit:shims": "node scripts/audit-zero-shims.mjs",
+    "android:build": "cd ./android && gradlew.bat --no-daemon assembleDebug",
+    "android:release": "cd ./android && gradlew.bat --no-daemon assembleRelease",
+    "templates:seed": "npm --prefix web run templates:seed",
+    "plan:backup": "npm --prefix web run plan:backup",
+    "plan:restore": "npm --prefix web run plan:restore",
+    "install:web": "npm --prefix web install"
+  }
+}
