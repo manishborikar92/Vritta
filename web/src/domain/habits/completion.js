@@ -5,6 +5,7 @@
 import { WORKOUT_EXERCISES, WALK_DAY_ROUTINE } from '../../lib/fixtures/exercise-plan.js';
 import { getDayOfWeek } from '../../utils/date-helpers.js';
 import { isHabitRestDay } from '../schedule/resolution.js';
+import { getStepId, isStepCompleted } from '../../utils/checklist-helpers.js';
 
 /**
  * Evaluates whether an individual configured feature slot is satisfied by progress data.
@@ -34,13 +35,16 @@ export function isFeatureSatisfied(featureKey, featureConfig = {}, progress = {}
     }
     case 'checklist': {
       const items = Array.isArray(featureConfig.items) ? featureConfig.items : [];
+      if (items.length === 0) return true;
       // An item is required unless explicitly marked optional via isRequired: false or isRequiredForCompletion: false
-      const requiredItems = items.filter(
-        item => item.isRequiredForCompletion !== false && item.isRequired !== false
-      );
-      if (requiredItems.length === 0) return true;
+      const requiredItemsWithIndex = items
+        .map((item, index) => ({ item, index }))
+        .filter(({ item }) => item?.isRequiredForCompletion !== false && item?.isRequired !== false);
+      if (requiredItemsWithIndex.length === 0) return true;
       const completedSteps = Array.isArray(progress.completedSteps) ? progress.completedSteps : [];
-      return requiredItems.every(reqItem => completedSteps.includes(reqItem.id || reqItem.label));
+      return requiredItemsWithIndex.every(({ item, index }) =>
+        isStepCompleted(item, index, completedSteps, false, items)
+      );
     }
     case 'catalog': {
       const isOsho = featureConfig.catalogId === 'osho_discourses';
@@ -149,8 +153,9 @@ export function deriveCompletedProgressForHabit(habit, existingProgress = {}, da
   if (f.checklist?.enabled) {
     const items = Array.isArray(f.checklist.items) ? f.checklist.items : [];
     const requiredKeys = items
-      .filter(item => item.isRequired !== false && item.isRequiredForCompletion !== false)
-      .map(item => item.id || item.label);
+      .map((item, idx) => ({ item, idx }))
+      .filter(({ item }) => item.isRequired !== false && item.isRequiredForCompletion !== false)
+      .map(({ item, idx }) => getStepId(item, idx));
     const existingSteps = Array.isArray(next.completedSteps) ? next.completedSteps : [];
     next.completedSteps = Array.from(new Set([...existingSteps, ...requiredKeys]));
     next.reviewDone = true;

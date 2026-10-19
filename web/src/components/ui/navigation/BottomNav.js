@@ -15,7 +15,7 @@ function NavTab({ href, label, Icon, active, onClick }) {
         onClick={onClick}
         aria-label={label}
         aria-current={active ? 'page' : undefined}
-        className="group flex min-h-12 min-w-[56px] w-full select-none items-center justify-center rounded-xl focus-visible:-outline-offset-2"
+        className="group flex min-h-14 min-w-[56px] py-1.5 w-full select-none items-center justify-center rounded-xl focus-visible:-outline-offset-2"
       >
         {/* Pill indicator behind the icon only (Material 3 / iOS style) */}
         <span className="relative flex h-8 w-16 items-center justify-center">

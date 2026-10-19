@@ -490,7 +490,7 @@ export async function updateDailyHabitProgress(userId, dateStr, habitId, progres
         }
     }
 
-    return setDoc(dailyLogRef, updatePayload, { merge: true });
+    return setDoc(dailyLogRef, sanitizeForFirestore(updatePayload), { merge: true });
 }
 
 /**

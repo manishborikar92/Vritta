@@ -46,7 +46,7 @@ function SlotChecklist({
     isHabitComplete
   );
 
-  const [isExpanded, setIsExpanded] = useState(() => totalCount <= 3 || completedCount > 0);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   if (items.length === 0) return null;
 

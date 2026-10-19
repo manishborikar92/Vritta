@@ -130,8 +130,14 @@ export function normalizeCompletedSteps(completedSteps = [], checklistItems = []
 
     const strStep = String(step);
 
-    // 3. Legacy index-prefixed slug: 'step_0_water'
-    const indexPrefixMatch = strStep.match(/^step_(\d+)_(.+)$/);
+    // Exact match on an existing item's ID or key: preserve immediately without legacy re-mapping
+    if (items.some(it => it && (String(it.id) === strStep || (it.key && String(it.key) === strStep)))) {
+      normalized.add(strStep);
+      continue;
+    }
+
+    // 3. Legacy index-prefixed slug: 'step_0_water' (small array index, not a timestamp)
+    const indexPrefixMatch = strStep.match(/^step_(\d{1,4})_(.+)$/);
     if (indexPrefixMatch) {
       const idx = parseInt(indexPrefixMatch[1], 10);
       const slug = indexPrefixMatch[2].toLowerCase();
@@ -151,7 +157,7 @@ export function normalizeCompletedSteps(completedSteps = [], checklistItems = []
           continue;
         }
       }
-      const matchedItem = items.find((it, i) => {
+      const matchedIndex = items.findIndex((it, i) => {
         const itemLabelSlug = String(it?.label || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
         const itemIdLower = getStepId(it, i).toLowerCase();
         return (
@@ -162,8 +168,8 @@ export function normalizeCompletedSteps(completedSteps = [], checklistItems = []
           slug.includes(itemLabelSlug)
         );
       });
-      if (matchedItem) {
-        normalized.add(getStepId(matchedItem));
+      if (matchedIndex !== -1) {
+        normalized.add(getStepId(items[matchedIndex], matchedIndex));
         continue;
       }
     }

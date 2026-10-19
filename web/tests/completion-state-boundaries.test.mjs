@@ -4,7 +4,9 @@ import assert from 'node:assert/strict';
 import {
   evaluateHabitCompletion,
   isFeatureSatisfied,
+  deriveCompletedProgressForHabit,
 } from '../src/domain/index.js';
+import { toggleChecklistStep } from '../src/utils/checklist-helpers.js';
 
 describe('Completion State Boundaries & Propagation Integrity', () => {
   const multiFeatureHabit = {
@@ -138,5 +140,82 @@ describe('Completion State Boundaries & Propagation Integrity', () => {
     assert.deepEqual(skippedProgress.completedSteps, ['step_1'], 'Child checklist state must be preserved');
     assert.equal(skippedProgress.sessionsCompleted, 1, 'Child session counter must be preserved');
     assert.equal(skippedProgress.notes, 'Initial reflection notes', 'Child notes must be preserved');
+  });
+
+  it('should evaluate checklist completion correctly for items without explicit IDs', () => {
+    const templateChecklistHabit = {
+      id: 'habit_template_checklist',
+      title: 'Blueprint Morning Sequence',
+      features: {
+        checklist: {
+          enabled: true,
+          items: [
+            { label: 'Drink water' },
+            { label: 'Deep breathing' },
+          ],
+        },
+      },
+    };
+
+    // Neither step completed
+    assert.equal(evaluateHabitCompletion(templateChecklistHabit, { completedSteps: [] }), false);
+
+    // Only step 1 completed (slug: step_drink_water)
+    assert.equal(evaluateHabitCompletion(templateChecklistHabit, { completedSteps: ['step_drink_water'] }), false);
+
+    // Both steps completed with slug IDs
+    assert.equal(evaluateHabitCompletion(templateChecklistHabit, { completedSteps: ['step_drink_water', 'step_deep_breathing'] }), true);
+  });
+
+  it('should derive completed progress with stable step IDs for items without explicit IDs', () => {
+    const templateHabit = {
+      id: 'habit_template_derive',
+      title: 'Blueprint Routine',
+      features: {
+        checklist: {
+          enabled: true,
+          items: [
+            { label: 'Prepare space' },
+            { label: 'Review tasks' },
+          ],
+        },
+      },
+    };
+
+    const derived = deriveCompletedProgressForHabit(templateHabit);
+    assert.deepEqual(derived.completedSteps, ['step_prepare_space', 'step_review_tasks']);
+    assert.equal(derived.reviewDone, true);
+    assert.equal(evaluateHabitCompletion(templateHabit, derived), true);
+  });
+
+  it('should sequentially toggle 5 checklist items with timestamp IDs without dropping steps or false collisions', () => {
+    const habit5 = {
+      id: 'habit_5_items',
+      title: '5 Step Routine',
+      features: {
+        checklist: {
+          enabled: true,
+          items: [
+            { id: 'step_1792433688478_1ithd', label: 'A', isRequiredForCompletion: true },
+            { id: 'step_1792433690122_y6igy', label: 'B', isRequiredForCompletion: true },
+            { id: 'step_1792433691013_r5m5l', label: 'C', isRequiredForCompletion: true },
+            { id: 'step_1792433692768_bdzd9', label: 'D', isRequiredForCompletion: true },
+            { id: 'step_1792433693707_g5mnk', label: 'E', isRequiredForCompletion: true },
+          ],
+        },
+      },
+    };
+
+    let progress = { completedSteps: [] };
+    for (let i = 0; i < 5; i++) {
+      const res = toggleChecklistStep(habit5.features.checklist.items, progress.completedSteps, i);
+      progress.completedSteps = res.nextCompletedSteps;
+      progress.reviewDone = res.isAllCompleted;
+      assert.equal(res.completedCount, i + 1, `After toggling step ${i}, completedCount must be ${i + 1}`);
+      assert.equal(evaluateHabitCompletion(habit5, progress), i === 4, `Habit must complete only on step 5 (index 4)`);
+    }
+
+    assert.equal(progress.completedSteps.length, 5);
+    assert.equal(progress.reviewDone, true);
   });
 });
