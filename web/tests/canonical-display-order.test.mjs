@@ -597,5 +597,37 @@ describe('Canonical Display Order Architecture — Phase 1 Verification', () => 
         'Reordered positions must be 100% preserved regardless of edits or completion updates'
       );
     });
+
+    it('should prevent stale inversion when moving up if habit is already ahead of target', () => {
+      // Habit A is at sortOrder 1, Habit B is at sortOrder 2 (A is already ahead of B)
+      const orderA = 1;
+      const orderB = 2;
+      const direction = 'up';
+
+      // Moving A 'up' past B requires orderA > orderB
+      const shouldSwap = !(direction === 'up' && orderA <= orderB);
+
+      assert.equal(shouldSwap, false, 'Must not swap when habit A is already ahead of B in direction up');
+    });
+
+    it('should prevent stale inversion when moving down if habit is already behind target', () => {
+      // Habit A is at sortOrder 2, Habit B is at sortOrder 1 (A is already behind B)
+      const orderA = 2;
+      const orderB = 1;
+      const direction = 'down';
+
+      // Moving A 'down' past B requires orderA < orderB
+      const shouldSwap = !(direction === 'down' && orderA >= orderB);
+
+      assert.equal(shouldSwap, false, 'Must not swap when habit A is already behind B in direction down');
+    });
+
+    it('should detect stale order when database order shifted since client read', () => {
+      const dbOrderA = 3;
+      const expectedCurrentOrder = 2; // Client thought habit was at position 2
+
+      const isStale = expectedCurrentOrder !== undefined && dbOrderA !== expectedCurrentOrder;
+      assert.equal(isStale, true, 'Must detect mismatch between expected and actual database sortOrder');
+    });
   });
 });

@@ -20,6 +20,7 @@ import {
   isHabitRestDay,
   getEffectiveSchedule,
   getEffectiveScheduleForDate,
+  getUserTimezone,
 } from '../lib/constants/habit-models.js';
 
 /**
@@ -43,7 +44,7 @@ export function isHabitScheduledOnDay(habit, dayOfWeek) {
   return frequency.includes(dayOfWeek);
 }
 
-export { isHabitRestDay, getEffectiveSchedule, getEffectiveScheduleForDate };
+export { isHabitRestDay, getEffectiveSchedule, getEffectiveScheduleForDate, getUserTimezone };
 
 /**
  * Checks whether a habit is required on a given day (scheduled AND not in planned rest).

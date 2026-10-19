@@ -98,7 +98,11 @@ export function useHabits(user) {
         const currentHabit = habits[currentIndex];
         const targetHabit = habits[targetIndex];
 
-        return swapHabitsSortOrder(currentHabit.id, targetHabit.id);
+        return swapHabitsSortOrder(currentHabit.id, targetHabit.id, {
+            direction,
+            expectedCurrentOrder: currentHabit.sortOrder,
+            expectedTargetOrder: targetHabit.sortOrder,
+        });
     }, [user, habits]);
 
     // Seed or update foundation habits (idempotent, safe to rerun anytime)

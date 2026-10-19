@@ -266,18 +266,28 @@ export async function deleteHabitDoc(habitId) {
  * 1. Executes in a Firestore transaction to read current sortOrders before writing.
  * 2. Rejects if either document no longer exists.
  * 3. Preserves ownership invariant (both habits must belong to the same user).
- * 4. Does not alter nextSortOrder on the user document (N+1 append monotonic property remains intact).
+ * 4. Stale-Inversion Protection:
+ *    - Moving A 'up' past B strictly requires current orderA > orderB. If orderA <= orderB,
+ *      A is already ahead of B; executing swap would erroneously move A DOWN.
+ *    - Moving A 'down' past B strictly requires current orderA < orderB. If orderA >= orderB,
+ *      A is already behind B; executing swap would erroneously move A UP.
+ * 5. Does not alter nextSortOrder on the user document (N+1 append monotonic property remains intact).
  * 
  * @param {string} habitIdA 
  * @param {string} habitIdB 
- * @returns {Promise<void>}
+ * @param {Object} [options] - Optional validation options
+ * @param {'up'|'down'} [options.direction] - Direction of movement for habitIdA
+ * @param {number} [options.expectedCurrentOrder] - Expected current sortOrder for habitIdA
+ * @param {number} [options.expectedTargetOrder] - Expected current sortOrder for habitIdB
+ * @returns {Promise<{ swapped: boolean, reason?: string, orderA?: number, orderB?: number }>}
  */
-export async function swapHabitsSortOrder(habitIdA, habitIdB) {
+export async function swapHabitsSortOrder(habitIdA, habitIdB, options = {}) {
     if (!habitIdA || !habitIdB) {
         throw new Error('Both habit IDs are required to swap display order.');
     }
-    if (habitIdA === habitIdB) return;
+    if (habitIdA === habitIdB) return { swapped: false, reason: 'identical_ids' };
 
+    const { direction, expectedCurrentOrder, expectedTargetOrder } = options;
     const refA = doc(db, 'habits', habitIdA);
     const refB = doc(db, 'habits', habitIdB);
 
@@ -299,6 +309,27 @@ export async function swapHabitsSortOrder(habitIdA, habitIdB) {
         const orderA = typeof dataA.sortOrder === 'number' ? dataA.sortOrder : 1;
         const orderB = typeof dataB.sortOrder === 'number' ? dataB.sortOrder : 2;
 
+        // Guard against stale directional requests:
+        // Moving A 'up' past B requires A to currently be after B (orderA > orderB).
+        // If orderA <= orderB, A is already ahead of B; executing swap would move A DOWN.
+        if (direction === 'up' && orderA <= orderB) {
+            return { swapped: false, reason: 'already_ahead', orderA, orderB };
+        }
+
+        // Moving A 'down' past B requires A to currently be before B (orderA < orderB).
+        // If orderA >= orderB, A is already behind B; executing swap would move A UP.
+        if (direction === 'down' && orderA >= orderB) {
+            return { swapped: false, reason: 'already_behind', orderA, orderB };
+        }
+
+        // Validate expected orders if provided
+        if (expectedCurrentOrder !== undefined && orderA !== expectedCurrentOrder) {
+            return { swapped: false, reason: 'stale_current_order', orderA, expectedCurrentOrder };
+        }
+        if (expectedTargetOrder !== undefined && orderB !== expectedTargetOrder) {
+            return { swapped: false, reason: 'stale_target_order', orderB, expectedTargetOrder };
+        }
+
         transaction.update(refA, {
             sortOrder: orderB,
             updatedAt: serverTimestamp(),
@@ -307,6 +338,8 @@ export async function swapHabitsSortOrder(habitIdA, habitIdB) {
             sortOrder: orderA,
             updatedAt: serverTimestamp(),
         });
+
+        return { swapped: true, orderA: orderB, orderB: orderA };
     });
 }
 

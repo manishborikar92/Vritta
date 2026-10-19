@@ -171,6 +171,38 @@ export function isValidTimezone(tz) {
   }
 }
 
+/**
+ * Safely resolve the user's anchor timezone.
+ * Priority:
+ * 1. userProfile.preferences.timezone
+ * 2. userProfile.timezone
+ * 3. Client environment Intl.DateTimeFormat().resolvedOptions().timeZone
+ * 4. Fallback 'UTC'
+ *
+ * @param {Object|string|null} [userProfile] - User profile object or timezone string
+ * @returns {string} Valid IANA timezone identifier
+ */
+export function getUserTimezone(userProfile) {
+  if (typeof userProfile === 'string' && isValidTimezone(userProfile)) {
+    return userProfile;
+  }
+  const explicitTz = userProfile?.preferences?.timezone || userProfile?.timezone;
+  if (explicitTz && isValidTimezone(explicitTz)) {
+    return explicitTz;
+  }
+  try {
+    if (typeof Intl !== 'undefined' && Intl.DateTimeFormat) {
+      const clientTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (isValidTimezone(clientTz)) {
+        return clientTz;
+      }
+    }
+  } catch {
+    // Ignore error in environments where Intl is restricted or fails
+  }
+  return 'UTC';
+}
+
 function getZonedDateParts(date, timeZone) {
   const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone,
