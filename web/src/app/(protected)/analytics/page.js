@@ -24,17 +24,11 @@ import {
 } from '@/lib/analytics/consistency-engine';
 
 export default function AnalyticsPage() {
-  const { habits, dailyLogs, fetchDailyLogs, loading, userProfile } = useData();
+  const { habits, dailyLogs, fetchDailyLogs, loading, userProfile, userTimezone } = useData();
   const { playTabSwitchCue } = useSound();
 
   // User anchor timezone
-  const timezone = useMemo(() => {
-    return (
-      userProfile?.preferences?.timezone ||
-      (typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC') ||
-      'UTC'
-    );
-  }, [userProfile?.preferences?.timezone]);
+  const timezone = userTimezone || 'UTC';
 
   // Initial month based on current local date
   const now = useMemo(() => new Date(), []);

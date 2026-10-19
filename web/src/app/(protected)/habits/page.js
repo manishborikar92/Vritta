@@ -24,7 +24,10 @@ export default function HabitsPage() {
     if (reorderingId) return;
     setReorderingId(habitId);
     try {
-      await reorderHabit(habitId, 'up');
+      const res = await reorderHabit(habitId, 'up');
+      if (res && res.swapped === false) {
+        return;
+      }
       playActionSuccessCue?.();
     } catch (err) {
       console.error('Error reordering routine up:', err);
@@ -38,7 +41,10 @@ export default function HabitsPage() {
     if (reorderingId) return;
     setReorderingId(habitId);
     try {
-      await reorderHabit(habitId, 'down');
+      const res = await reorderHabit(habitId, 'down');
+      if (res && res.swapped === false) {
+        return;
+      }
       playActionSuccessCue?.();
     } catch (err) {
       console.error('Error reordering routine down:', err);

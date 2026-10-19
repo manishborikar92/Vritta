@@ -18,8 +18,8 @@ import {
   STOP_SIGNALS,
   GENERAL_HEALTH_NOTES,
 } from '@/lib/fixtures/exercise-plan';
-import { getDayOfWeek } from '@/utils/date-helpers';
-import { resolveObservanceDate } from '@/lib/constants/habit-models';
+import { getDayOfWeek, getTodayString } from '@/utils/date-helpers';
+import { resolveObservanceDate, getUserTimezone } from '@/lib/constants/habit-models';
 import { useSound } from '@/contexts';
 
 /**
@@ -43,20 +43,22 @@ function SlotDaySchedule({
   onUpdateProfile,
   disabled = false,
   isHabitComplete = false,
+  date,
 }) {
   const { playStepToggleCue, playHabitCompleteCue } = useSound();
   const [showSafetyModal, setShowSafetyModal] = useState(false);
   const [expandedExerciseId, setExpandedExerciseId] = useState(null);
 
-  const timezone = userProfile?.preferences?.timezone || userProfile?.timezone || 'UTC';
+  const timezone = getUserTimezone(userProfile);
+  const localToday = date || getTodayString();
+  const calendarDayOfWeek = getDayOfWeek(localToday);
   const currentObservanceDate = resolveObservanceDate(new Date(), timezone);
-  const dayOfWeek = getDayOfWeek(currentObservanceDate);
 
   // Resolve today's schedule from feature.dayVariations or fallback to MOVEMENT_SCHEDULE
-  const dayVariation = feature.dayVariations?.[dayOfWeek];
-  const scheduleForToday = dayVariation || MOVEMENT_SCHEDULE[dayOfWeek] || MOVEMENT_SCHEDULE.Mon;
+  const dayVariation = feature.dayVariations?.[calendarDayOfWeek];
+  const scheduleForToday = dayVariation || MOVEMENT_SCHEDULE[calendarDayOfWeek] || MOVEMENT_SCHEDULE.Mon;
 
-  const isRestDay = scheduleForToday.type === 'rest' || dayVariation?.isRestDay === true || dayOfWeek === 'Sun';
+  const isRestDay = scheduleForToday.type === 'rest' || dayVariation?.isRestDay === true || calendarDayOfWeek === 'Sun';
   const isWalkDay = scheduleForToday.type === 'walk';
   const isWorkoutDay = scheduleForToday.type === 'workout' || (!isRestDay && !isWalkDay);
 
@@ -104,7 +106,7 @@ function SlotDaySchedule({
       playStepToggleCue?.(!isCurrentlyChecked);
     }
 
-    onChange?.(updatedIds, nextAllRequiredChecked);
+    onChange?.(updatedIds, nextAllRequiredChecked, currentObservanceDate);
   };
 
   // If Rest Day (e.g. Sunday)
@@ -117,7 +119,7 @@ function SlotDaySchedule({
             <span>Rest & Restoration Day</span>
           </div>
           <span className="text-2xs px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/60 text-teal-900 dark:text-teal-200 font-semibold border border-teal-300/80 dark:border-teal-700/60">
-            Sunday
+            {scheduleForToday.title || (calendarDayOfWeek === 'Sun' ? 'Sunday' : calendarDayOfWeek)}
           </span>
         </div>
 

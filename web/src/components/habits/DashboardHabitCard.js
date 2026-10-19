@@ -14,7 +14,7 @@ import {
   clampCounterProgress,
   deriveCompletedProgressForHabit,
   deriveUncompletedProgressForHabit,
-  resolveObservanceDate,
+  getUserTimezone,
 } from '@/lib/constants/habit-models';
 import { getTimingDisplay, getDayOfWeek, getTodayString } from '@/utils/date-helpers';
 import { isHabitRestDay } from '@/utils/analytics-helpers';
@@ -61,11 +61,10 @@ function DashboardHabitCard({
   const isNightTiming = timingText.toLowerCase().includes('bed') || timingText.toLowerCase().includes('night');
 
   // Check if today is a recurring planned rest day for this routine
-  // Resolves against user anchor timezone, 04:00 AM observance window, and local today string
-  const timezone = userProfile?.preferences?.timezone || userProfile?.timezone || 'UTC';
+  // Resolves against user anchor timezone and active calendar day
+  const timezone = getUserTimezone(userProfile);
   const localToday = date || getTodayString();
-  const currentObservanceDate = resolveObservanceDate(new Date(), timezone);
-  const isScheduledRest = isHabitRestDay(habit, localToday, timezone) || isHabitRestDay(habit, currentObservanceDate, timezone);
+  const isScheduledRest = isHabitRestDay(habit, localToday, timezone);
   const isExplicitRest =
     progress?.status === 'rest' ||
     progress?.outcome === 'rest' ||
@@ -360,6 +359,7 @@ function DashboardHabitCard({
               onUpdateProfile={onUpdateProfile}
               isHabitComplete={isCompleted}
               disabled={isPlannedRest}
+              date={localToday}
             />
           )}
 

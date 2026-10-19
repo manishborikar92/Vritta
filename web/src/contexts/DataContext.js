@@ -6,6 +6,7 @@ import { useHabits } from '@/hooks/use-habits';
 import { useDailyLogs } from '@/hooks/use-daily-logs';
 import { useStreak } from '@/hooks/use-streak';
 import { fetchUserProfile, saveUserProfile } from '@/lib/firebase/firestore';
+import { getUserTimezone } from '@/lib/constants/habit-models';
 
 const DataContext = createContext({});
 
@@ -75,6 +76,7 @@ export function DataProvider({ children }) {
     todayLog,
     todayProgress,
     userProfile,
+    userTimezone: getUserTimezone(userProfile),
     loading: habitsLoading,
     error,
     // Computed

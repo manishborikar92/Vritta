@@ -166,4 +166,47 @@ describe('Phase 3: Habits Routine Manager Redesign & FAB Collision Fix', () => {
       }
     });
   });
+
+  describe('7. Habit Reordering Controls & WCAG Accessibility Invariants', () => {
+    it('should verify HabitManagerCard renders Move Up and Move Down buttons in bottom-right corner', () => {
+      const content = readWebFile(routineCardPath);
+      assert.ok(content.includes('ArrowUp'), 'Must import or render ArrowUp icon');
+      assert.ok(content.includes('ArrowDown'), 'Must import or render ArrowDown icon');
+      assert.ok(
+        content.includes('onMoveUp?.(habit)') || content.includes('onMoveUp'),
+        'Must support onMoveUp handler'
+      );
+      assert.ok(
+        content.includes('onMoveDown?.(habit)') || content.includes('onMoveDown'),
+        'Must support onMoveDown handler'
+      );
+    });
+
+    it('should guarantee WCAG 2.2 touch targets (min 44x44px) on reordering controls', () => {
+      const content = readWebFile(routineCardPath);
+      assert.ok(
+        content.includes('min-w-[44px]') && content.includes('min-h-[44px]'),
+        'Reordering buttons must enforce min-w-[44px] and min-h-[44px] touch target dimensions'
+      );
+    });
+
+    it('should declare accessible aria-labels and contextual disabled states on reordering buttons', () => {
+      const content = readWebFile(routineCardPath);
+      assert.ok(content.includes('aria-label={`Move ${habit.title} up`}'), 'Must have accessible up label');
+      assert.ok(content.includes('aria-label={`Move ${habit.title} down`}'), 'Must have accessible down label');
+      assert.ok(content.includes('disabled={isFirst || isReordering}'), 'Must disable up button when isFirst or reordering');
+      assert.ok(content.includes('disabled={isLast || isReordering}'), 'Must disable down button when isLast or reordering');
+      assert.ok(content.includes('disabled:opacity-30'), 'Must visually indicate disabled state');
+    });
+
+    it('should verify habits/page.js wires boundary states and reorderingId mutex lock', () => {
+      const content = readWebFile(habitsPagePath);
+      assert.ok(content.includes('isFirst={index === 0}'), 'Must wire isFirst based on index');
+      assert.ok(content.includes('isLast={index === habits.length - 1}'), 'Must wire isLast based on habits length');
+      assert.ok(content.includes('isReordering={reorderingId !== null}'), 'Must wire isReordering state');
+      assert.ok(content.includes('handleMoveUp'), 'Must wire handleMoveUp handler');
+      assert.ok(content.includes('handleMoveDown'), 'Must wire handleMoveDown handler');
+      assert.ok(content.includes('if (reorderingId) return;'), 'Must mutex-guard against rapid reordering clicks');
+    });
+  });
 });
