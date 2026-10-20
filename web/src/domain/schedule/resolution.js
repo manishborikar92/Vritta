@@ -271,15 +271,6 @@ export function isHabitRestDay(habit, dayOfWeekOrDate, timezone = 'UTC') {
     }
   }
 
-  // 3. Canonical movement plan fallback: Sunday is an intentional planned rest day
-  const isCanonicalMovement =
-    habit.stableKey === 'canonical_exercise_plan' ||
-    habit.stableKey === 'routine_physical_movement';
-
-  if (dow === 'Sun' && isCanonicalMovement) {
-    return true;
-  }
-
   return false;
 }
 

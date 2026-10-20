@@ -69,6 +69,16 @@ export {
     saveUserProfile,
 };
 
+import {
+    fetchScheduleTemplates,
+    fetchScheduleTemplateById,
+} from './repositories/templates.js';
+
+export {
+    fetchScheduleTemplates,
+    fetchScheduleTemplateById,
+};
+
 import { sanitizeForFirestore } from './utils/sanitizer.js';
 export { sanitizeForFirestore };
 
@@ -135,12 +145,7 @@ export function buildCanonicalHabitPayload(habitData) {
     if (habitData.scheduleHistory !== undefined && Array.isArray(habitData.scheduleHistory)) payload.scheduleHistory = habitData.scheduleHistory;
     if (habitData.metadata !== undefined && typeof habitData.metadata === 'object') payload.metadata = habitData.metadata;
 
-    if (habitData.seedOrigin !== undefined) payload.seedOrigin = habitData.seedOrigin;
     if (habitData.stableKey !== undefined) payload.stableKey = habitData.stableKey;
-    if (habitData.templateReference !== undefined) payload.templateReference = habitData.templateReference;
-    if (habitData.sourceTemplateId !== undefined) payload.sourceTemplateId = habitData.sourceTemplateId;
-    if (habitData.templateCategory !== undefined) payload.templateCategory = habitData.templateCategory;
-    if (habitData.templateDescription !== undefined) payload.templateDescription = habitData.templateDescription;
     if (habitData.tags !== undefined && Array.isArray(habitData.tags)) payload.tags = [...habitData.tags];
     if (habitData.archived !== undefined) payload.archived = Boolean(habitData.archived);
     if (habitData.archivedAt !== undefined) payload.archivedAt = habitData.archivedAt;
@@ -494,62 +499,6 @@ export async function updateDailyHabitProgress(userId, dateStr, habitId, progres
 }
 
 /**
- * Idempotent Seed: Seed or update foundation routines for a user.
- * Running this multiple times NEVER duplicates habits and NEVER wipes existing user records.
- * Uses deterministic document IDs derived from the routine's stableKey.
- * 
- * @param {string} userId
- * @param {Array<Object>} seedData
- * @returns {Promise<Array<string>>} List of document IDs upserted
- */
-export async function seedHabitsForUser(userId, seedData) {
-    if (!userId) throw new Error('User ID is required to seed routines.');
-    if (!Array.isArray(seedData) || seedData.length === 0) return [];
-
-    // Query existing habits for this user in a single request
-    const existingSnap = await getDocs(getHabitsQuery(userId));
-
-    // Strict guard: Seeding foundation routines is only permitted when the user has zero routines or habits.
-    // If routines already exist (foundation, personalized, or custom), return early without writing.
-    if (!existingSnap.empty) {
-        return existingSnap.docs.map(docSnap => docSnap.id);
-    }
-
-    const promises = seedData.map(async (habit, index) => {
-        // Deterministic document ID based on stableKey or index
-        const key = habit.stableKey || `routine_${index + 1}`;
-        const docId = `${userId}_${key}`;
-        const habitRef = doc(db, 'habits', docId);
-
-        const canonicalPayload = buildCanonicalHabitPayload(habit);
-
-        const dataToSave = {
-            ...canonicalPayload,
-            id: docId,
-            userId,
-            sortOrder: index + 1,
-            seedOrigin: habit.seedOrigin || 'foundation_preset',
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        };
-
-        // merge: true preserves any extra custom fields if written concurrently
-        await setDoc(habitRef, dataToSave, { merge: true });
-        return docId;
-    });
-
-    const docIds = await Promise.all(promises);
-
-    // Initialize nextSortOrder counter on user document
-    await setDoc(getUserRef(userId), {
-        nextSortOrder: seedData.length + 1,
-        updatedAt: serverTimestamp(),
-    }, { merge: true });
-
-    return docIds;
-}
-
-/**
  * Fetch historical daily logs for a user.
  * Queries by userId only (avoiding composite index requirement) and sorts safely in memory.
  * @param {string} userId
@@ -644,7 +593,6 @@ export function normalizeHabitFromFirestore(data, id) {
                 trackingHorizon,
             },
             seedOrigin: data.seedOrigin || 'custom',
-            templateReference: data.templateReference || null,
             stableKey: data.stableKey || docId,
         };
     }
@@ -761,7 +709,6 @@ export function normalizeHabitFromFirestore(data, id) {
             trackingHorizon,
         },
         seedOrigin: data.seedOrigin || 'custom',
-        templateReference: null,
         stableKey: data.stableKey || docId,
     };
 }
@@ -813,7 +760,6 @@ export function serializeHabitForFirestore(habit) {
         features: habit.features,
         lifecycle: habit.lifecycle,
         seedOrigin: habit.seedOrigin || 'custom',
-        templateReference: habit.templateReference || null,
         stableKey: habit.stableKey || habit.id,
     });
 }
@@ -951,14 +897,4 @@ export function serializeDailyLogForFirestore(logData) {
         ...(logData.dayFinalizedAt ? { dayFinalizedAt: logData.dayFinalizedAt } : {}),
     };
 }
-
-import {
-    fetchScheduleTemplates,
-    fetchScheduleTemplateById,
-} from './repositories/templates.js';
-
-export {
-    fetchScheduleTemplates,
-    fetchScheduleTemplateById,
-};
 

@@ -30,8 +30,6 @@ function SlotCatalog({
   const [showModal, setShowModal] = useState(false);
 
   const isOshoCatalog = feature.catalogId === 'osho_discourses' ||
-    habit.stableKey === 'canonical_listen_osho' ||
-    habit.id?.includes('canonical_listen_osho') ||
     (feature.catalogId !== 'custom_catalog' && habit.title?.toLowerCase().includes('osho'));
 
   // If Osho catalog, synchronize with profile state

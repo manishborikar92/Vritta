@@ -21,13 +21,11 @@
     "start": "npm --prefix web run start",
     "lint": "npm --prefix web run lint",
     "test": "npm --prefix web run test",
+    "templates:seed": "npm --prefix web run templates:seed",
     "check": "npm run test && npm run lint && npm run build && git diff --check",
     "audit:shims": "node scripts/audit-zero-shims.mjs",
     "android:build": "cd ./android && gradlew.bat --no-daemon assembleDebug",
     "android:release": "cd ./android && gradlew.bat --no-daemon assembleRelease",
-    "templates:seed": "npm --prefix web run templates:seed",
-    "plan:backup": "npm --prefix web run plan:backup",
-    "plan:restore": "npm --prefix web run plan:restore",
     "install:web": "npm --prefix web install"
   }
 }

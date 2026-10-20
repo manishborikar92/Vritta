@@ -155,6 +155,7 @@ export default function TemplateBrowserModal({ isOpen, onClose, onSelectTemplate
       metadata: template.metadata ? { ...template.metadata } : {},
       seedOrigin: 'template',
       templateReference: template.id,
+      stableKey: template.stableKey || null,
       id: null, // Zero ID ensures new unique document is created under user's UID
     };
 

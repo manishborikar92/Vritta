@@ -28,8 +28,6 @@ import {
   serializeDailyLogForFirestore,
 } from '../src/lib/firebase/firestore.js';
 
-import { MANISH_PERSONAL_ROUTINES } from '../src/lib/server/schedule-templates.js';
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -215,48 +213,124 @@ describe('Phase 1: Domain Foundation & Architecture Modernization', () => {
   });
 
   // ==========================================================================
-  // 3. Normalization Fidelity for All 6 Canonical Routines
+  // 3. Normalization Fidelity for Authoritative Routine Archetypes
   // ==========================================================================
-  describe('3. Normalization Fidelity for All 6 Canonical Routines', () => {
-    it('should normalize all 6 canonical routines into valid composable models', () => {
-      assert.equal(MANISH_PERSONAL_ROUTINES.length, 6, 'Must have exactly 6 canonical routines');
+  describe('3. Normalization Fidelity for Authoritative Routine Archetypes', () => {
+    it('should normalize routine archetypes into valid composable models', () => {
+      const sampleRoutines = [
+        {
+          stableKey: 'routine_workbook',
+          title: 'Workbook Exercises',
+          category: 'Learning & Growth',
+          completionMethod: 'workbook_sessions',
+          frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+          features: {
+            counter: { enabled: true, targetCount: 2, unit: 'exercises' },
+            checklist: { enabled: true, items: [{ id: 's1', label: 'Item 1' }, { id: 's2', label: 'Item 2' }, { id: 's3', label: 'Item 3' }, { id: 's4', label: 'Item 4' }] },
+          },
+        },
+        {
+          stableKey: 'routine_movement',
+          title: 'Movement Plan',
+          category: 'Health & Fitness',
+          completionMethod: 'exercise_plan',
+          frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+          schedule: {
+            frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+            restDays: ['Sun'],
+          },
+          metadata: { restDays: ['Sun'] },
+          features: {
+            daySchedule: {
+              enabled: true,
+              planTitle: 'Movement Plan',
+              dayVariations: {
+                Mon: { type: 'workout' },
+                Tue: { type: 'walk' },
+                Wed: { type: 'workout' },
+                Thu: { type: 'walk' },
+                Fri: { type: 'workout' },
+                Sat: { type: 'walk' },
+                Sun: { type: 'rest', isRestDay: true },
+              },
+            },
+          },
+        },
+        {
+          stableKey: 'routine_catalog',
+          title: 'Audio Discourse Listening',
+          category: 'Mindfulness & Spirit',
+          completionMethod: 'osho_listening',
+          features: {
+            catalog: { enabled: true, catalogTitle: 'Discourses', totalItems: 30, catalogId: 'osho_discourses', items: [] },
+            timer: { enabled: true, targetDurationMinutes: 45 },
+          },
+        },
+        {
+          stableKey: 'routine_reading',
+          title: 'Book Reading',
+          category: 'Learning & Growth',
+          completionMethod: 'reading_duration',
+          features: {
+            timer: { enabled: true, targetDurationMinutes: 30 },
+          },
+        },
+        {
+          stableKey: 'routine_diary',
+          title: 'Daily Reflection Notes',
+          category: 'Reflection & Journaling',
+          features: {
+            notes: { enabled: true, reflectionPrompts: ['Prompt 1', 'Prompt 2'] },
+          },
+        },
+        {
+          stableKey: 'routine_speaking',
+          title: 'Speaking Practice',
+          category: 'Learning & Growth',
+          features: {
+            notes: { enabled: true },
+          },
+        },
+      ];
 
-      for (const legacyRoutine of MANISH_PERSONAL_ROUTINES) {
-        const docId = `usr_test_${legacyRoutine.stableKey}`;
-        const normalized = normalizeHabitFromFirestore({ ...legacyRoutine, id: docId, userId: 'usr_test' }, docId);
+      assert.equal(sampleRoutines.length, 6, 'Must test all 6 representative feature slot archetypes');
 
-        assert.ok(normalized, `Failed to normalize ${legacyRoutine.title}`);
+      for (const routine of sampleRoutines) {
+        const docId = `usr_test_${routine.stableKey}`;
+        const normalized = normalizeHabitFromFirestore({ ...routine, id: docId, userId: 'usr_test' }, docId);
+
+        assert.ok(normalized, `Failed to normalize ${routine.title}`);
         assert.equal(normalized.id, docId);
         assert.equal(normalized.userId, 'usr_test');
-        assert.equal(normalized.title, legacyRoutine.title);
-        assert.equal(normalized.category, legacyRoutine.category);
+        assert.equal(normalized.title, routine.title);
+        assert.equal(normalized.category, routine.category);
         assert.ok(normalized.scheduleHistory.length > 0, 'Schedule history must be initialized');
 
         // Validation check
         const validation = validateComposableHabit(normalized);
-        assert.equal(validation.valid, true, `Validation failed for ${legacyRoutine.title}: ${validation.errors.join(', ')}`);
+        assert.equal(validation.valid, true, `Validation failed for ${routine.title}: ${validation.errors.join(', ')}`);
 
         // Check specific feature slot mapping
-        if (legacyRoutine.completionMethod === 'workbook_sessions') {
+        if (routine.completionMethod === 'workbook_sessions') {
           assert.equal(normalized.features.counter.enabled, true);
           assert.equal(normalized.features.counter.targetCount, 2);
           assert.equal(normalized.features.checklist.enabled, true);
           assert.equal(normalized.features.checklist.items.length, 4);
-        } else if (legacyRoutine.completionMethod === 'exercise_plan') {
+        } else if (routine.completionMethod === 'exercise_plan') {
           assert.equal(normalized.features.daySchedule.enabled, true);
           assert.ok(normalized.schedule.restDays.includes('Sun'));
-        } else if (legacyRoutine.completionMethod === 'osho_listening') {
+        } else if (routine.completionMethod === 'osho_listening') {
           assert.equal(normalized.features.catalog.enabled, true);
           assert.equal(normalized.features.catalog.totalItems, 30);
           assert.equal(normalized.features.timer.enabled, true);
-        } else if (legacyRoutine.completionMethod === 'reading_duration') {
+        } else if (routine.completionMethod === 'reading_duration') {
           assert.equal(normalized.features.timer.enabled, true);
           assert.equal(normalized.features.timer.soundOnComplete, undefined);
-        } else if (legacyRoutine.stableKey === 'canonical_maintain_diary') {
+        } else if (routine.stableKey === 'routine_diary') {
           assert.equal(normalized.features.notes.enabled, true);
           assert.equal(normalized.features.notes.isPrivateDiary, undefined);
           assert.ok(normalized.features.notes.reflectionPrompts.length > 0);
-        } else if (legacyRoutine.stableKey === 'canonical_english_speaking') {
+        } else if (routine.stableKey === 'routine_speaking') {
           assert.equal(normalized.features.notes.enabled, true);
           assert.equal(normalized.features.notes.isPrivateDiary, undefined);
         }
@@ -265,7 +339,7 @@ describe('Phase 1: Domain Foundation & Architecture Modernization', () => {
         const serialized = serializeHabitForFirestore(normalized);
         assert.ok(serialized, 'Serialization must succeed');
         assert.equal(serialized.id, docId);
-        assert.equal(serialized.title, legacyRoutine.title);
+        assert.equal(serialized.title, routine.title);
       }
     });
   });

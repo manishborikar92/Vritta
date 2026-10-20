@@ -8,8 +8,6 @@ import {
     updateHabitDoc,
     deleteHabitDoc,
     swapHabitsSortOrder,
-    seedHabitsForUser,
-    fetchScheduleTemplates,
 } from '@/lib/firebase/firestore';
 import { getDayOfWeek, sortHabits } from '@/utils/date-helpers';
 
@@ -105,17 +103,6 @@ export function useHabits(user) {
         });
     }, [user, habits]);
 
-    // Seed or update foundation habits (idempotent, safe to rerun anytime)
-    const seedHabits = useCallback(async (seedData) => {
-        if (!user) return;
-        let dataToSeed = seedData;
-        if (!dataToSeed || !Array.isArray(dataToSeed) || dataToSeed.length === 0) {
-            const templates = await fetchScheduleTemplates();
-            dataToSeed = templates.filter(t => t.metadata?.isFoundation);
-        }
-        return seedHabitsForUser(user.uid, dataToSeed);
-    }, [user]);
-
     return {
         habits,
         todaysHabits,
@@ -125,6 +112,5 @@ export function useHabits(user) {
         updateHabit,
         deleteHabit,
         reorderHabit,
-        seedHabits,
     };
 }

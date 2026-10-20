@@ -14,15 +14,11 @@ Built with Next.js 16, React 19, Tailwind CSS v4, and Firebase, it features a cl
 
 ## Core Capabilities
 
-- **Routine Architecture:** Mindful daily practices grouped by life area and natural periods (Anytime, Afternoon, Before Bed) rather than rigid clock deadlines.
+- **Composable Routine Architecture:** Dynamic feature slots (`features.counter`, `features.timer`, `features.checklist`, `features.notes`, `features.catalog`, `features.daySchedule`) grouped by 9 canonical life-area categories and natural periods (Anytime, Afternoon, Before Bed) rather than rigid clock deadlines.
 - **Physical Conditioning & Recovery:** Weekday-adaptive movement schedules (workout, walk, active recovery) with explicit Sunday rest.
-- **Interactive Habit Subsystems:**
-  - **`WorkbookCard`:** Multi-step session tracking with partial progress indicators.
-  - **`MovementCard`:** Weekday-adaptive exercise and active recovery tracker.
-  - **`OshoCard`:** Integrated 30-entry contemplative listening library across 6 thematic groups.
-  - **`ReadingCard`:** Dedicated 30-minute bedtime reading countdown timer.
-  - **`SpeakingCard`:** Structured ChatGPT voice practice prompts.
-  - **`DiaryCard`:** Private encrypted journal with 5 rotating reflection prompts.
+- **Unified Habit Tracking & Configuration:**
+  - **`HabitTrackerCard`:** Composable active tracking card on Today view with atomic interactive slots: `SlotStepper` (counters/sessions), `SlotDaySchedule` (weekday variations), `SlotCatalog` (discourse/item libraries), `SlotTimer` (countdown/stopwatch), `SlotNotes` (autosaved reflection notes), and `SlotChecklist` (sub-task completion).
+  - **`HabitConfigCard`:** Management and organization card on Habits view with reordering controls, category badges, and collapsible instructions.
 - **Guilt-Free Consistency Rhythm:** Consistency calculations that exclude scheduled rest days from denominators, eliminating artificial streak failures.
 - **Interactive Sound Architecture:** Procedural Web Audio API synthesis providing serene acoustic feedback for timer events, habit completions, checklist toggles, and tactile navigation, with global mute and volume controls.
 - **Resilient Background Timer:** Dedicated Web Worker execution combined with wall-clock timestamp synchronization, guaranteeing zero interval drift, immunity to background tab throttling, and silent reload recovery.
@@ -90,7 +86,7 @@ Run all project checks before committing:
 
 ```bash
 # From project root
-npm --prefix web run test    # 350+ automated unit & integration tests across 115+ suites
+npm --prefix web run test    # 630+ automated tests across 210 suites
 npm --prefix web run lint    # Next.js flat ESLint verification
 npm --prefix web run build   # Production webpack build compilation
 git diff --check             # Whitespace and formatting verification

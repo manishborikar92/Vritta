@@ -423,7 +423,7 @@ export default function HabitModal({ habit, onSave, onClose, onDelete }) {
     } else if (cleanFeatures.daySchedule.enabled) {
       derivedCompletionMethod = 'exercise_plan';
     } else if (cleanFeatures.catalog.enabled) {
-      if (cleanFeatures.catalog.catalogId === 'osho_discourses' || formData.stableKey === 'canonical_listen_osho' || formData.title?.toLowerCase().includes('osho')) {
+      if (cleanFeatures.catalog.catalogId === 'osho_discourses' || formData.title?.toLowerCase().includes('osho')) {
         derivedCompletionMethod = 'osho_listening';
       } else {
         derivedCompletionMethod = 'catalog';

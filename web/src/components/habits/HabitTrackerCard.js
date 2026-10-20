@@ -72,46 +72,15 @@ function HabitTrackerCard({
 
   const isPlannedRest = Boolean(isScheduledRest || isExplicitRest);
 
-  // Normalize features from canonical composable habit model or backward-compatible feature inference
+  // Features from composable habit model
   const features = habit.features || {};
 
-  const hasCounter = Boolean(
-    features.counter?.enabled ||
-    habit.completionMethod === 'workbook_sessions' ||
-    habit.stableKey === 'canonical_english_workbook'
-  );
-
-  const hasTimer = Boolean(
-    features.timer?.enabled ?? (
-      habit.completionMethod === 'reading_duration' ||
-      habit.stableKey === 'canonical_read_books'
-    )
-  );
-
-  const hasChecklist = Boolean(
-    features.checklist?.enabled ||
-    (Array.isArray(habit.checklistItems) && habit.checklistItems.length > 0) ||
-    habit.completionMethod === 'checklist' ||
-    (habit.completionMethod === 'workbook_sessions')
-  );
-
-  const hasNotes = Boolean(
-    features.notes?.enabled ||
-    habit.stableKey === 'canonical_english_speaking' ||
-    habit.stableKey === 'canonical_maintain_diary'
-  );
-
-  const hasCatalog = Boolean(
-    features.catalog?.enabled ||
-    habit.completionMethod === 'osho_listening' ||
-    habit.stableKey === 'canonical_listen_osho'
-  );
-
-  const hasDaySchedule = Boolean(
-    features.daySchedule?.enabled ||
-    habit.completionMethod === 'exercise_plan' ||
-    habit.stableKey === 'canonical_exercise_plan'
-  );
+  const hasCounter = Boolean(features.counter?.enabled);
+  const hasTimer = Boolean(features.timer?.enabled);
+  const hasChecklist = Boolean(features.checklist?.enabled);
+  const hasNotes = Boolean(features.notes?.enabled);
+  const hasCatalog = Boolean(features.catalog?.enabled);
+  const hasDaySchedule = Boolean(features.daySchedule?.enabled);
 
   // Instructions text
   const instructionsText = habit.instructions || habit.description || '';

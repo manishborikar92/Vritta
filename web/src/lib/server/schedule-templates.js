@@ -303,7 +303,7 @@ export const SCHEDULE_TEMPLATES = [
   // ============================================================================
   {
     id: 'template_english_workbook',
-    stableKey: 'canonical_english_workbook',
+    stableKey: 'routine_english_workbook',
     title: 'Practice English Workbook',
     category: 'Learning & Growth',
     description: 'Daily vocabulary-building with Word Power Made Easy (Norman Lewis). 2 sessions per day with review.',
@@ -353,7 +353,7 @@ export const SCHEDULE_TEMPLATES = [
 
   {
     id: 'template_movement_plan_12w',
-    stableKey: 'canonical_exercise_plan',
+    stableKey: 'routine_movement_plan',
     title: '12-Week Progressive Movement Plan',
     category: 'Health & Fitness',
     description: 'A 12-week bodyweight and functional conditioning routine for posture, mobility, and strength with Sunday rest.',
@@ -399,7 +399,7 @@ export const SCHEDULE_TEMPLATES = [
 
   {
     id: 'template_listen_osho',
-    stableKey: 'canonical_listen_osho',
+    stableKey: 'routine_listen_osho',
     title: 'Listen to Osho Discourses',
     category: 'Mindfulness & Spirit',
     description: 'Daily contemplative listening for awareness, meditation, and inquiry from the 30-discourse library.',
@@ -445,7 +445,7 @@ export const SCHEDULE_TEMPLATES = [
 
   {
     id: 'template_evening_reading',
-    stableKey: 'canonical_read_books',
+    stableKey: 'routine_evening_reading',
     title: 'Evening Book Reading',
     category: 'Learning & Growth',
     description: 'Read for 30 minutes before sleep to unwind, expand perspective, and settle the mind.',
@@ -480,7 +480,7 @@ export const SCHEDULE_TEMPLATES = [
 
   {
     id: 'template_english_speaking',
-    stableKey: 'canonical_english_speaking',
+    stableKey: 'routine_english_speaking',
     title: 'Practice English Speaking',
     category: 'Learning & Growth',
     description: 'Conversational English practice with voice AI or partner for fluency, pronunciation, and confidence.',
@@ -518,7 +518,7 @@ export const SCHEDULE_TEMPLATES = [
 
   {
     id: 'template_maintain_diary',
-    stableKey: 'canonical_maintain_diary',
+    stableKey: 'routine_maintain_diary',
     title: 'Maintain a Reflective Diary',
     category: 'Reflection & Journaling',
     description: 'Daily journaling with 5 cognitive reflection prompts for deep self-awareness.',
@@ -615,75 +615,3 @@ export function validateScheduleTemplate(template) {
     errors,
   };
 }
-
-// ==============================================================================
-// Backward-Compatibility Server-Side Mappings (to preserve existing test suites)
-// ==============================================================================
-
-export const MANISH_PERSONAL_ROUTINES = SCHEDULE_TEMPLATES
-  .filter(t => t.stableKey && t.stableKey.startsWith('canonical_'))
-  .map(t => ({
-    stableKey: t.stableKey,
-    title: t.title,
-    category: t.category,
-    completionMethod: t.features.counter.enabled
-      ? 'workbook_sessions'
-      : t.features.daySchedule.enabled
-      ? 'exercise_plan'
-      : t.features.catalog.enabled
-      ? 'osho_listening'
-      : t.features.timer.enabled && t.metadata?.tags?.includes('reading')
-      ? 'reading_duration'
-      : t.features.notes.enabled
-      ? 'notes'
-      : 'simple',
-    timingType: t.schedule.timingType,
-    preferredPeriod: t.schedule.preferredPeriod,
-    relativeTiming: t.schedule.relativeTiming,
-    time: t.schedule.exactTime || (t.schedule.relativeTiming || t.schedule.preferredPeriod || 'Flexible'),
-    frequency: [...t.schedule.frequency],
-    schedule: {
-      ...t.schedule,
-      frequency: [...t.schedule.frequency],
-      restDays: [...(t.schedule.restDays || [])],
-    },
-    isSystemSeed: true,
-    seedOrigin: 'personal_preset',
-    targetMinutes: t.features.timer?.targetDurationMinutes || null,
-    features: {
-      counter: { ...t.features.counter },
-      timer: { ...t.features.timer },
-      checklist: { ...t.features.checklist, items: [...(t.features.checklist.items || [])] },
-      notes: { ...t.features.notes, reflectionPrompts: [...(t.features.notes.reflectionPrompts || [])] },
-      catalog: { ...t.features.catalog, items: [...(t.features.catalog.items || [])] },
-      daySchedule: { ...t.features.daySchedule },
-    },
-    metadata: {
-      ...t.metadata,
-      restDays: [...(t.schedule.restDays || [])],
-      ...(t.features.notes.reflectionPrompts?.length > 0 ? { reflectivePrompts: t.features.notes.reflectionPrompts } : {}),
-      ...(t.metadata.bookTitle ? { bookTitle: t.metadata.bookTitle, bookAuthor: t.metadata.bookAuthor, dailySessionsTarget: t.features.counter.targetCount } : {}),
-    },
-    instructions: t.instructions,
-    checklistItems: t.features.checklist.items.map(i => ({ label: i.label })),
-  }));
-
-export const CANONICAL_ROUTINES = MANISH_PERSONAL_ROUTINES;
-
-export const DEFAULT_ROUTINES = SCHEDULE_TEMPLATES
-  .filter(t => t.metadata?.isFoundation)
-  .map(t => ({
-    stableKey: t.stableKey,
-    title: t.title,
-    category: t.category,
-    completionMethod: t.features.checklist?.enabled ? 'checklist' : 'simple',
-    timingType: t.schedule.timingType,
-    preferredPeriod: t.schedule.preferredPeriod,
-    time: t.schedule.preferredPeriod || 'Flexible',
-    frequency: [...t.schedule.frequency],
-    isSystemSeed: true,
-    seedOrigin: 'foundation_preset',
-    metadata: { ...t.metadata },
-    instructions: t.instructions,
-    checklistItems: t.features.checklist?.items?.map(i => ({ label: i.label })) || [],
-  }));

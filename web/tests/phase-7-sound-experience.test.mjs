@@ -368,7 +368,7 @@ describe('Phase 7: Interactive Sound Experience & Audio Polish', () => {
       const habitsContent = readWebFile('src/app/(protected)/habits/page.js');
       const deleteSection = habitsContent.slice(
         habitsContent.indexOf('const handleDelete ='),
-        habitsContent.indexOf('const handleSeedHabits =')
+        habitsContent.indexOf('if (loading)')
       );
 
       assert.ok(

@@ -43,11 +43,11 @@ describe('Phase 8: Data-Loading Lifecycle, Safeguards & Error Invariants', () =>
       assert.ok(content.includes('return <HabitsSkeleton />;'), 'Must return HabitsSkeleton during loading');
     });
 
-    it('should verify HabitsPage displays seeding button ONLY when genuinely empty and loaded', () => {
+    it('should verify HabitsPage displays create routine action when genuinely empty and loaded', () => {
       const content = readWebFile('src/app/(protected)/habits/page.js');
       assert.ok(content.includes('habits.length === 0 ?'), 'Must check habits.length === 0');
-      assert.ok(content.includes('Load Recommended Routines'), 'Must provide action to seed foundation routines');
-      assert.ok(content.includes('onClick={handleSeedHabits}'), 'Must bind seed handler');
+      assert.ok(content.includes('Create Routine'), 'Must provide action to create routine');
+      assert.ok(content.includes('setShowModal(true)'), 'Must open routine modal');
     });
   });
 

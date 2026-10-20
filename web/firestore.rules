@@ -114,7 +114,6 @@ service cloud.firestore {
       }
     }
 
-
     // =============================================
     // ScheduleTemplates: Shared reusable routine blueprints
     // Client write is disabled; authenticated users can read templates

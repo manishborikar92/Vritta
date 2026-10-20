@@ -160,11 +160,11 @@ export async function saveUserProfile(userId, data) {
 
   const promises = [];
   if (cleanData.exercisePlan) {
-    const exerciseHabitId = `${userId}_canonical_exercise_plan`;
+    const exerciseHabitId = `${userId}_exercise_plan`;
     promises.push(saveHabitState(userId, exerciseHabitId, cleanData.exercisePlan));
   }
   if (cleanData.oshoSeriesProgress || cleanData.seriesProgress || cleanData.activeOshoSeriesId || cleanData.activeSeriesId) {
-    const oshoHabitId = `${userId}_canonical_listen_osho`;
+    const oshoHabitId = `${userId}_listen_osho`;
     const oshoState = {};
     const incomingProgress = cleanData.oshoSeriesProgress || cleanData.seriesProgress;
     if (incomingProgress) {

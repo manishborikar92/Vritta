@@ -13,7 +13,6 @@ import {
   calculateDynamicAnalytics,
 } from '../src/utils/analytics-helpers.js';
 import { getDateString, getDaysAgo } from '../src/utils/date-helpers.js';
-import { CANONICAL_ROUTINES } from '../src/lib/server/schedule-templates.js';
 import { CATEGORY_CONFIG, getCategoryConfig } from '../src/lib/constants/categories.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -59,18 +58,25 @@ describe('Phase 5: Dynamic Insights & Non-Punitive Analytics Engine', () => {
   });
 
   describe('2. Planned Rest Day Scoping & Confining', () => {
-    it('should recognize Sunday rest for canonical exercise plan routines', () => {
-      const canonicalPlan = {
-        id: 'canon_ex',
-        stableKey: 'canonical_exercise_plan',
+    it('should recognize Sunday rest for movement plan routines with daySchedule', () => {
+      const movementPlan = {
+        id: 'plan_movement',
         category: 'Health & Fitness',
         frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        features: {
+          daySchedule: {
+            enabled: true,
+            dayVariations: {
+              Sun: { type: 'rest', isRestDay: true },
+            },
+          },
+        },
       };
 
-      assert.equal(isHabitRestDay(canonicalPlan, 'Sun'), true, 'Sunday must be rest day for canonical plan');
-      assert.equal(isHabitRequiredOnDay(canonicalPlan, 'Sun'), false, 'Canonical plan must not be required on Sun');
-      assert.equal(isHabitRestDay(canonicalPlan, 'Mon'), false, 'Monday must not be rest day');
-      assert.equal(isHabitRequiredOnDay(canonicalPlan, 'Mon'), true, 'Canonical plan must be required on Mon');
+      assert.equal(isHabitRestDay(movementPlan, 'Sun'), true, 'Sunday must be rest day for movement plan');
+      assert.equal(isHabitRequiredOnDay(movementPlan, 'Sun'), false, 'Movement plan must not be required on Sun');
+      assert.equal(isHabitRestDay(movementPlan, 'Mon'), false, 'Monday must not be rest day');
+      assert.equal(isHabitRequiredOnDay(movementPlan, 'Mon'), true, 'Movement plan must be required on Mon');
     });
 
     it('should NOT treat custom Health & Fitness habits as Sunday rest unless configured', () => {
@@ -121,7 +127,12 @@ describe('Phase 5: Dynamic Insights & Non-Punitive Analytics Engine', () => {
           id: 'h3',
           title: 'Movement',
           category: 'Health & Fitness',
-          stableKey: 'canonical_exercise_plan',
+          features: {
+            daySchedule: {
+              enabled: true,
+              dayVariations: { Sun: { type: 'rest', isRestDay: true } },
+            },
+          },
           frequency: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         },
       ];
@@ -238,13 +249,43 @@ describe('Phase 5: Dynamic Insights & Non-Punitive Analytics Engine', () => {
       assert.equal(healthCat.habitCount, 1);
     });
 
-    it('should correctly format canonical personalized schedule routines', () => {
-      const habitsWithIds = CANONICAL_ROUTINES.map((r, idx) => ({ ...r, id: `canon_${idx}` }));
+    it('should correctly format multi-category schedule analytics', () => {
+      const habitsWithIds = [
+        {
+          id: 'h_movement',
+          title: 'Physical Movement Plan',
+          category: 'Health & Fitness',
+          features: {
+            daySchedule: {
+              enabled: true,
+              dayVariations: { Sun: { type: 'rest', isRestDay: true } },
+            },
+          },
+        },
+        {
+          id: 'h_reading',
+          title: 'Book Reading',
+          category: 'Learning & Growth',
+          features: { timer: { enabled: true, targetDurationMinutes: 30 } },
+        },
+        {
+          id: 'h_meditation',
+          title: 'Mindfulness Practice',
+          category: 'Mindfulness & Spirit',
+          features: {},
+        },
+        {
+          id: 'h_journal',
+          title: 'Daily Reflection Notes',
+          category: 'Reflection & Journaling',
+          features: { notes: { enabled: true } },
+        },
+      ];
       const dailyLogs = {};
 
       const analytics = calculateDynamicAnalytics(habitsWithIds, dailyLogs, 30);
 
-      assert.ok(analytics.categories.length >= 4, 'Should contain personal routine categories');
+      assert.ok(analytics.categories.length >= 4, 'Should contain all routine categories');
       const movementCat = analytics.categories.find(c => c.category === 'Health & Fitness');
       assert.ok(movementCat, 'Health & Fitness category must be present');
       assert.equal(movementCat.badge, 'Sunday Rest Protected', 'Should flag Sunday rest protection');

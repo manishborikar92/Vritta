@@ -4,7 +4,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sortHabits } from '../src/utils/date-helpers.js';
-import { MANISH_PERSONAL_ROUTINES, DEFAULT_ROUTINES } from '../src/lib/server/schedule-templates.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,48 +54,14 @@ describe('Phase 2: Habit Architecture & UX Simplification', () => {
       );
     });
 
-    it('should verify card dispatch strictly uses canonical stableKey or personal preset origin', () => {
-      const content = readWebFile('src/components/habits/HabitTrackerCard.js') + readWebFile(dashboardPath);
-      assert.ok(
-        content.includes("canonical_english_workbook"),
-        'Must dispatch workbook card on canonical key'
-      );
-      assert.ok(
-        content.includes("canonical_exercise_plan"),
-        'Must dispatch movement card on canonical key'
-      );
-      assert.ok(
-        content.includes("canonical_listen_osho"),
-        'Must dispatch osho card on canonical key'
-      );
-      assert.ok(
-        content.includes("canonical_read_books"),
-        'Must dispatch reading card on canonical key'
-      );
-      assert.ok(
-        content.includes("canonical_english_speaking"),
-        'Must dispatch speaking card on canonical key'
-      );
-      assert.ok(
-        content.includes("canonical_maintain_diary"),
-        'Must dispatch diary card on canonical key'
-      );
-    });
-
-    it('should verify all canonical routines have stableKey defined in personal schedule', () => {
-      assert.equal(MANISH_PERSONAL_ROUTINES.length, 6, 'Must have 6 canonical routines');
-      const expectedKeys = [
-        'canonical_english_workbook',
-        'canonical_exercise_plan',
-        'canonical_listen_osho',
-        'canonical_read_books',
-        'canonical_english_speaking',
-        'canonical_maintain_diary',
-      ];
-      for (const expected of expectedKeys) {
-        const found = MANISH_PERSONAL_ROUTINES.find(r => r.stableKey === expected);
-        assert.ok(found, `Missing expected canonical routine: ${expected}`);
-      }
+    it('should verify HabitTrackerCard derives slot activation strictly from composable features', () => {
+      const content = readWebFile('src/components/habits/HabitTrackerCard.js');
+      assert.ok(content.includes('features.counter?.enabled'), 'Must activate counter from features.counter');
+      assert.ok(content.includes('features.timer?.enabled'), 'Must activate timer from features.timer');
+      assert.ok(content.includes('features.checklist?.enabled'), 'Must activate checklist from features.checklist');
+      assert.ok(content.includes('features.notes?.enabled'), 'Must activate notes from features.notes');
+      assert.ok(content.includes('features.catalog?.enabled'), 'Must activate catalog from features.catalog');
+      assert.ok(content.includes('features.daySchedule?.enabled'), 'Must activate daySchedule from features.daySchedule');
     });
   });
 
@@ -165,7 +130,7 @@ describe('Phase 2: Habit Architecture & UX Simplification', () => {
       assert.ok(content.includes('Progressive Day Schedule'), 'Must offer Progressive Day Schedule slot');
     });
 
-    it('should preserve specialized completion methods when editing canonical routines', () => {
+    it('should preserve specialized completion methods when editing existing routines', () => {
       const content = readWebFile(habitModalPath);
       assert.ok(
         content.includes('SPECIALIZED_COMPLETION_STYLES'),
@@ -173,11 +138,11 @@ describe('Phase 2: Habit Architecture & UX Simplification', () => {
       );
       assert.ok(
         content.includes('workbook_sessions'),
-        'Must support workbook_sessions for canonical editing'
+        'Must support workbook_sessions for specialized editing'
       );
       assert.ok(
         content.includes('exercise_plan'),
-        'Must support exercise_plan for canonical editing'
+        'Must support exercise_plan for specialized editing'
       );
     });
   });

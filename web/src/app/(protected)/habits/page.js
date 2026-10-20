@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Plus, Compass, BookOpen } from 'lucide-react';
 import { useData, useToast, useSound } from '@/contexts';
 import { ConfirmDialog, HabitsSkeleton } from '@/components/ui';
@@ -8,7 +8,7 @@ import { HabitModal, HabitConfigCard, TemplateBrowserModal } from '@/components/
 import { getSafeSaveErrorMessage, logDiagnosticError } from '@/utils/error-helpers';
 
 export default function HabitsPage() {
-  const { habits, loading, addHabit, updateHabit, deleteHabit, reorderHabit, seedHabits } = useData();
+  const { habits, loading, addHabit, updateHabit, deleteHabit, reorderHabit } = useData();
   const { addToast } = useToast();
   const { playActionSuccessCue, playActionDeleteCue } = useSound();
   const [showModal, setShowModal] = useState(false);
@@ -16,9 +16,7 @@ export default function HabitsPage() {
   const [editingHabit, setEditingHabit] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [seeding, setSeeding] = useState(false);
   const [reorderingId, setReorderingId] = useState(null);
-  const isSeedingRef = useRef(false);
 
   const handleMoveUp = async (habitId) => {
     if (reorderingId) return;
@@ -89,25 +87,6 @@ export default function HabitsPage() {
     }
   };
 
-  const handleSeedHabits = async () => {
-    // Only permit seeding when user has zero routines or habits
-    if (habits.length > 0 || isSeedingRef.current || seeding) return;
-
-    isSeedingRef.current = true;
-    setSeeding(true);
-    try {
-      await seedHabits();
-      addToast('Foundation routines loaded successfully!', 'success');
-      playActionSuccessCue?.();
-    } catch (err) {
-      console.error('Error loading foundation routines:', err);
-      addToast(err.message || 'Failed to load recommended routines. Please try again.', 'error');
-    } finally {
-      isSeedingRef.current = false;
-      setSeeding(false);
-    }
-  };
-
   if (loading) {
     return <HabitsSkeleton />;
   }
@@ -123,18 +102,10 @@ export default function HabitsPage() {
             <div className="max-w-sm mx-auto space-y-1.5">
               <h3 className="text-base font-bold text-main">No routines found</h3>
               <p className="text-xs text-sub leading-relaxed">
-                Load recommended foundation routines or create your own custom habit.
+                Create a routine to start building your daily rhythm.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-2.5 justify-center items-center flex-wrap">
-              <button
-                type="button"
-                onClick={handleSeedHabits}
-                disabled={seeding}
-                className="px-5 py-2.5 bg-teal-700 dark:bg-teal-600 text-white rounded-xl text-xs sm:text-sm font-semibold hover:bg-teal-800 dark:hover:bg-teal-500 transition-colors disabled:opacity-50 shadow-2xs min-h-[44px]"
-              >
-                {seeding ? 'Loading Routines...' : 'Load Recommended Routines'}
-              </button>
               <button
                 type="button"
                 onClick={() => setShowTemplateBrowser(true)}
@@ -146,9 +117,10 @@ export default function HabitsPage() {
               <button
                 type="button"
                 onClick={() => { setEditingHabit(null); setShowModal(true); }}
-                className="px-5 py-2.5 bg-surface border border-subtle dark:border-stone-700 text-main rounded-xl text-xs sm:text-sm font-semibold hover:bg-surface-subtle transition-colors shadow-2xs min-h-[44px]"
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-surface border border-subtle dark:border-stone-700 text-main rounded-xl text-xs sm:text-sm font-semibold hover:bg-surface-subtle transition-colors shadow-2xs min-h-[44px]"
               >
-                Create Custom Routine
+                <Plus className="w-4 h-4" />
+                <span>Create Routine</span>
               </button>
             </div>
           </div>

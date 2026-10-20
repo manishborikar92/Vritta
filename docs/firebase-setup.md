@@ -14,10 +14,10 @@ Vritta uses a dual Firebase architecture with strict boundaries between client e
    - Configured in `web/src/lib/firebase/config.js` via public variables prefixed with `NEXT_PUBLIC_FIREBASE_*`.
    - Executes in the user's browser for Google Sign-In authentication, session persistence, and client-side Firestore reads and updates.
    - Strictly governed by Cloud Firestore Security Rules (`web/firestore.rules`).
-2. **Server-Side & Admin CLI (Firebase Admin SDK v14):**
+2. **Server-Side & Admin Operations (Firebase Admin SDK v14):**
    - Configured in `web/src/lib/server/firebase-admin.js` via server-only credentials (`FIREBASE_SERVICE_ACCOUNT_KEY` or `GOOGLE_APPLICATION_CREDENTIALS`).
-   - Executes in the administrative CLI scripts (`scripts/seed-schedule-templates.mjs`, `scripts/backup-personal-plan.mjs`, `scripts/restore-personal-plan.mjs`) to seed shared schedule templates and manage plan backups.
-   - Bypasses client security rules with least-privilege credentials, strictly scoped to authorized administration and isolated collections.
+   - Executes in server actions and operational maintenance tools with least-privilege credentials.
+   - Bypasses client security rules when authorized, strictly scoped to application administration.
 
 ```mermaid
 flowchart TD
@@ -125,20 +125,6 @@ GOOGLE_APPLICATION_CREDENTIALS="C:/Users/<username>/.credentials/vritta-firebase
 Run the administrative CLI tool to seed authoritative schedule templates into Firestore:
 ```bash
 npm --prefix web run templates:seed -- --apply
-```
-
-**Expected Successful Output:**
-```
-======================================================
- Vritta: Shared Schedule Templates Bootstrap (CLI)   
-======================================================
-Mode: APPLY (live Firestore writes authorized)
-
-[Validation] Checking 8 templates against schema contracts...
-  ✓ template_morning_hydration: valid
-  ✓ template_daily_movement: valid
-  ✓ template_deep_reading: valid
-  ...
 ```
 
 #### 2. Verifying the Web Application

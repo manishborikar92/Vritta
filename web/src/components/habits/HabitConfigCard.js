@@ -49,9 +49,6 @@ function HabitConfigCard({
   const timingText = getTimingDisplay(habit);
   const frequencyText = getFrequencyDisplay(habit.frequency);
 
-  const isPersonal = habit.seedOrigin === 'personal_preset' || habit.stableKey?.startsWith('canonical_');
-  const isFoundation = !isPersonal && Boolean(habit.stableKey || habit.isSystemSeed);
-
   // Active feature slots
   const features = habit.features || {};
   const activeFeatures = [];
@@ -122,18 +119,6 @@ function HabitConfigCard({
           <span className={`text-2xs sm:text-xs px-2.5 py-0.5 rounded-full font-semibold border ${config.badgeClasses}`}>
             {config.label || habit.category}
           </span>
-
-          {isPersonal && (
-            <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800/60">
-              Personal
-            </span>
-          )}
-
-          {isFoundation && (
-            <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-surface-subtle text-sub border border-subtle">
-              Foundation
-            </span>
-          )}
         </div>
 
         {/* Action buttons: Edit & Delete (WCAG min 44x44px touch targets) */}

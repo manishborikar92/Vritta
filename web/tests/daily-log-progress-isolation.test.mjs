@@ -111,8 +111,8 @@ describe('Daily Log Progress Isolation & Regression Tests', () => {
     it('should verify the original reproduction sequence preserves Workbook progress', () => {
       const store = simulateDailyLogStore();
 
-      const workbookId = 'canonical_english_workbook';
-      const oshoId = 'canonical_listen_osho';
+      const workbookId = 'test_habit_workbook';
+      const oshoId = 'test_habit_osho';
 
       // 1. Mark Workbook 1 session complete (partial progress, not fully complete)
       store.updateProgress(workbookId, { sessionsCompleted: 1, reviewDone: false }, false);
@@ -137,8 +137,8 @@ describe('Daily Log Progress Isolation & Regression Tests', () => {
     it('should contrast with buggy implementation to prove regression test catches the bug', () => {
       const store = simulateDailyLogStore();
 
-      const workbookId = 'canonical_english_workbook';
-      const oshoId = 'canonical_listen_osho';
+      const workbookId = 'test_habit_workbook';
+      const oshoId = 'test_habit_osho';
 
       // 1. Mark Workbook 1 session complete
       store.updateProgress(workbookId, { sessionsCompleted: 1, reviewDone: false }, false);
@@ -154,12 +154,12 @@ describe('Daily Log Progress Isolation & Regression Tests', () => {
     it('should preserve progress across multiple diverse habits concurrently', () => {
       const store = simulateDailyLogStore();
 
-      const workbookId = 'canonical_english_workbook';
-      const movementId = 'canonical_exercise_plan';
-      const diaryId = 'canonical_maintain_diary';
-      const speakingId = 'canonical_english_speaking';
-      const readingId = 'canonical_read_books';
-      const oshoId = 'canonical_listen_osho';
+      const workbookId = 'test_habit_workbook';
+      const movementId = 'test_habit_movement';
+      const diaryId = 'test_habit_diary';
+      const speakingId = 'test_habit_speaking';
+      const readingId = 'test_habit_reading';
+      const oshoId = 'test_habit_osho';
 
       // Set up granular progress across multiple routines
       store.updateProgress(workbookId, { sessionsCompleted: 1, reviewDone: true }, false);
@@ -194,8 +194,8 @@ describe('Daily Log Progress Isolation & Regression Tests', () => {
     it('should handle repeated toggles and unchecking back to zero without data loss', () => {
       const store = simulateDailyLogStore();
 
-      const workbookId = 'canonical_english_workbook';
-      const oshoId = 'canonical_listen_osho';
+      const workbookId = 'test_habit_workbook';
+      const oshoId = 'test_habit_osho';
 
       // 1. Workbook in progress
       store.updateProgress(workbookId, { sessionsCompleted: 1, reviewDone: false }, false);
@@ -219,8 +219,8 @@ describe('Daily Log Progress Isolation & Regression Tests', () => {
     it('should complete workbook fully and preserve independent Osho completion', () => {
       const store = simulateDailyLogStore();
 
-      const workbookId = 'canonical_english_workbook';
-      const oshoId = 'canonical_listen_osho';
+      const workbookId = 'test_habit_workbook';
+      const oshoId = 'test_habit_osho';
 
       // 1. Osho completed first
       store.toggleHabit(oshoId);
@@ -279,8 +279,8 @@ describe('Daily Log Progress Isolation & Regression Tests', () => {
         return;
       }
 
-      const workbookId = 'canonical_english_workbook';
-      const oshoId = 'canonical_listen_osho';
+      const workbookId = 'test_habit_workbook';
+      const oshoId = 'test_habit_osho';
 
       // 1. Initialize clean document with 0 completions and empty progress
       await testDocRef.set({
@@ -336,8 +336,8 @@ describe('Daily Log Progress Isolation & Regression Tests', () => {
         return;
       }
 
-      const workbookId = 'canonical_english_workbook';
-      const oshoId = 'canonical_listen_osho';
+      const workbookId = 'test_habit_workbook';
+      const oshoId = 'test_habit_osho';
 
       // Set up workbook at 1 session
       await testDocRef.set({
@@ -374,9 +374,9 @@ describe('Daily Log Progress Isolation & Regression Tests', () => {
         return;
       }
 
-      const workbookId = 'canonical_english_workbook';
-      const movementId = 'canonical_exercise_plan';
-      const oshoId = 'canonical_listen_osho';
+      const workbookId = 'test_habit_workbook';
+      const movementId = 'test_habit_movement';
+      const oshoId = 'test_habit_osho';
 
       // 1. Establish progress for workbook and movement
       await testDocRef.set({

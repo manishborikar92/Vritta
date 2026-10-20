@@ -59,6 +59,4 @@ export const APPROVED_FEATURE_SLOTS = [
 export const SEED_ORIGINS = [
   'custom',
   'template',
-  'personal_preset',
-  'foundation_preset',
 ];

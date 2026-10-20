@@ -27,12 +27,6 @@ flowchart TD
         SecurityRules["Firestore Security Rules v2<br/>(Owner-Scoped Access Control)"]
     end
 
-    subgraph Administrative CLI
-        AdminScript["CLI: seed-schedule-templates.mjs<br/>(npm run templates:seed)"]
-        AdminSDK["Firebase Admin SDK v14<br/>(Service Account Authentication)"]
-        ServerSchedule["Server-Only Schedule Templates<br/>(web/src/lib/server/schedule-templates.js)"]
-    end
-
     NextApp --> ThemeStore
     NextApp --> ClientAuth
     NextApp --> FirestoreClient
@@ -40,10 +34,6 @@ flowchart TD
     ClientAuth -->|Google OAuth| FirebaseAuth
     FirestoreClient -->|Real-time Snapshot Listeners| SecurityRules
     SecurityRules --> FirestoreDB
-
-    AdminScript --> AdminSDK
-    ServerSchedule --> AdminScript
-    AdminSDK -->|Privileged Idempotent Upsert| FirestoreDB
 ```
 
 ---
@@ -56,11 +46,7 @@ The codebase enforces strict separation of concerns across presentation, domain 
 root/
 ├── docs/                 # Authoritative project documentation
 ├── scripts/              # Administrative Node.js maintenance & audit scripts
-│   ├── seed-schedule-templates.mjs  # CLI schedule templates seed tool
-│   ├── backup-personal-plan.mjs     # Disaster-recovery backup tool
-│   ├── restore-personal-plan.mjs    # Disaster-recovery restore tool
-│   ├── audit-zero-shims.mjs         # Zero-shims & legacy wrapper audit tool
-│   └── verify-migration-integrity.mjs # Pre/post migration integrity verifier
+│   └── audit-zero-shims.mjs          # Zero-shims & legacy wrapper audit tool
 └── web/                  # Next.js web application package
     ├── public/           # Static PWA assets, icons, and web manifest
     ├── tests/            # Automated Node.js unit and integration test suites
@@ -155,16 +141,9 @@ The theme architecture is strictly binary: **Light** or **Dark**. The legacy "Sy
 
 ## 5. Routine Architecture & Schedule Isolation
 
-Vritta enforces a strict architectural boundary between universal foundation routines and proprietary personalized routines:
+Vritta utilizes a unified, composable routine architecture where habits are configured with dynamic feature slots.
 
-### 5.1 Consolidated Schedule Templates Catalog
-All reusable schedule blueprints, foundation wellness routines, and discipline plans are consolidated into:
-- **Authoritative Catalog (`web/src/lib/server/schedule-templates.js`):**
-  Strictly server-side module defining reusable templates with stable IDs, general-purpose categories, and atomic feature slots.
-- **Seeding Pipeline (`scripts/seed-schedule-templates.mjs`):**
-  Seeds shared templates into the `/scheduleTemplates` Firestore collection without touching user-owned documents or private logs. User routine documents are stored separately under `/habits`.
-
-### 5.2 Routine Subsystems & Interactive Cards
+### 5.1 Routine Subsystems & Interactive Cards
 Vritta utilizes a unified, composable card architecture:
 
 | Component | Route | Core Behavior |
@@ -172,7 +151,7 @@ Vritta utilizes a unified, composable card architecture:
 | **`HabitTrackerCard`** | `/today` | Composable active tracking card rendering dynamic slots: `SlotStepper` (counters/sessions), `SlotDaySchedule` (weekday variations), `SlotCatalog` (discourse/item libraries), `SlotTimer` (countdown/stopwatch), `SlotNotes` (autosaved reflection notes), and `SlotChecklist` (sub-task completion). |
 | **`HabitConfigCard`** | `/habits` | Configuration and organization card rendering routine title, category badge, recurrence frequency, timing mode, collapsible instructions, edit/delete actions, and touch-accessible up/down reordering controls. |
 
-### 5.3 Scheduling Philosophy
+### 5.2 Scheduling Philosophy
 - **Soft Timing Over Hard Deadlines:** Timing indicates preferred periods (Afternoon, Before Bed, Anytime), not punitive deadlines. Activities completed later in the day count fully.
 - **Rest Day Preservation:** Planned rest days (e.g., Sunday movement) are excluded from the denominator in completion rates, eliminating artificial streak failures.
 
@@ -189,26 +168,52 @@ Firestore Root
 ├── /habits/{habitId}
 │   ├── userId: string (Owner UID)
 │   ├── title: string
-│   ├── category: string ('English Learning' | 'Movement & Strength' | 'Listening & Awareness' | 'Reading' | 'Communication' | 'Reflection')
-│   ├── timing: string ('Anytime' | 'Afternoon' | 'Before Bed')
-│   ├── frequency: array [0..6] (Active weekdays)
-│   ├── stableKey: string (Deterministic routine identifier)
-│   ├── seedOrigin: 'personal_preset' | 'foundation' | 'custom'
-│   └── isSystemSeed: boolean
+│   ├── category: string ('Health & Fitness' | 'Mindfulness & Spirit' | 'Learning & Growth' | 'Reflection & Journaling' | 'Work & Career' | 'Creativity & Hobbies' | 'Relationships & Family' | 'Rest & Recovery' | 'Other')
+│   ├── customCategory: string | null
+│   ├── instructions: string
+│   ├── sortOrder: number (Monotonic sequence)
+│   ├── schedule: map
+│   │   ├── frequency: array ['Mon'..'Sun']
+│   │   ├── restDays: array ['Mon'..'Sun']
+│   │   ├── timingType: 'anytime' | 'preferred_period' | 'relative' | 'exact'
+│   │   ├── preferredPeriod: 'Morning' | 'Afternoon' | 'Evening' | null
+│   │   ├── relativeTiming: 'Before bed' | null
+│   │   └── exactTime: string | null
+│   ├── features: map
+│   │   ├── counter: { enabled: boolean, targetCount: number, unit: string, step: number, minCount: number }
+│   │   ├── timer: { enabled: boolean, targetDurationMinutes: number, mode: string }
+│   │   ├── checklist: { enabled: boolean, items: array [{ id, label, isRequiredForCompletion }] }
+│   │   ├── notes: { enabled: boolean, placeholder: string, reflectionPrompts: array }
+│   │   ├── catalog: { enabled: boolean, catalogId: string, catalogTitle: string, totalItems: number, items: array }
+│   │   └── daySchedule: { enabled: boolean, planTitle: string, totalWeeks: number, dayVariations: map }
+│   └── stableKey: string (Deterministic routine identifier)
 │
 ├── /dailyLogs/{logId}  (Document ID format: {userId}_{YYYY-MM-DD})
 │   ├── userId: string
 │   ├── date: string ('YYYY-MM-DD' local calendar date)
-│   ├── habits: map { [habitId]: boolean }
-│   ├── workbookProgress: map { sessions: number, reviewed: boolean }
-│   ├── readingProgress: map { durationMinutes: number }
-│   └── diaryEntry: map { text: string, promptIndex: number }
+│   ├── completedHabitIds: array [habitId]
+│   ├── habitProgress: map { [habitId]: progressObject }
+│   └── habitOutcomes: map { [habitId]: outcomeObject }
 │
-└── /users/{userId}
-    ├── email: string
-    ├── displayName: string
-    ├── lastActive: timestamp
-    └── createdAt: timestamp
+├── /users/{userId}
+│   ├── email: string
+│   ├── displayName: string
+│   ├── nextSortOrder: number (Atomic sequence counter)
+│   ├── activeOshoSeriesId: string
+│   ├── lastActive: timestamp
+│   ├── createdAt: timestamp
+│   └── /habitState/{stateId} (Decoupled habit state subcollection)
+│
+└── /scheduleTemplates/{templateId} (Authoritative reusable routine blueprints)
+    ├── id: string (Deterministic identifier)
+    ├── stableKey: string (e.g. routine_hydration_mindfulness)
+    ├── title: string
+    ├── category: string (Canonical 9 life areas)
+    ├── description: string
+    ├── instructions: string
+    ├── schedule: map
+    ├── features: map (6 canonical slots)
+    └── metadata: map
 ```
 
 ### 6.2 Security Rules Model (`web/firestore.rules`)

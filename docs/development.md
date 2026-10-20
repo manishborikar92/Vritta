@@ -81,8 +81,7 @@ All package scripts are run from the `web/` directory (or from the project root 
 | `npm run lint` | `eslint` | Runs ESLint using the Next.js 16 flat configuration. |
 | `npm run test` | `node --test tests/**/*.test.mjs` | Executes the complete automated test suite using the Node.js test runner. |
 | `npm run templates:seed` | `node ../scripts/seed-schedule-templates.mjs` | Seeds authoritative schedule templates into Firestore. |
-| `npm run plan:backup` | `node ../scripts/backup-personal-plan.mjs` | Creates an atomic JSON backup of user plan data. |
-| `npm run plan:restore` | `node ../scripts/restore-personal-plan.mjs` | Restores user plan data with safety checks. |
+| `npm run audit:shims` | `node ../scripts/audit-zero-shims.mjs` | Verifies zero backward-compatibility shims or legacy wrappers. |
 
 ---
 
@@ -100,7 +99,7 @@ npm --prefix web run test
 ```
 
 ### Test Suite Structure
-The automated test suite consists of 350+ unit and integration tests across 115+ test suites in `web/tests/`, executing in ~1.5 seconds via the native Node.js test runner (`node --test`).
+The automated test suite consists of 630+ unit and integration tests across 210 test suites in `web/tests/`, executing in ~2.5 seconds via the native Node.js test runner (`node --test`).
 
 Key test domains include:
 - **`brand-assets.test.mjs` & `manifest-contract.test.mjs`:** Asserts Guiding Sutra SVG markup, PWA manifest existence, icons, and theme colors.

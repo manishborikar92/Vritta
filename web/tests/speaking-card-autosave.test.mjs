@@ -10,7 +10,7 @@ const webRoot = path.resolve(__dirname, '..');
 
 // Helper to simulate the debounced autosave state machine
 class SpeakingCardAutosaveSimulator {
-  constructor({ habitId = 'canonical_english_speaking', initialNotes = '', isCompleted = false, onUpdateProgress }) {
+  constructor({ habitId = 'habit_speaking_test', initialNotes = '', isCompleted = false, onUpdateProgress }) {
     this.habitId = habitId;
     this.notes = initialNotes;
     this.latestNotes = initialNotes;

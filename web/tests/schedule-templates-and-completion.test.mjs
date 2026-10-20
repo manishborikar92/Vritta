@@ -18,10 +18,15 @@ describe('Schedule Templates & Reusable Blueprints', () => {
     assert.strictEqual(SCHEDULE_TEMPLATES.length, 12, 'Must contain 12 consolidated blueprints');
 
     const ids = new Set();
+    const stableKeys = new Set();
     for (const t of SCHEDULE_TEMPLATES) {
       assert.ok(t.id.startsWith('template_'), `Template id must start with template_: ${t.id}`);
       assert.ok(!ids.has(t.id), `Template IDs must be collision-free: ${t.id}`);
       ids.add(t.id);
+
+      assert.ok(t.stableKey && t.stableKey.startsWith('routine_'), `Template stableKey must start with routine_: ${t.stableKey}`);
+      assert.ok(!stableKeys.has(t.stableKey), `Template stableKeys must be collision-free: ${t.stableKey}`);
+      stableKeys.add(t.stableKey);
 
       assert.ok(t.title && t.title.trim().length > 0, `Template title required: ${t.id}`);
       assert.ok(CATEGORIES.includes(t.category), `Category must be one of 9 canonical categories: ${t.category}`);
@@ -29,6 +34,10 @@ describe('Schedule Templates & Reusable Blueprints', () => {
       const val = validateScheduleTemplate(t);
       assert.strictEqual(val.valid, true, `Template ${t.id} must pass validation: ${val.errors.join('; ')}`);
     }
+
+    const hydration = SCHEDULE_TEMPLATES.find(t => t.id === 'template_morning_hydration');
+    assert.ok(hydration, 'template_morning_hydration must exist');
+    assert.strictEqual(hydration.stableKey, 'routine_hydration_mindfulness');
   });
 
   it('should verify all 6 feature slots are explicitly defined across all templates', () => {
@@ -248,10 +257,7 @@ describe('Timer Selection Isolation & Source of Truth Regressions', () => {
     };
 
     // Card resolution source-of-truth helper matching HabitTrackerCard and HabitConfigCard
-    const isTimerActive = Boolean(
-      habitWithoutTimer.features?.timer?.enabled ??
-      (habitWithoutTimer.completionMethod === 'reading_duration' || habitWithoutTimer.stableKey === 'canonical_read_books')
-    );
+    const isTimerActive = Boolean(habitWithoutTimer.features?.timer?.enabled);
 
     assert.strictEqual(isTimerActive, false, 'Existence of targetMinutes must NEVER activate timer when features.timer.enabled is false');
     assert.strictEqual(isFeatureSatisfied('timer', habitWithoutTimer.features.timer, {}), true, 'Disabled timer feature must be satisfied by default');
@@ -266,10 +272,7 @@ describe('Timer Selection Isolation & Source of Truth Regressions', () => {
       },
     };
 
-    const isTimerActive = Boolean(
-      habitWithTimer.features?.timer?.enabled ??
-      (habitWithTimer.completionMethod === 'reading_duration' || habitWithTimer.stableKey === 'canonical_read_books')
-    );
+    const isTimerActive = Boolean(habitWithTimer.features?.timer?.enabled);
 
     assert.strictEqual(isTimerActive, true, 'Timer must be active when features.timer.enabled is true');
   });

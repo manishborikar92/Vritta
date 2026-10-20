@@ -292,7 +292,7 @@ describe('Multi-Item Catalog Creation & Lifecycle Parity', () => {
   it('should strictly preserve Osho disclosure promise: parent toggle never alters lifetime seriesProgress', () => {
     const oshoHabit = {
       id: 'habit_osho_1',
-      stableKey: 'canonical_listen_osho',
+      stableKey: 'routine_listen_osho',
       title: 'Listening & Awareness (Osho Discourse Audio)',
       category: 'Spirituality & Mindfulness',
       features: {
