@@ -1,20 +1,12 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
 import { X } from 'lucide-react';
 
 const ToastContext = createContext(null);
 
 export function ToastProvider({ children }) {
     const [toasts, setToasts] = useState([]);
-
-    useEffect(() => {
-        if (typeof window !== 'undefined' && 'serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-            navigator.serviceWorker.register('/sw.js').catch((err) => {
-                console.warn('Service worker registration failed:', err);
-            });
-        }
-    }, []);
 
     const addToast = useCallback((message, type = 'info') => {
         const id = Date.now();

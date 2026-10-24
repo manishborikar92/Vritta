@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">Vritta</string>
-    <string name="asset_statements">
-        [{\n          \"relation\": [\"delegate_permission/common.handle_all_urls\"],\n          \"target\": {\n            \"namespace\": \"android_app\",\n            \"package_name\": \"app.vercel.myvritta\",\n            \"sha256_cert_fingerprints\": [\"6C:2C:5D:84:B4:80:28:8B:CA:4B:CD:5B:A0:E6:13:D4:A8:6F:48:C5:F5:B2:9F:40:50:A0:BF:18:17:B6:DF:61\"]\n          }\n        }]
-    </string>
-</resources>

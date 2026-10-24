@@ -24,8 +24,6 @@
     "templates:seed": "npm --prefix web run templates:seed",
     "check": "npm run test && npm run lint && npm run build && git diff --check",
     "audit:shims": "node scripts/audit-zero-shims.mjs",
-    "android:build": "cd ./android && gradlew.bat --no-daemon assembleDebug",
-    "android:release": "cd ./android && gradlew.bat --no-daemon assembleRelease",
     "install:web": "npm --prefix web install"
   }
 }
